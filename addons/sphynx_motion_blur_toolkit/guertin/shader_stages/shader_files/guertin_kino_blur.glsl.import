@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://m6rlgfu6i0b3"
+path="res://.godot/imported/guertin_kino_blur.glsl-c2b40fbbf7a576933d107ab95d57a6af.res"
+
+[deps]
+
+source_file="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_kino_blur.glsl"
+dest_files=["res://.godot/imported/guertin_kino_blur.glsl-c2b40fbbf7a576933d107ab95d57a6af.res"]
+
+[params]
+

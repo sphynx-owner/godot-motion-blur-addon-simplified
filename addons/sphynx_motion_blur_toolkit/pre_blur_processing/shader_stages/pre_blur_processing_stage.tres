@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="ShaderStageResource" load_steps=3 format=3 uid="uid://c8ulad7utgrg7"]
+
+[ext_resource type="Script" path="res://addons/sphynx_enhanced_compositor_toolkit/base_classes/shader_pass_resource.gd" id="1_pm6im"]
+[ext_resource type="RDShaderFile" uid="uid://ojudxyx6f4rx" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/shaders/pre_blur_processor.glsl" id="2_w54vd"]
+
+[resource]
+script = ExtResource("1_pm6im")
+shader_file = ExtResource("2_w54vd")

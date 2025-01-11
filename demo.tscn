@@ -1,0 +1,163 @@
+[gd_scene load_steps=32 format=3 uid="uid://cht1ha628cnlv"]
+
+[ext_resource type="Resource" uid="uid://ca45noqewsyvp" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="1_65abe"]
+[ext_resource type="Resource" uid="uid://cslvcweyejh3c" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/resources/default_camera_movement_component.tres" id="1_fmu1v"]
+[ext_resource type="Texture2D" uid="uid://dsuk326vswcp4" path="res://icon.svg" id="1_h320m"]
+[ext_resource type="Script" path="res://addons/sphynx_motion_blur_toolkit/base_classes/mb_compositor.gd" id="1_pcy21"]
+[ext_resource type="Resource" uid="uid://iru8ynu04i00" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/resources/default_camera_rotation_component.tres" id="2_54sv1"]
+[ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="2_gicau"]
+[ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="3_hr8rx"]
+[ext_resource type="Resource" uid="uid://rp3mpjmisoyh" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/resources/default_object_movement_component.tres" id="3_rk61m"]
+[ext_resource type="Script" path="res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd" id="4_ihvrq"]
+[ext_resource type="Resource" uid="uid://c8ulad7utgrg7" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres" id="4_wgrvi"]
+[ext_resource type="Resource" uid="uid://dipvwksvqb3dm" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_x_stage.tres" id="5_7tef1"]
+[ext_resource type="Script" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/pre_blur_processor.gd" id="5_8kfws"]
+[ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="6_vy2yv"]
+[ext_resource type="Resource" uid="uid://bqehecsdgt70s" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_variance_stage.tres" id="7_y084v"]
+[ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="13_rbyyi"]
+[ext_resource type="Script" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="14_8qoen"]
+[ext_resource type="Script" path="res://camera_3d.gd" id="15_peffh"]
+[ext_resource type="Script" path="res://mesh_instance_3d_3.gd" id="17_33ie6"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rlupr"]
+
+[sub_resource type="Sky" id="Sky_6nr2b"]
+sky_material = SubResource("ProceduralSkyMaterial_rlupr")
+
+[sub_resource type="Environment" id="Environment_tre8e"]
+background_mode = 2
+sky = SubResource("Sky_6nr2b")
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_w722x"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = true
+needs_normal_roughness = false
+script = ExtResource("5_8kfws")
+pre_blur_processor_stage = ExtResource("4_wgrvi")
+camera_rotation_component = ExtResource("2_54sv1")
+camera_movement_component = ExtResource("1_fmu1v")
+object_movement_component = ExtResource("3_rk61m")
+debug = false
+shader_stages/pre_blur_processor_stage = ExtResource("4_wgrvi")
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_wtmrg"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = true
+needs_normal_roughness = false
+script = ExtResource("4_ihvrq")
+blur_stage = ExtResource("1_65abe")
+overlay_stage = ExtResource("3_hr8rx")
+tile_max_x_stage = ExtResource("5_7tef1")
+tile_max_y_stage = ExtResource("6_vy2yv")
+neighbor_max_stage = ExtResource("2_gicau")
+tile_variance_stage = ExtResource("7_y084v")
+tile_size = 40
+linear_falloff_slope = 1.0
+importance_bias = 40.0
+maximum_jitter_value = 0.95
+minimum_user_threshold = 1.5
+debug = true
+shader_stages/blur_stage = ExtResource("1_65abe")
+shader_stages/overlay_stage = ExtResource("3_hr8rx")
+shader_stages/tile_max_x_stage = ExtResource("5_7tef1")
+shader_stages/tile_max_y_stage = ExtResource("6_vy2yv")
+shader_stages/neighbor_max_stage = ExtResource("2_gicau")
+shader_stages/tile_variance_stage = ExtResource("7_y084v")
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_wqc5r"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = false
+needs_normal_roughness = false
+script = ExtResource("14_8qoen")
+overlay_stage = ExtResource("13_rbyyi")
+draw_debug = false
+debug_page = 0
+debug = true
+shader_stages/overlay_stage = ExtResource("13_rbyyi")
+
+[sub_resource type="Compositor" id="Compositor_1ki4s"]
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_w722x"), SubResource("CompositorEffect_wtmrg"), SubResource("CompositorEffect_wqc5r")])
+script = ExtResource("1_pcy21")
+samples = 16
+intensity = 0.5
+center_fade = 0.0
+framerate_independent = true
+uncapped_independence = false
+target_constant_framerate = 30.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_0r4in"]
+size = Vector2(100, 100)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_521fi"]
+albedo_color = Color(1, 0, 0, 1)
+albedo_texture = ExtResource("1_h320m")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_patg7"]
+albedo_texture = ExtResource("1_h320m")
+
+[sub_resource type="BoxMesh" id="BoxMesh_kpkbw"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_nw4ur"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_glrl7"]
+albedo_color = Color(1, 1, 0, 1)
+albedo_texture = ExtResource("1_h320m")
+
+[node name="Node3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_tre8e")
+compositor = SubResource("Compositor_1ki4s")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.512283, 0.858817, 0, -0.858817, 0.512283, 0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_0r4in")
+surface_material_override/0 = SubResource("StandardMaterial3D_521fi")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.969386, 0)
+material_override = SubResource("StandardMaterial3D_patg7")
+mesh = SubResource("BoxMesh_kpkbw")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5495, 3.81674, 0.2956)
+material_override = SubResource("StandardMaterial3D_patg7")
+mesh = SubResource("BoxMesh_kpkbw")
+script = ExtResource("17_33ie6")
+velocity = 100.0
+frequency = 12.568
+
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.96447, 4.15688, -6.90264)
+material_override = SubResource("StandardMaterial3D_patg7")
+mesh = SubResource("BoxMesh_kpkbw")
+
+[node name="MeshInstance3D5" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.32517, 4.5707, -1.23856)
+material_override = SubResource("StandardMaterial3D_patg7")
+mesh = SubResource("BoxMesh_kpkbw")
+
+[node name="MeshInstance3D6" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.34685, 3.38052, 8.06383)
+material_override = SubResource("StandardMaterial3D_patg7")
+mesh = SubResource("BoxMesh_kpkbw")
+
+[node name="MeshInstance3D7" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.21692, 3.62702, -2.91386)
+mesh = SubResource("CapsuleMesh_nw4ur")
+surface_material_override/0 = SubResource("StandardMaterial3D_glrl7")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0321, 2.46746)
+script = ExtResource("15_peffh")
