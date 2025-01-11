@@ -54,11 +54,9 @@ var _set_gate: bool = true
 
 static func static_free_shader_stage(in_rd: RenderingDevice, shader_stage_resource: ShaderStageResource):
 	if in_rd.compute_pipeline_is_valid(shader_stage_resource.pipeline):
-		print("attempting to free pipeline")
 		in_rd.free_rid(shader_stage_resource.pipeline)
 		shader_stage_resource.pipeline = RID()
 	if shader_stage_resource.shader.is_valid():
-		print("attenpting to free shader")
 		in_rd.free_rid(shader_stage_resource.shader)
 		shader_stage_resource.shader = RID()
 
@@ -97,14 +95,12 @@ func _get_property_list() -> Array[Dictionary]:
 
 func _set(property: StringName, value: Variant) -> bool:
 	if property.begins_with(shader_stages_category_prefix):
-		print("setting property")
 		var trimmed_property_name: String = property.trim_prefix(shader_stages_category_prefix)
 		var current_shader_stage: ShaderStageResource = get(trimmed_property_name)
 		
 		free_shader_stage(current_shader_stage)
 		
 		if current_shader_stage and current_shader_stage.changed.is_connected(_generate_shader_stage):
-			print("disconnecting property")
 			current_shader_stage.changed.disconnect(_generate_shader_stage)
 		
 		set(trimmed_property_name, value)
@@ -117,7 +113,7 @@ func _set(property: StringName, value: Variant) -> bool:
 			current_shader_stage.changed.connect(_generate_shader_stage.bind(weakref(current_shader_stage)))
 		
 		return true
-	print("return false")
+	
 	return false
 
 
@@ -314,7 +310,6 @@ func _generate_all_shader_stages():
 
 
 func _generate_shader_stage(shader_stage_weak_ref : WeakRef):
-	print("generating shader stage")
 	var shader_stage: ShaderStageResource = shader_stage_weak_ref.get_ref()
 	free_shader_stage(shader_stage)
 	

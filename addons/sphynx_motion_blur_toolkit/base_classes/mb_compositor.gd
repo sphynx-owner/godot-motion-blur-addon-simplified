@@ -1,6 +1,10 @@
 @tool
 extends Compositor
 class_name MotionBlurCompositor
+## This class can be used instaed of a regular compositor when working with the motion blur.
+## This was made so that general settings like sample count, 
+## framerate independence, and other settings that transcend any single motion blur effect would 
+## stay persistent as I was testing different implementations.
 
 @export_group("Motion Blur")
 # diminishing returns over 16
