@@ -31,25 +31,25 @@ This stage is carried out by the **PreBlurProcessor** compositor effect, thus it
 
 ![alt text](readme-assets/pre-blur-processor.png)
 
-You can find the script at `res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/pre_blur_processor.gd`.
-
+You can find the script in `res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/pre_blur_processor.gd`.
+You can find the shader file that it uses in `res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/shaders/pre_blur_processor.glsl`.
 ### Guertin's motion blur
 
 The motion blur method depicted in the article is carried out in 4 stages:
 
-1. **Tile Max X** - In this stage, the most dominant velocity in the velocity buffer within each tile's row is stored into that tile's row in the output texture.
+1. **Tile Max X** - In this stage, the most dominant velocity in the velocity buffer within each tile's row is stored into that tile's row in the output texture. The shader file for it can be found in `res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_tile_max_x.glsl`.
 
-2. **Tile Max Y** - The most dominant velocity in the output texture from the Tile Max X stage within each tile's column is stored into a final tile as the dominant velocity of that tile.
+2. **Tile Max Y** - The most dominant velocity in the output texture from the Tile Max X stage within each tile's column is stored into a final tile as the dominant velocity of that tile. The shader file for it can be found in `res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_tile_max_y.glsl`.
 
-3. **Neighbor Max** - A dominant velocity is picked from the neighboring tiles, dilating stronger velocities beyond their original tiles.
+3. **Neighbor Max** - A dominant velocity is picked from the neighboring tiles, dilating stronger velocities beyond their original tiles. The shader file for it can be found in `res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_neighbor_max.glsl`.
 
-4. **Blur Reconstruction** - Combining all data textures using blending heuristics to reconstruct the blur effect in screen space.
+4. **Blur Reconstruction** - Combining all data textures using blending heuristics to reconstruct the blur effect in screen space. The shader file for it can be found in `res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_sphynx_blur.glsl`.
 
 It is carried out by the **GuertinMotionBlur** compositor effect.
 
 ![alt text](readme-assets/guertin-motion-blur.png)
 
-You can find the script at `res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd`.
+You can find the script in `res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd`.
 
 ### Optional Debug Stage
 
