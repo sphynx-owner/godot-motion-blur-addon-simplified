@@ -1,6 +1,6 @@
 @tool
 extends "res://addons/sphynx_motion_blur_toolkit/guertin/base_guertin_motion_blur.gd"
-class_name GuertinMotionBlur
+class_name GuertinMotionBlurOld
 
 @export_storage var blur_stage : ShaderStageResource = preload("res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres")
 
@@ -13,6 +13,8 @@ class_name GuertinMotionBlur
 @export_storage var neighbor_max_stage : ShaderStageResource = preload("res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres")
 
 @export_storage var tile_variance_stage : ShaderStageResource = preload("res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_variance_stage.tres")
+
+var output_color: StringName = "output_color"
 
 var tile_max_x : StringName = "tile_max_x"
 
@@ -53,6 +55,7 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 	ensure_texture(neighbor_max, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
 	ensure_texture(tile_variance, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
 	ensure_texture(custom_velocity, render_scene_buffers)
+	ensure_texture(output_color, render_scene_buffers)
 	
 	rd.draw_command_begin_label("Motion Blur", Color(1.0, 1.0, 1.0, 1.0))
 	
@@ -136,6 +139,7 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 	for view in range(view_count):
 		var color_image := render_scene_buffers.get_color_layer(view)
 		var depth_image := render_scene_buffers.get_depth_layer(view)
+		var output_color_image := render_scene_buffers.get_texture_slice(context, output_color, view, 0, 1, 1)
 		var tile_max_x_image := render_scene_buffers.get_texture_slice(context, tile_max_x, view, 0, 1, 1)
 		var tile_max_image := render_scene_buffers.get_texture_slice(context, tile_max, view, 0, 1, 1)
 		var neighbor_max_image := render_scene_buffers.get_texture_slice(context, neighbor_max, view, 0, 1, 1)
@@ -179,6 +183,16 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		"NeighborMax", 
 		view)
 		
+		dispatch_stage(tile_variance_stage, 
+		[
+			get_sampler_uniform(tile_max_image, 0, false),
+			get_image_uniform(tile_variance_image, 1)
+		],
+		tile_variance_push_constants_byte_array,
+		Vector3i(x_groups, y_groups, 1), 
+		"TileVariance", 
+		view)
+		
 		x_groups = floori((render_size.x - 1) / 16 + 1)
 		y_groups = floori((render_size.y - 1) / 16 + 1)
 		
@@ -193,6 +207,16 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		blur_push_constants_byte_array,
 		Vector3i(x_groups, y_groups, 1), 
 		"Blur", 
+		view)
+		
+		dispatch_stage(overlay_stage, 
+		[
+			get_sampler_uniform(output_color_image, 0, false),
+			get_image_uniform(color_image, 1)
+		],
+		[],
+		Vector3i(x_groups, y_groups, 1), 
+		"Overlay result", 
 		view)
 	
 	rd.draw_command_end_label()
