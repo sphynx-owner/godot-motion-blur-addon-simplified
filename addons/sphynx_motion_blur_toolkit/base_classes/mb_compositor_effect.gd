@@ -1,6 +1,8 @@
 @tool
 extends "res://addons/sphynx_enhanced_compositor_toolkit/base_classes/enhanced_compositor_effect.gd"
 #class_name MotionBlurCompositor
+## This class abstracts some of the default settings that are expected 
+## from a motion blur compositor effect. 
 
 # diminishing returns over 16
 var samples: int = 16

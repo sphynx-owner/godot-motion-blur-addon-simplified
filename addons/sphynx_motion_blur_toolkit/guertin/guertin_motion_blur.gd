@@ -183,15 +183,15 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		"NeighborMax", 
 		view)
 		
-		dispatch_stage(tile_variance_stage, 
-		[
-			get_sampler_uniform(tile_max_image, 0, false),
-			get_image_uniform(tile_variance_image, 1)
-		],
-		tile_variance_push_constants_byte_array,
-		Vector3i(x_groups, y_groups, 1), 
-		"TileVariance", 
-		view)
+		#dispatch_stage(tile_variance_stage, 
+		#[
+			#get_sampler_uniform(tile_max_image, 0, false),
+			#get_image_uniform(tile_variance_image, 1)
+		#],
+		#tile_variance_push_constants_byte_array,
+		#Vector3i(x_groups, y_groups, 1), 
+		#"TileVariance", 
+		#view)
 		
 		x_groups = floori((render_size.x - 1) / 16 + 1)
 		y_groups = floori((render_size.y - 1) / 16 + 1)
@@ -202,21 +202,21 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 			get_sampler_uniform(custom_velocity_image, 1, false),
 			get_sampler_uniform(neighbor_max_image, 2, false),
 			get_sampler_uniform(tile_variance_image, 3, true),
-			get_image_uniform(output_color_image, 4),
+			get_image_uniform(color_image, 4),
 		],
 		blur_push_constants_byte_array,
 		Vector3i(x_groups, y_groups, 1), 
 		"Blur", 
 		view)
 		
-		dispatch_stage(overlay_stage, 
-		[
-			get_sampler_uniform(output_color_image, 0, false),
-			get_image_uniform(color_image, 1)
-		],
-		[],
-		Vector3i(x_groups, y_groups, 1), 
-		"Overlay result", 
-		view)
+		#dispatch_stage(overlay_stage, 
+		#[
+			#get_sampler_uniform(output_color_image, 0, false),
+			#get_image_uniform(color_image, 1)
+		#],
+		#[],
+		#Vector3i(x_groups, y_groups, 1), 
+		#"Overlay result", 
+		#view)
 	
 	rd.draw_command_end_label()
