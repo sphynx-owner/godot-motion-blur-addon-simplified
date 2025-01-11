@@ -29,7 +29,9 @@ Before the motion blur can be applied, a pre processing stage is carried out to 
 
 This stage is carried out by the **PreBlurProcessor** compositor effect, thus it must be added before any motion blur compositor effect in the `compositor_effects` array.
 
-![alt text](readme-assets/image.png)
+![alt text](readme-assets/pre-blur-processor.png)
+
+You can find the script at `res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/pre_blur_processor.gd`.
 
 ### Guertin's motion blur
 
@@ -46,4 +48,26 @@ The motion blur method depicted in the article is carried out in 4 stages:
 It is carried out by the **GuertinMotionBlur** compositor effect.
 
 ![alt text](readme-assets/guertin-motion-blur.png)
+
+You can find the script at `res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd`.
+
+### Optional Debug Stage
+
+Adding a **DebugCompositorEffect** stage at the end of the `compositor_effects` array will let you display some useful debugging as its own post process effect. By default the blur and pre processing stages contain some functionality to support it, and all they need is to have `debug` enabled on them:
+
+![alt text](readme-assets/enable-debug.png)
+
+Then you can press Z to toggle the debug views, X to freeze and unfreeze the frame, and C to cycle between debug view "pages" if there are any.
+
+You can also manually control the toggles in the editor.
+
+![alt text](readme-assets/debug-compositor-effect.png)
+
+
+A Deeper Dive
+-------------
+
+### Pre Blur Processing
+
+As mentioned above, godot is quite limited in its motion vector buffer, as it is focused on being optimized.
 

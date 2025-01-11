@@ -70,7 +70,7 @@ shader_stages/tile_max_y_stage = ExtResource("6_vy2yv")
 shader_stages/neighbor_max_stage = ExtResource("2_gicau")
 shader_stages/tile_variance_stage = ExtResource("7_y084v")
 
-[sub_resource type="CompositorEffect" id="CompositorEffect_plhtm"]
+[sub_resource type="CompositorEffect" id="CompositorEffect_uofvx"]
 resource_local_to_scene = false
 resource_name = ""
 enabled = true
@@ -85,7 +85,7 @@ debug = true
 shader_stages/overlay_stage = ExtResource("13_rbyyi")
 
 [sub_resource type="Compositor" id="Compositor_7qsp2"]
-compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_a4e4w"), SubResource("CompositorEffect_f15mr"), SubResource("CompositorEffect_plhtm")])
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_a4e4w"), SubResource("CompositorEffect_f15mr"), SubResource("CompositorEffect_uofvx")])
 script = ExtResource("16_khify")
 samples = 16
 intensity = 1.0

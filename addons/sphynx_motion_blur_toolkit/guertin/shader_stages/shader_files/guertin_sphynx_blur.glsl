@@ -65,6 +65,12 @@ float interleaved_gradient_noise(vec2 uv){
 
 // from https://github.com/bradparks/KinoMotion__unity_motion_blur/tree/master
 // ----------------------------------------------------------
+vec2 safenorm(vec2 v)
+{
+	float l = max(length(v), 1e-6);
+	return v / l * int(l >= 0.5);
+}
+
 vec2 jitter_tile(vec2 uvi)
 {
 	float rx, ry;
@@ -109,13 +115,13 @@ void main()
 		return;
 	}
 
-	vec2 wn = normalize(vn);
+	vec2 wn = safenorm(vn);
 
 	vec2 vx = vxzw.xy;
 
 	float vx_length = max(0.5, length(vx));
 
-	vec2 wx = normalize(vx);
+	vec2 wx = safenorm(vx);
 	
 	float j = interleaved_gradient_noise(uvi) * 2. - 1.;
 

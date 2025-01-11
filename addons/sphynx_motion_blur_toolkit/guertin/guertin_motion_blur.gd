@@ -192,7 +192,7 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		],
 		blur_push_constants_byte_array,
 		Vector3i(x_groups, y_groups, 1), 
-		"Blur", 
+		"Blur Reconstruction", 
 		view)
 	
 	rd.draw_command_end_label()

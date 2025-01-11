@@ -123,6 +123,7 @@ void main()
 	{
 		return;
 	}
+	
 	// must be on pixel center for whole values (tested)
 	vec2 uvn = vec2(uvi + vec2(0.5)) / render_size;
 	
@@ -135,6 +136,7 @@ void main()
 	vec4 view_position = inverse(scene_data.projection_matrix) * vec4(uvn * 2.0 - 1.0, depth, 1.0);
 
 	view_position.xyz /= view_position.w;
+	
 	// get full change 
 	vec4 world_local_position = inverse(scene_data.view_matrix) * vec4(view_position.xyz, 1.0);
 
@@ -162,27 +164,34 @@ void main()
 	past_uv = vec3(view_past_ndc.xy * 0.5 + 0.5, view_past_ndc.z);
 
 	vec3 camera_rotation_uv_change = past_uv - vec3(uvn, depth);
+	
 	// get just movement change
 	vec3 camera_movement_uv_change = camera_uv_change - camera_rotation_uv_change;
+	
 	// fill in gaps in base velocity (skybox, z velocity)
 	vec3 base_velocity = vec3(textureLod(vector_sampler, uvn, 0.0).xy + mix(vec2(0), camera_uv_change.xy, step(depth, 0.)), camera_uv_change.z);
+	
 	// fsr just makes it so values are larger than 1, I assume its the only case when it happens
 	if(params.is_fsr2 > 0.5 && dot(base_velocity.xy, base_velocity.xy) >= 1)
 	{
 		base_velocity = camera_uv_change;
 	}
+	
 	// get object velocity
 	vec3 object_uv_change = base_velocity - camera_uv_change.xyz;
+	
 	// construct final velocity with user defined weights
 	vec3 total_velocity = camera_rotation_uv_change * params.rotation_velocity_multiplier * sharp_step(params.rotation_velocity_lower_threshold, params.rotation_velocity_upper_threshold, length(camera_rotation_uv_change) * params.rotation_velocity_multiplier * params.motion_blur_intensity)
 	+ camera_movement_uv_change * params.movement_velocity_multiplier * sharp_step(params.movement_velocity_lower_threshold, params.movement_velocity_upper_threshold, length(camera_movement_uv_change) * params.movement_velocity_multiplier * params.motion_blur_intensity)
 	+ object_uv_change * params.object_velocity_multiplier * sharp_step(params.object_velocity_lower_threshold, params.object_velocity_upper_threshold, length(object_uv_change) * params.object_velocity_multiplier * params.motion_blur_intensity);
+	
 	// if objects move, clear z direction, (z only correct for static environment)
 	if(dot(object_uv_change.xy, object_uv_change.xy) > 0.000001)
 	{
 		total_velocity.z = 0;
 		base_velocity.z = 0;
 	}
+	
 	// choose the smaller option out of the two based on amgnitude, seems to work well
 	if(dot(total_velocity.xy * 99, total_velocity.xy * 100) >= dot(base_velocity.xy * 100, base_velocity.xy * 100))
 	{
