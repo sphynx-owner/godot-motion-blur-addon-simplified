@@ -169,7 +169,11 @@ void main()
 	vec3 camera_movement_uv_change = camera_uv_change - camera_rotation_uv_change;
 	
 	// fill in gaps in base velocity (skybox, z velocity)
-	vec3 base_velocity = vec3(textureLod(vector_sampler, uvn, 0.0).xy + mix(vec2(0), camera_uv_change.xy, step(depth, 0.)), camera_uv_change.z);
+	vec3 base_velocity = vec3(
+		textureLod(vector_sampler, uvn, 0.0).xy + 
+		mix(vec2(0), camera_uv_change.xy, step(depth, 0.)), 
+		camera_uv_change.z
+		);
 	
 	// fsr just makes it so values are larger than 1, I assume its the only case when it happens
 	if(params.is_fsr2 > 0.5 && dot(base_velocity.xy, base_velocity.xy) >= 1)
@@ -181,18 +185,28 @@ void main()
 	vec3 object_uv_change = base_velocity - camera_uv_change.xyz;
 	
 	// construct final velocity with user defined weights
-	vec3 total_velocity = camera_rotation_uv_change * params.rotation_velocity_multiplier * sharp_step(params.rotation_velocity_lower_threshold, params.rotation_velocity_upper_threshold, length(camera_rotation_uv_change) * params.rotation_velocity_multiplier * params.motion_blur_intensity)
-	+ camera_movement_uv_change * params.movement_velocity_multiplier * sharp_step(params.movement_velocity_lower_threshold, params.movement_velocity_upper_threshold, length(camera_movement_uv_change) * params.movement_velocity_multiplier * params.motion_blur_intensity)
-	+ object_uv_change * params.object_velocity_multiplier * sharp_step(params.object_velocity_lower_threshold, params.object_velocity_upper_threshold, length(object_uv_change) * params.object_velocity_multiplier * params.motion_blur_intensity);
+	vec3 total_velocity = 
 	
-	// if objects move, clear z direction, (z only correct for static environment)
+	camera_rotation_uv_change * params.rotation_velocity_multiplier * 
+	sharp_step(params.rotation_velocity_lower_threshold, params.rotation_velocity_upper_threshold, 
+	length(camera_rotation_uv_change) * params.rotation_velocity_multiplier * params.motion_blur_intensity)
+
+	+ camera_movement_uv_change * params.movement_velocity_multiplier * 
+	sharp_step(params.movement_velocity_lower_threshold, params.movement_velocity_upper_threshold, 
+	length(camera_movement_uv_change) * params.movement_velocity_multiplier * params.motion_blur_intensity)
+
+	+ object_uv_change * params.object_velocity_multiplier * 
+	sharp_step(params.object_velocity_lower_threshold, params.object_velocity_upper_threshold, 
+	length(object_uv_change) * params.object_velocity_multiplier * params.motion_blur_intensity);
+	
+	// if objects move, clear z direction, (velocity z can only be assumed for static environment)
 	if(dot(object_uv_change.xy, object_uv_change.xy) > 0.000001)
 	{
 		total_velocity.z = 0;
 		base_velocity.z = 0;
 	}
 	
-	// choose the smaller option out of the two based on amgnitude, seems to work well
+	// choose the smaller option out of the two based on magnitude, seems to work well
 	if(dot(total_velocity.xy * 99, total_velocity.xy * 100) >= dot(base_velocity.xy * 100, base_velocity.xy * 100))
 	{
 		total_velocity = base_velocity;
@@ -201,7 +215,10 @@ void main()
 	float total_velocity_length = max(FLT_MIN, length(total_velocity));
 	total_velocity = total_velocity * clamp(total_velocity_length, 0, 1) / total_velocity_length;
 
-	imageStore(vector_output, uvi, vec4(total_velocity * (view_past_ndc_cache.w < 0 ? -1 : 1), depth));//, depth));//
+	// If the previous position is happening behind the camera, the w component of the projected vector would be negative, 
+	// and the velocity vector would be flipped. (I am not 100% sure this is the whole story but this handles velocities
+	// that are extracted from the environment when the camera moves backwards rapidly, avoiding crazy artifacts)
+	imageStore(vector_output, uvi, vec4(total_velocity * (view_past_ndc_cache.w < 0 ? -1 : 1), depth));
 
 #ifdef DEBUG
 	vec2 velocity = textureLod(vector_sampler, uvn, 0.0).xy;

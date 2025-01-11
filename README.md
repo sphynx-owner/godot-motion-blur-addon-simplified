@@ -64,10 +64,21 @@ You can also manually control the toggles in the editor.
 ![alt text](readme-assets/debug-compositor-effect.png)
 
 
+(**Section in construction**)
 A Deeper Dive
 -------------
 
 ### Pre Blur Processing
 
 As mentioned above, godot is quite limited in its motion vector buffer, as it is focused on being optimized.
+
+This leaves us responsible to get velocities for the skybox and to handle the velocities when their behavior changes like they do with FSR2.
+
+The way I do it is by extracting the velocity myself based on the current and previous frame's view matrices against the current frame's depth image.
+
+This only works if the environment does not move, but because moving objects will always have velocities associated with them in godot's velocity buffer, I can simply ignore them and use their velocities as they are. For skybox however, which never shows velocity vectors, this is where I can extract velocity vectors for it myself.
+
+In addition, I am able to separate the different velocity components based on the rotation of the view matrix between frame, its movement, and the objects movement as depicted by godot's velocity buffer.
+
+Combining all of those techniques is what makes the pre blur processor stage.
 
