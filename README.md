@@ -43,7 +43,7 @@ The motion blur method depicted in the article is carried out in 4 stages:
 
 3. **Neighbor Max** - A dominant velocity is picked from the neighboring tiles, dilating stronger velocities beyond their original tiles. The shader file for it can be found in `res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_neighbor_max.glsl`.
 
-4. **Blur Reconstruction** - Combining all data textures using blending heuristics to reconstruct the blur effect in screen space. The shader file for it can be found in `res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_sphynx_blur.glsl`.
+4. **Blur Reconstruction** - Combining all data textures using blending heuristics to reconstruct the blur effect in screen space. The shader file for it can be found in `res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_sphynx_blur.glsl`. You can find the **KinoMotion** version of the implementation in `res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_kino_blur.glsl`. The main difference will be that my blending heuristics achieve a result that is closer to the ground truth, and are more robust against motion in the z axis.
 
 It is carried out by the **GuertinMotionBlur** compositor effect.
 
