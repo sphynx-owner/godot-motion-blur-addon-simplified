@@ -15,6 +15,11 @@ config/features=PackedStringArray("4.3", "Forward Plus")
 run/max_fps=60
 config/icon="res://icon.svg"
 
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/sphynx_enhanced_compositor_toolkit/plugin.cfg", "res://addons/sphynx_motion_blur_toolkit/plugin.cfg")

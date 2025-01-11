@@ -25,7 +25,6 @@ const shader_stages_category_prefix: String = "shader_stages/"
 			return
 		
 		debug = value
-		_free_all_shader_stages.call_deferred()
 		_generate_all_shader_stages.call_deferred()
 
 var rd: RenderingDevice
@@ -49,6 +48,22 @@ var debug_8 : String = "debug_8"
 
 var all_debug_images : Array[RID]
 
+var _set_gate: bool = true
+
+#region static functions
+
+static func static_free_shader_stage(in_rd: RenderingDevice, shader_stage_resource: ShaderStageResource):
+	if in_rd.compute_pipeline_is_valid(shader_stage_resource.pipeline):
+		print("attempting to free pipeline")
+		in_rd.free_rid(shader_stage_resource.pipeline)
+		shader_stage_resource.pipeline = RID()
+	if shader_stage_resource.shader.is_valid():
+		print("attenpting to free shader")
+		in_rd.free_rid(shader_stage_resource.shader)
+		shader_stage_resource.shader = RID()
+
+#endregion
+
 #region override functions
 
 func _init():
@@ -64,10 +79,7 @@ func _notification(what):
 		if nearest_sampler.is_valid():
 			rd.free_rid(nearest_sampler)
 		for shader_stage in _all_shader_stages:
-			if shader_stage.shader.is_valid():
-				rd.free_rid(shader_stage.shader)
-			if rd.compute_pipeline_is_valid(shader_stage.pipeline):
-				rd.free_rid(shader_stage.pipeline)
+			static_free_shader_stage(rd, shader_stage)
 
 
 func _get_property_list() -> Array[Dictionary]:
@@ -85,12 +97,27 @@ func _get_property_list() -> Array[Dictionary]:
 
 func _set(property: StringName, value: Variant) -> bool:
 	if property.begins_with(shader_stages_category_prefix):
+		print("setting property")
 		var trimmed_property_name: String = property.trim_prefix(shader_stages_category_prefix)
-		clear_shader_stage(get(trimmed_property_name))
+		var current_shader_stage: ShaderStageResource = get(trimmed_property_name)
+		
+		free_shader_stage(current_shader_stage)
+		
+		if current_shader_stage and current_shader_stage.changed.is_connected(_generate_shader_stage):
+			print("disconnecting property")
+			current_shader_stage.changed.disconnect(_generate_shader_stage)
+		
 		set(trimmed_property_name, value)
-		setup_shader_stage(get(trimmed_property_name))
+		
+		current_shader_stage = value
+		
+		_generate_shader_stage(weakref(current_shader_stage))
+		
+		if current_shader_stage and !current_shader_stage.changed.is_connected(_generate_shader_stage):
+			current_shader_stage.changed.connect(_generate_shader_stage.bind(weakref(current_shader_stage)))
+		
 		return true
-	
+	print("return false")
 	return false
 
 
@@ -153,17 +180,14 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 #region public functions
 
 func setup_shader_stage(shader_stage : ShaderStageResource):
-	_generate_shader_stage(shader_stage)
+	_generate_shader_stage(weakref(shader_stage))
 
 
-func clear_shader_stage(shader_stage : ShaderStageResource):
+func free_shader_stage(shader_stage : ShaderStageResource):
 	if !rd:
 		return
 	
-	if shader_stage.shader.is_valid():
-		rd.free_rid(shader_stage.shader)
-	if rd.compute_pipeline_is_valid(shader_stage.pipeline):
-		rd.free_rid(shader_stage.pipeline)
+	static_free_shader_stage(rd, shader_stage)
 
 
 func ensure_texture(texture_name : StringName, render_scene_buffers : RenderSceneBuffersRD, texture_format : RenderingDevice.DataFormat = RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, render_size_multiplier : Vector2 = Vector2(1, 1)):
@@ -279,23 +303,21 @@ func _update_all_shader_stages():
 	_all_shader_stages.clear()
 	var all_shader_stage_properties: Array[Dictionary] = _get_shader_stage_properties()
 	for shader_stage_property: Dictionary in all_shader_stage_properties:
-		_all_shader_stages[get(shader_stage_property.name)] = 0
-
-
-func _free_all_shader_stages():
-	for shader_stage in _all_shader_stages.keys():
-		if shader_stage.pipeline.is_valid():
-			rd.free_rid(shader_stage.pipeline)
-		if shader_stage.shader.is_valid():
-			rd.free_rid(shader_stage.shader)
+		var shader_stage: ShaderStageResource = get(shader_stage_property.name)
+		shader_stage.changed.connect(_generate_shader_stage.bind(weakref(shader_stage)))
+		_all_shader_stages[shader_stage] = 0
 
 
 func _generate_all_shader_stages():
-	for shader_stage in _all_shader_stages.keys():
-		_generate_shader_stage(shader_stage)
+	for shader_stage: ShaderStageResource in _all_shader_stages.keys():
+		_generate_shader_stage(weakref(shader_stage))
 
 
-func _generate_shader_stage(shader_stage : ShaderStageResource):
+func _generate_shader_stage(shader_stage_weak_ref : WeakRef):
+	print("generating shader stage")
+	var shader_stage: ShaderStageResource = shader_stage_weak_ref.get_ref()
+	free_shader_stage(shader_stage)
+	
 	var shader_spirv : RDShaderSPIRV
 	if debug:
 		var file = FileAccess.open(shader_stage.shader_file.resource_path, FileAccess.READ)

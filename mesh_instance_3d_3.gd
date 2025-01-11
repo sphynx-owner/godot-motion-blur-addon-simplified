@@ -1,4 +1,3 @@
-@tool
 extends MeshInstance3D
 
 @export var velocity := 10.0
