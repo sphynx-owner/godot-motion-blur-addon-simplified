@@ -4,6 +4,8 @@ class_name DebugCompositorEffect
 
 @export_storage var overlay_stage : ShaderStageResource = preload("res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres")
 
+@export_storage var copy_stage : ShaderStageResource = preload("res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_copy_shader_stage.tres")
+
 ## wether to display debug views for velocity and depth 
 ## buffers
 @export var draw_debug : bool = false
@@ -14,6 +16,8 @@ class_name DebugCompositorEffect
 
 var past_color : StringName = "past_color"
 
+var output_debug_color: StringName = "output_debug_color"
+
 var freeze : bool = false
 
 func _init():
@@ -23,6 +27,7 @@ func _init():
 
 func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSceneBuffersRD, render_scene_data : RenderSceneDataRD):
 	ensure_texture(past_color, render_scene_buffers)
+	ensure_texture(output_debug_color, render_scene_buffers)
 	ensure_texture(debug_1, render_scene_buffers)
 	ensure_texture(debug_2, render_scene_buffers)
 	ensure_texture(debug_3, render_scene_buffers)
@@ -63,6 +68,7 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 	for view in range(view_count):
 		var color_image := render_scene_buffers.get_color_layer(view)
 		var past_color_image := render_scene_buffers.get_texture_slice(context, past_color, view, 0, 1, 1)
+		var output_debug_color_image := render_scene_buffers.get_texture_slice(context, output_debug_color, view, 0, 1, 1)
 		var debug_1_image := render_scene_buffers.get_texture_slice(context, debug_1, view, 0, 1, 1)
 		var debug_2_image := render_scene_buffers.get_texture_slice(context, debug_2, view, 0, 1, 1)
 		var debug_3_image := render_scene_buffers.get_texture_slice(context, debug_3, view, 0, 1, 1)
@@ -78,7 +84,7 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		dispatch_stage(overlay_stage, 
 		[
 			get_image_uniform(past_color_image, 0),
-			get_image_uniform(color_image, 1),
+			get_image_uniform(output_debug_color_image, 1),
 			get_sampler_uniform(color_image, 2),
 			get_sampler_uniform(debug_1_image, 3),
 			get_sampler_uniform(debug_2_image, 4),
@@ -92,6 +98,16 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		byte_array,
 		Vector3i(x_groups, y_groups, 1), 
 		"Debug Overlay", 
+		view)
+	
+		dispatch_stage(copy_stage, 
+		[
+			get_sampler_uniform(output_debug_color_image, 0, false),
+			get_image_uniform(color_image, 1)
+		],
+		[],
+		Vector3i(x_groups, y_groups, 1), 
+		"Copy result", 
 		view)
 	
 	rd.draw_command_end_label()

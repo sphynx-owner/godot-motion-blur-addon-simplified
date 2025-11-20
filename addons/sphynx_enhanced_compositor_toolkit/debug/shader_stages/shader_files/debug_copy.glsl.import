@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://dppygeaycyuqf"
+path="res://.godot/imported/debug_copy.glsl-197a3a5e993175cc2f3364feb6d0210a.res"
+
+[deps]
+
+source_file="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/shader_files/debug_copy.glsl"
+dest_files=["res://.godot/imported/debug_copy.glsl-197a3a5e993175cc2f3364feb6d0210a.res"]
+
+[params]
+
