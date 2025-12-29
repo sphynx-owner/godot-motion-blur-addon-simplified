@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://dvrxnfbxqtdet"
+path="res://.godot/imported/depth_compositor_compute.glsl-15297b897c9adaa5f2d6c66fcfcbad4c.res"
+
+[deps]
+
+source_file="res://addons/sphynx's_radial_blur_toolkit/compositor/depth_compositor_compute.glsl"
+dest_files=["res://.godot/imported/depth_compositor_compute.glsl-15297b897c9adaa5f2d6c66fcfcbad4c.res"]
+
+[params]
+

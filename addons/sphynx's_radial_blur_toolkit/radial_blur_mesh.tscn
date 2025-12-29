@@ -1,0 +1,71 @@
+[gd_scene load_steps=14 format=3 uid="uid://8p6li7o742g3"]
+
+[ext_resource type="Shader" uid="uid://c32jqjvg6uggw" path="res://addons/sphynx's_radial_blur_toolkit/radial_blur_mesh.gdshader" id="1_36vys"]
+[ext_resource type="Script" uid="uid://cn5liruitxvae" path="res://addons/sphynx's_radial_blur_toolkit/radial_blur_mesh.gd" id="2_cfhks"]
+[ext_resource type="Script" uid="uid://2itpe51wx6xh" path="res://addons/sphynx's_radial_blur_toolkit/radial_blur_viewport.gd" id="3_oak1g"]
+[ext_resource type="Resource" uid="uid://cgyhieo0o87v1" path="res://addons/sphynx's_radial_blur_toolkit/compositor/depth_texture_stage.tres" id="4_m1h7s"]
+[ext_resource type="Script" uid="uid://61srqbic4n7p" path="res://addons/sphynx's_radial_blur_toolkit/radial_blur_camera.gd" id="4_qau8u"]
+[ext_resource type="Script" uid="uid://e38mra44n2dp" path="res://addons/sphynx's_radial_blur_toolkit/compositor/depth_compositor_effect.gd" id="5_m1h7s"]
+[ext_resource type="Shader" uid="uid://cweiwcpbgchrn" path="res://addons/sphynx's_radial_blur_toolkit/back_mesh_shader.gdshader" id="7_m1h7s"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pgvyt"]
+resource_local_to_scene = true
+height = 0.25
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_qau8u"]
+viewport_path = NodePath("RadialBlurViewport")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_stapv"]
+resource_local_to_scene = true
+render_priority = 0
+shader = ExtResource("1_36vys")
+shader_parameter/screen_texture = SubResource("ViewportTexture_qau8u")
+shader_parameter/local_rotation_axis = Vector3(0, 1, 0)
+shader_parameter/rotation_speed = 0.0
+shader_parameter/sample_count = 8
+shader_parameter/debug_color = Color(1, 0, 0, 0)
+shader_parameter/sampling_error_threshold = 0.2
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_m1h7s"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = false
+needs_normal_roughness = false
+script = ExtResource("5_m1h7s")
+shader_stages/depth_texture_stage = ExtResource("4_m1h7s")
+metadata/_custom_type_script = "uid://e38mra44n2dp"
+
+[sub_resource type="Compositor" id="Compositor_fgbw3"]
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_m1h7s")])
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fgbw3"]
+render_priority = 0
+shader = ExtResource("7_m1h7s")
+
+[node name="RadialBlurMesh" type="MeshInstance3D"]
+process_priority = 1
+mesh = SubResource("CylinderMesh_pgvyt")
+surface_material_override/0 = SubResource("ShaderMaterial_stapv")
+script = ExtResource("2_cfhks")
+
+[node name="RadialBlurViewport" type="SubViewport" parent="."]
+transparent_bg = true
+handle_input_locally = false
+use_hdr_2d = true
+anisotropic_filtering_level = 0
+canvas_cull_mask = 4
+size = Vector2i(1184, 605)
+render_target_update_mode = 4
+script = ExtResource("3_oak1g")
+
+[node name="Camera3D" type="Camera3D" parent="RadialBlurViewport"]
+cull_mask = 1048572
+compositor = SubResource("Compositor_fgbw3")
+script = ExtResource("4_qau8u")
+
+[node name="MeshCopy" type="MeshInstance3D" parent="."]
+layers = 4
+mesh = SubResource("CylinderMesh_pgvyt")
+surface_material_override/0 = SubResource("ShaderMaterial_fgbw3")

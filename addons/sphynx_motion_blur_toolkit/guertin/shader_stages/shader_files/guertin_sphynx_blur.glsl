@@ -10,6 +10,7 @@ layout(set = 0, binding = 1) uniform sampler2D velocity_sampler;
 layout(set = 0, binding = 2) uniform sampler2D neighbor_max;
 layout(set = 0, binding = 3) uniform sampler2D tile_variance;
 layout(rgba16f, set = 0, binding = 4) uniform writeonly image2D output_color;
+layout(set = 0, binding = 3) uniform sampler2D custom_curve;
 
 
 layout(push_constant, std430) uniform Params 
@@ -113,8 +114,8 @@ void main()
 		imageStore(output_color, uvi, base_color);
 #ifdef DEBUG
 		imageStore(debug_1_image, uvi, base_color);
-		imageStore(debug_2_image, uvi, vec4(vn / render_size * 2, 0, 1));
-		imageStore(debug_3_image, uvi, vec4(vxzw.xy / render_size * 2, 0, 1));
+		imageStore(debug_2_image, uvi, vec4(vn / render_size * 2, abs(vnzw.z) * 10000, 1));
+		imageStore(debug_3_image, uvi, vec4(vxzw.xy / render_size * 2, abs(vxzw.z) * 10000, 1));
 		imageStore(debug_4_image, uvi, vec4(0));
 #endif
 		return;
@@ -154,10 +155,7 @@ void main()
 		// Get the true velocity at the sample point.
 		vec4 vyzwx = textureLod(velocity_sampler, yx, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity;
 		
-		vec4 vyzwn = textureLod(velocity_sampler, yn, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity;
-
-		// Get the xy component of the velocity at the sample point
-		vec2 vyx = vyzwx.xy; 
+		vec4 vyzwn = textureLod(velocity_sampler, yn, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity; 
 
 		vec2 vyn = vyzwn.xy;
 
@@ -165,6 +163,7 @@ void main()
 		float zyx = vyzwx.w;
 
 		float zyn = vyzwn.w;
+
 		// TODO @sphynx-owner: figure out depth comparisons, as well as 
 		// including the correct depth velocity components.
 		float overlapx = z_compare(-zx, -zyx, 20000);
@@ -179,9 +178,9 @@ void main()
 
 		float projected = abs(dot(wyn, wn));
 
-		float current_weightn = step(Tn, vyn_length * projected)/* * overlapn*/;
+		float current_weightn = step(Tn, vyn_length * projected) * overlapn;
 
-		float current_weightx = 1/* * overlapx*/;
+		float current_weightx = 1 * overlapx;
 
 		sum += mix(mix(base_color, textureLod(color_sampler, yx, 0.0), current_weightx), textureLod(color_sampler, yn, 0.0), current_weightn);
 	}

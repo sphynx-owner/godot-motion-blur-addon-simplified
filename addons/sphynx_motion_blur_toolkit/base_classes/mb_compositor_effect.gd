@@ -27,7 +27,56 @@ var uncapped_independence : bool = false
 ## sutter speeds at that framerate, and up.
 var target_constant_framerate : float = 30
 
+var custom_curve: Curve:
+	set(value):
+		if custom_curve and custom_curve.changed.is_connected(_custom_curve_updated):
+			custom_curve.changed.disconnect(_custom_curve_updated)
+		
+		custom_curve = value
+		
+		if custom_curve and !custom_curve.changed.is_connected(_custom_curve_updated):
+			custom_curve.changed.connect(_custom_curve_updated)
+		
+		_custom_curve_updated()
+
+var custom_curve_texture_rd: Texture2DRD
+
+
 func _init():
 	needs_motion_vectors = true
 	set_deferred("context", "MotionBlur")
 	super()
+
+
+func _custom_curve_updated() -> void:
+	if !custom_curve:
+		custom_curve_texture_rd = null
+		return
+	
+	var rd: RenderingDevice = RenderingServer.get_rendering_device()
+	
+	var curve_texture := CurveTexture.new()
+	
+	curve_texture.curve = custom_curve
+	
+	var curve_image : Image = RenderingServer.texture_2d_get(curve_texture)
+	curve_image.clear_mipmaps()
+	curve_image.decompress()
+	curve_image.convert(Image.FORMAT_RGBAF)
+	
+	var curve_texture_format : RDTextureFormat = RDTextureFormat.new()
+	curve_texture_format.width = curve_image.get_width()
+	curve_texture_format.height = curve_image.get_height()
+	curve_texture_format.depth = 1
+	
+	curve_texture_format.texture_type = RenderingDevice.TEXTURE_TYPE_2D
+	
+	curve_texture_format.format = RenderingDevice.DATA_FORMAT_R32G32B32A32_SFLOAT
+	
+	curve_texture_format.usage_bits = RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT
+	
+	var paint_texture_view : RDTextureView = RDTextureView.new()
+	
+	custom_curve_texture_rd = Texture2DRD.new()
+	
+	custom_curve_texture_rd.texture_rd_rid = rd.texture_create(curve_texture_format, paint_texture_view, [curve_image.get_data()])

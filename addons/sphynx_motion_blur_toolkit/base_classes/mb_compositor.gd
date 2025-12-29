@@ -52,3 +52,14 @@ class_name MotionBlurCompositor
 		for effect in compositor_effects:
 			effect.set("target_constant_framerate", value)
 		target_constant_framerate = value
+
+## Modifies the otherwise regular average color over time
+## to be weighted average over time based on a distribution curve.
+## flat line is equivalent to the default, and you can choose 
+## to modify the amount of color during the motion blur frame from
+## start to finish.
+@export var custom_curve: Curve :
+	set(value):
+		for effect in compositor_effects:
+			effect.set("custom_curve", value)
+		custom_curve = value
