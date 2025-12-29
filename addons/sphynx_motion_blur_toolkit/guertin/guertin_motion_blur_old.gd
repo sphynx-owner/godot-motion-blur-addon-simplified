@@ -50,9 +50,9 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		
 		temp_intensity = intensity * capped_frame_time / delta_time
 	
-	ensure_texture(tile_max_x, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1.))
-	ensure_texture(tile_max, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
-	ensure_texture(neighbor_max, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
+	ensure_texture(tile_max_x, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16_SFLOAT, Vector2(1. / tile_size, 1.))
+	ensure_texture(tile_max, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
+	ensure_texture(neighbor_max, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
 	ensure_texture(tile_variance, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
 	ensure_texture(custom_velocity, render_scene_buffers)
 	ensure_texture(output_color, render_scene_buffers)

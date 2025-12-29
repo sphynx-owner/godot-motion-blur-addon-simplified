@@ -10,7 +10,7 @@ layout(set = 0, binding = 1) uniform sampler2D velocity_sampler;
 layout(set = 0, binding = 2) uniform sampler2D neighbor_max;
 layout(set = 0, binding = 3) uniform sampler2D tile_variance;
 layout(rgba16f, set = 0, binding = 4) uniform writeonly image2D output_color;
-layout(set = 0, binding = 3) uniform sampler2D custom_curve;
+layout(set = 0, binding = 5) uniform sampler2D custom_curve;
 
 
 layout(push_constant, std430) uniform Params 
@@ -22,7 +22,7 @@ layout(push_constant, std430) uniform Params
 	int tile_size;
 	int sample_count;
 	int frame;
-	int nan4;
+	int use_custom_curve;
 } params;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
@@ -31,7 +31,7 @@ layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 // ----------------------------------------------------------
 float z_compare(float a, float b, float sze)
 {
-	return clamp(1. - sze * (a - b), 0, 1);
+	return clamp(sze * (a - b), 0, 1);
 }
 // ----------------------------------------------------------
 
@@ -109,23 +109,23 @@ void main()
 	// We get the true velocity at the current pixel, mulitplied by the motion blur intensity.
 	vec4 vxzw = textureLod(velocity_sampler, x, 0.0) * vec4(render_size / 2., 1, 1) * params.motion_blur_intensity;
 
+	// We get the xy components of the true velocity (see declaration of vn)
+	vec2 vx = vxzw.xy;
+
 	if(vn_length < 0.5)
 	{
 		imageStore(output_color, uvi, base_color);
 #ifdef DEBUG
-		imageStore(debug_1_image, uvi, base_color);
-		imageStore(debug_2_image, uvi, vec4(vn / render_size * 2, abs(vnzw.z) * 10000, 1));
-		imageStore(debug_3_image, uvi, vec4(vxzw.xy / render_size * 2, abs(vxzw.z) * 10000, 1));
-		imageStore(debug_4_image, uvi, vec4(0));
+		imageStore(debug_1_image, uvi, textureLod(custom_curve, x, 0.0));
+		imageStore(debug_2_image, uvi, vec4(vxzw.xy / render_size * 2, 0, 1));
+		imageStore(debug_3_image, uvi, vec4(step(0, vxzw.w), abs(vxzw.w) / 500, 0, 0));
+		imageStore(debug_4_image, uvi, vec4(step(0, vxzw.z), abs(vxzw.z), 0, 0));
 #endif
 		return;
 	}
 
 	// We normalize neighbor-max velocity
 	vec2 wn = safenorm(vn);
-
-	// We get the xy components of the true velocity (see declaration of vn)
-	vec2 vx = vxzw.xy;
 
 	float vx_length = max(0.5, length(vx));
 
@@ -139,20 +139,24 @@ void main()
 	// Get the depth at current pixel
 	float zx = vxzw.w;
 
+	float weight = 1e-6;
+
 	// Create an initial color sum
-	vec4 sum = vec4(0);
+	vec4 sum = base_color * weight;
 
 	for(int i = 0; i < params.sample_count; i++)
 	{
-		// A point in time along the blur interval, used to scale velocity vectors to sample for color.
-		float t = mix(-1.0, 1.0, (i + j * params.maximum_jitter_value + 1.0) / (params.sample_count + 1.0));
+		float ti = (i + j * params.maximum_jitter_value + 1.0) / (params.sample_count + 1.0);
 
-		// Get sample point
+		// A point in time along the blur interval, used to scale velocity vectors to sample for color.
+		float t = mix(-1.0, 1.0, ti);
+
+		// Get sample points
 		vec2 yx = x + t * vx / vec2(render_size);
 		
 		vec2 yn = x + t * vn / vec2(render_size);
 
-		// Get the true velocity at the sample point.
+		// Get the true velocities at the sample points.
 		vec4 vyzwx = textureLod(velocity_sampler, yx, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity;
 		
 		vec4 vyzwn = textureLod(velocity_sampler, yn, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity; 
@@ -164,11 +168,9 @@ void main()
 
 		float zyn = vyzwn.w;
 
-		// TODO @sphynx-owner: figure out depth comparisons, as well as 
-		// including the correct depth velocity components.
-		float overlapx = z_compare(-zx, -zyx, 20000);
+		float overlapx = 1 - z_compare(zx + vxzw.z * t, zyx, -10);
 
-		float overlapn = z_compare(-zyn, -zx, 20000);
+		float overlapn = 1 - z_compare(zyn - vyzwn.z * t, zx, -10);
 
 		vec2 wyn = safenorm(vyn);
 
@@ -180,18 +182,24 @@ void main()
 
 		float current_weightn = step(Tn, vyn_length * projected) * overlapn;
 
-		float current_weightx = 1 * overlapx;
+		float current_weightx = overlapx;
 
-		sum += mix(mix(base_color, textureLod(color_sampler, yx, 0.0), current_weightx), textureLod(color_sampler, yn, 0.0), current_weightn);
+		float custom_curve_sample = params.use_custom_curve == 1 ? textureLod(custom_curve, vec2(ti, 0.5), 0.0).x : 1;
+
+		float current_total_weight = max(max(current_weightn, current_weightx), 0.1) * custom_curve_sample;
+
+		weight += current_total_weight;
+
+		sum += mix(mix(base_color, textureLod(color_sampler, yx, 0.0), current_weightx), textureLod(color_sampler, yn, 0.0), current_weightn) * current_total_weight;
 	}
 
-	sum /= params.sample_count;
+	sum /= weight;
 
 	imageStore(output_color, uvi, sum);
 #ifdef DEBUG
-	imageStore(debug_1_image, uvi, base_color);
-	imageStore(debug_2_image, uvi, vec4(vn / render_size * 2, 0, 1));
-	imageStore(debug_3_image, uvi, vec4(vx / render_size * 2, 0, 1));
-	imageStore(debug_4_image, uvi, vxzw);
+	imageStore(debug_1_image, uvi, textureLod(custom_curve, x, 0.0));
+	imageStore(debug_2_image, uvi, vec4(vxzw.xy / render_size * 2, 0, 1));
+	imageStore(debug_3_image, uvi, vec4(step(0, vxzw.w), abs(vxzw.w) / 500, 0, 0));
+	imageStore(debug_4_image, uvi, vec4(step(0, vxzw.z), abs(vxzw.z), 0, 0));
 #endif
 }

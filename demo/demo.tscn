@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://cht1ha628cnlv"]
+[gd_scene load_steps=33 format=3 uid="uid://cht1ha628cnlv"]
 
 [ext_resource type="Resource" uid="uid://ca45noqewsyvp" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="1_65abe"]
 [ext_resource type="Resource" uid="uid://cslvcweyejh3c" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/resources/default_camera_movement_component.tres" id="1_fmu1v"]
@@ -36,18 +36,7 @@ effect_callback_type = 4
 needs_motion_vectors = true
 needs_normal_roughness = false
 script = ExtResource("5_8kfws")
-pre_blur_processor_stage = ExtResource("4_wgrvi")
-camera_rotation_component = ExtResource("2_54sv1")
-camera_movement_component = ExtResource("1_fmu1v")
-object_movement_component = ExtResource("3_rk61m")
-debug = false
 shader_stages/pre_blur_processor_stage = ExtResource("4_wgrvi")
-samples = 16
-intensity = 1.0
-center_fade = 0.0
-framerate_independent = true
-uncapped_independence = false
-target_constant_framerate = 30.0
 
 [sub_resource type="CompositorEffect" id="CompositorEffect_f15mr"]
 resource_local_to_scene = false
@@ -57,17 +46,6 @@ effect_callback_type = 4
 needs_motion_vectors = true
 needs_normal_roughness = false
 script = ExtResource("4_ihvrq")
-blur_stage = ExtResource("1_65abe")
-overlay_stage = ExtResource("3_hr8rx")
-tile_max_x_stage = ExtResource("5_7tef1")
-tile_max_y_stage = ExtResource("6_vy2yv")
-neighbor_max_stage = ExtResource("2_gicau")
-tile_variance_stage = ExtResource("7_y084v")
-tile_size = 40
-linear_falloff_slope = 1.0
-importance_bias = 40.0
-maximum_jitter_value = 0.95
-minimum_user_threshold = 1.5
 debug = true
 shader_stages/blur_stage = ExtResource("1_65abe")
 shader_stages/overlay_stage = ExtResource("3_hr8rx")
@@ -75,12 +53,6 @@ shader_stages/tile_max_x_stage = ExtResource("5_7tef1")
 shader_stages/tile_max_y_stage = ExtResource("6_vy2yv")
 shader_stages/neighbor_max_stage = ExtResource("2_gicau")
 shader_stages/tile_variance_stage = ExtResource("7_y084v")
-samples = 16
-intensity = 1.0
-center_fade = 0.0
-framerate_independent = true
-uncapped_independence = false
-target_constant_framerate = 30.0
 
 [sub_resource type="CompositorEffect" id="CompositorEffect_uofvx"]
 resource_local_to_scene = false
@@ -90,27 +62,19 @@ effect_callback_type = 4
 needs_motion_vectors = false
 needs_normal_roughness = false
 script = ExtResource("14_8qoen")
-overlay_stage = ExtResource("13_rbyyi")
-draw_debug = false
-debug_page = 0
 debug = true
 shader_stages/overlay_stage = ExtResource("13_rbyyi")
-samples = 16
-intensity = 1.0
-center_fade = 0.0
-framerate_independent = true
-uncapped_independence = false
-target_constant_framerate = 30.0
+
+[sub_resource type="Curve" id="Curve_d1m6b"]
+_data = [Vector2(1e-05, 0), 0.0, 0.0, 0, 0, Vector2(0.47489536, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
 
 [sub_resource type="Compositor" id="Compositor_7qsp2"]
 compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_a4e4w"), SubResource("CompositorEffect_f15mr"), SubResource("CompositorEffect_uofvx")])
 script = ExtResource("16_khify")
-samples = 16
-intensity = 1.0
-center_fade = 0.0
-framerate_independent = true
-uncapped_independence = false
-target_constant_framerate = 30.0
+samples = 8
+custom_curve = SubResource("Curve_d1m6b")
+use_custom_curve = null
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_0r4in"]
 size = Vector2(100, 100)
@@ -121,6 +85,7 @@ albedo_texture = ExtResource("1_h320m")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_patg7"]
 albedo_texture = ExtResource("1_h320m")
+uv1_scale = Vector3(17.165, 17.165, 17.165)
 
 [sub_resource type="BoxMesh" id="BoxMesh_kpkbw"]
 
@@ -149,7 +114,7 @@ material_override = SubResource("StandardMaterial3D_patg7")
 mesh = SubResource("BoxMesh_kpkbw")
 
 [node name="MeshInstance3D3" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.0565, 3.81674, 0.2956)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.49704838, 3.81674, 0.2956)
 material_override = SubResource("StandardMaterial3D_patg7")
 mesh = SubResource("BoxMesh_kpkbw")
 script = ExtResource("17_33ie6")

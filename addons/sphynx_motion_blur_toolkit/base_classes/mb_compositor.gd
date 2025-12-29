@@ -63,3 +63,11 @@ class_name MotionBlurCompositor
 		for effect in compositor_effects:
 			effect.set("custom_curve", value)
 		custom_curve = value
+
+
+@export var use_custom_curve: bool :
+	set(value):
+		for effect in compositor_effects:
+			effect.set("use_custom_curve", value)
+		
+		use_custom_curve = value

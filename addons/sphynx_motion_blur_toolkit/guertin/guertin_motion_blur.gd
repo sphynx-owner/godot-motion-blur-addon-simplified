@@ -32,6 +32,8 @@ var temp_intensity : float
 
 var previous_time : float = 0
 
+var debug_toggle := false
+
 
 func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSceneBuffersRD, render_scene_data : RenderSceneDataRD):
 	var time : float = float(Time.get_ticks_msec()) / 1000
@@ -129,8 +131,9 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		tile_size,
 		samples,
 		Engine.get_frames_drawn() % 8,
-		0
+		1 if use_custom_curve else 0
 	]
+	
 	var blur_push_constants_byte_array = float_blur_push_constants.to_byte_array()
 	blur_push_constants_byte_array.append_array(int_blur_push_constants.to_byte_array())
 	

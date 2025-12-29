@@ -39,25 +39,25 @@ var custom_curve: Curve:
 		
 		_custom_curve_updated()
 
+
+var use_custom_curve: bool = false
+
 var custom_curve_texture_rd: Texture2DRD
 
 
 func _init():
 	needs_motion_vectors = true
 	set_deferred("context", "MotionBlur")
+	_custom_curve_updated()
 	super()
 
 
 func _custom_curve_updated() -> void:
-	if !custom_curve:
-		custom_curve_texture_rd = null
-		return
-	
 	var rd: RenderingDevice = RenderingServer.get_rendering_device()
 	
 	var curve_texture := CurveTexture.new()
 	
-	curve_texture.curve = custom_curve
+	curve_texture.curve = custom_curve if custom_curve != null else Curve.new()
 	
 	var curve_image : Image = RenderingServer.texture_2d_get(curve_texture)
 	curve_image.clear_mipmaps()

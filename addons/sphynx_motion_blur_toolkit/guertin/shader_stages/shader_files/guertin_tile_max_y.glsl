@@ -42,12 +42,12 @@ void main()
 	for(int i = 0; i < params.tile_size; i++)
 	{
 		vec2 current_uv = uvn + vec2(0, float(i) / render_size.y);
-		vec4 velocity_sample = textureLod(tile_max_x, current_uv, 0.0);
-		float current_velocity_length = dot(velocity_sample.xy, velocity_sample.xy);
+		vec2 velocity_sample = textureLod(tile_max_x, current_uv, 0.0).xy;
+		float current_velocity_length = dot(velocity_sample, velocity_sample);
 		if(current_velocity_length > max_velocity_length)
 		{
 			max_velocity_length = current_velocity_length;
-			max_velocity = velocity_sample;
+			max_velocity = vec4(velocity_sample, 0, 0);
 		}
 	}
 	imageStore(tile_max, uvi, max_velocity);

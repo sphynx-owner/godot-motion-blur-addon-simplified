@@ -43,13 +43,16 @@ void main()
 	for(int i = 0; i < params.tile_size; i++)
 	{
 		vec2 current_uv = uvn + vec2(float(i) / render_size.x, 0);
-		vec3 velocity_sample = textureLod(velocity_sampler, current_uv, 0.0).xyz;
-		float current_velocity_length = dot(velocity_sample.xy, velocity_sample.xy);
+		vec2 velocity_sample = textureLod(velocity_sampler, current_uv, 0.0).xy;
+		float current_velocity_length = dot(velocity_sample, velocity_sample);
 		if(current_velocity_length > max_velocity_length)
 		{
 			max_velocity_length = current_velocity_length;
-			max_velocity = vec4(velocity_sample, textureLod(depth_sampler, current_uv, 0.0).x);
+			max_velocity = vec4(velocity_sample, 0, 0);
 		}
 	}
+
+	// TODO @sphynx-owner: replace the buffer with a red-green buffer only,
+	// no need to store depth and z velocity here.
 	imageStore(tile_max_x, uvi, max_velocity);
 }
