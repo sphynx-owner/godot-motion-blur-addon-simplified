@@ -37,7 +37,7 @@ float z_compare(float a, float b, float sze)
 // from https://www.shadertoy.com/view/ftKfzc
 // ----------------------------------------------------------
 float interleaved_gradient_noise(vec2 uv){
-	uv += float(params.frame) * (vec2(47, 17) * 0.695);
+	uv += float(params.frame)  * (vec2(47, 17) * 0.695);
 
     vec3 magic = vec3( 0.06711056, 0.00583715, 52.9829189 );
 
@@ -92,7 +92,7 @@ void main()
 	// in pixels. We also mulitply it by the blur intensity factor.
 	// TODO @sphynx-owner: figure out whether adding half a tile size to x is 
 	// correct. 
-	vec4 vnzw = textureLod(neighbor_max, x + jitter_tile(uvi), 0.0) * vec4(render_size / 2., 1, 1) * params.motion_blur_intensity;
+	vec4 vnzw =  textureLod(neighbor_max, x + vec2(0.5) / vec2(tile_render_size) + jitter_tile(uvi), 0.0) * vec4(render_size / 2., 1, 1) * params.motion_blur_intensity;
 
 	// We get the xy components of the max tile velocity. Velocities can have a z
 	// component too (we generate it in the pre-blur processing stage for stationary
@@ -138,55 +138,103 @@ void main()
 	// Get the depth at current pixel
 	float zx = vxzw.w;
 
+	// A safe initial weight close to 0
+	float weight = 1e-6;
+
 	// Create an initial color sum
-	vec4 sum = vec4(0);
+	vec4 sum = base_color * weight;
+
+	// This is a naive weight, averaging data using the true velocity
+	float nai_weight = 1e-6;
+	
+	// This is a naive sum, averaging data using the true velocity
+	vec4 nai_sum = base_color * nai_weight;
 
 	for(int i = 0; i < params.sample_count; i++)
 	{
 		// A point in time along the blur interval, used to scale velocity vectors to sample for color.
 		float t = mix(-1.0, 1.0, (i + j * params.maximum_jitter_value + 1.0) / (params.sample_count + 1.0));
+		
+		// We alternate arbitrarily between using the true velocity and the neighbor max velocity.
+		bool use_vn = ((i % 2) == 0);
+
+		// Velocity vector to use for sampling
+		vec2 d = use_vn ? vn : vx;
+
+		// Depth component of the velocity vector to use for sampling
+		float dz = use_vn ? vnzw.z : vxzw.z;
+
+		// Normalized vector to use for sampling
+		vec2 wd = use_vn ? wn : wx;
+
+		// magnitude of sample offset?
+		// TODO @sphynx-owner: figure out why vn_length and not d
+		float T = abs(t * length(d));
 
 		// Get sample point
-		vec2 yx = x + t * vx / vec2(render_size);
-		
-		vec2 yn = x + t * vn / vec2(render_size);
+		vec2 y = x + t * d / vec2(render_size);
 
+		// how much does the true velocity's direction match the sampling offset?
+		float wa = abs(dot(wx, wd));
+		
 		// Get the true velocity at the sample point.
-		vec4 vyzwx = textureLod(velocity_sampler, yx, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity;
+		vec4 vyzw = textureLod(velocity_sampler, y, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity;
 		
-		vec4 vyzwn = textureLod(velocity_sampler, yn, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity;
-
 		// Get the xy component of the velocity at the sample point
-		vec2 vyx = vyzwx.xy; 
+		// TODO @sphynx-owner: what? why are we subtracting a float from the vector?
+		vec2 vy = vyzw.xy; 
 
-		vec2 vyn = vyzwn.xy;
+		// Get length of true velocity at sample point
+		float vy_length = max(0.5, length(vy));
+
+		vec2 wy = safenorm(vy);
 
 		// Get the depth at the sample point.
-		float zyx = vyzwx.w;
+		float zy = vyzw.w - dz * t;
 
-		float zyn = vyzwn.w;
-		// TODO @sphynx-owner: figure out depth comparisons, as well as 
-		// including the correct depth velocity components.
-		float overlapx = z_compare(-zx, -zyx, 20000);
+		// If we are using the neighbor max velocity to sample, we
+		// feed the result of overlapping velocities into 
+		// an overlay color sum.
+		if(use_vn)
+		{
+			// Whether the velocity at the sample point reaches in front
+			// of the current pixel's geometry.
+			float f = z_compare(-zy, -zx, 20000);
 
-		float overlapn = z_compare(-zyn, -zx, 20000);
+			// How aligned is the velocity at the sample point with 
+			// the sampling direction.
+			float wb = abs(dot(wy, wd));
 
-		vec2 wyn = safenorm(vyn);
+			// If the velocity at the sample point reaches the current
+			// pixel and overlaps in front of it, we add color to the overlay sum.
+			float ay = f * step(T, vy_length * wb);
 
-		float Tn = abs(t * length(vn));
+			weight += ay; 
 
-		float vyn_length = max(0.5, length(vyn));
+			sum += textureLod(color_sampler, y, 0.0) * ay;
+		}
 
-		float projected = abs(dot(wyn, wn));
+		// Whether the velocity at the sample point falls behind the current
+		// pixel's geometry.
+		float b = z_compare(-zx, -zy, 20000);
 
-		float current_weightn = step(Tn, vyn_length * projected)/* * overlapn*/;
+		// If the true velocity at the current pixel reaches the sample point,
+		// and it is either the same or behind current geometry, we add color at the sample
+		// point to the base color sum.
+		float nai_ay = b * step(T, vx_length * wa);
 
-		float current_weightx = 1/* * overlapx*/;
+		nai_weight += nai_ay;
 
-		sum += mix(mix(base_color, textureLod(color_sampler, yx, 0.0), current_weightx), textureLod(color_sampler, yn, 0.0), current_weightn);
+		nai_sum += textureLod(color_sampler, y, 0.0) * nai_ay;
 	}
 
-	sum /= params.sample_count;
+	sum /= weight;
+
+	weight /= params.sample_count;
+
+	nai_sum /= nai_weight;
+
+	sum = mix(nai_sum, sum, weight);
 
 	imageStore(output_color, uvi, sum);
 #ifdef DEBUG
