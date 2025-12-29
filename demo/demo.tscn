@@ -74,7 +74,6 @@ compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_a4e4
 script = ExtResource("16_khify")
 samples = 8
 custom_curve = SubResource("Curve_d1m6b")
-use_custom_curve = null
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_0r4in"]
 size = Vector2(100, 100)

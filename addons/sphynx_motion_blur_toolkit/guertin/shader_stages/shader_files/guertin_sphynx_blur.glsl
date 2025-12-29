@@ -186,7 +186,10 @@ void main()
 
 		float custom_curve_sample = params.use_custom_curve == 1 ? textureLod(custom_curve, vec2(ti, 0.5), 0.0).x : 1;
 
-		float current_total_weight = max(max(current_weightn, current_weightx), 0.1) * custom_curve_sample;
+		// TODO @sphynx-owner: figure out the best blending scheme that would balance seamlessness with intelligent edge case handling.
+		// Right now you get underblurring against occluding geometry, and vectors that match the dominant velocity don't get picked
+		// up as much as they could.
+		float current_total_weight = max(max(current_weightn, current_weightx), 1) * custom_curve_sample;
 
 		weight += current_total_weight;
 
