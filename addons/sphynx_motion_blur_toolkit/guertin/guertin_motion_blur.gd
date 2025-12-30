@@ -2,7 +2,12 @@
 extends "res://addons/sphynx_motion_blur_toolkit/guertin/base_guertin_motion_blur.gd"
 class_name GuertinMotionBlur
 
-@export_storage var pre_blur_processor_stage : ShaderStageResource = preload("res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres")
+const TILE_MAX_X_TEXTURE_NAME : StringName = "tile_max_x"
+const TILE_MAX_TEXTURE_NAME : StringName = "tile_max"
+const NEIGHBOR_MAX_TEXTURE_NAME : StringName = "neighbor_max"
+const TILE_VARIANCE_TEXTURE_NAME : StringName = "tile_variance"
+const CUSTOM_VELOCITY_TEXTURE_NAME : StringName = "custom_velocity"
+const COLOR_OUTPUT_TEXTURE_NAME : StringName = "color_output"
 
 @export_storage var blur_stage : ShaderStageResource = preload("res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres")
 
@@ -13,38 +18,6 @@ class_name GuertinMotionBlur
 @export_storage var tile_max_y_stage : ShaderStageResource = preload("res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres")
 
 @export_storage var neighbor_max_stage : ShaderStageResource = preload("res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres")
-
-@export_group("Movement Separation")
-
-@export_subgroup("Camera Rotation")
-
-@export var camera_rotation_multiplier := 1.0
-@export var camera_rotation_lower_threshold := 0.0
-@export var camera_rotation_upper_threshold := 0.0
-
-@export_subgroup("Camera Movement")
-
-@export var camera_movement_multiplier := 1.0
-@export var camera_movement_lower_threshold := 0.0
-@export var camera_movement_upper_threshold := 0.0
-
-@export_subgroup("Object Movement")
-
-@export var object_movement_multiplier := 1.0
-@export var object_movement_lower_threshold := 0.0
-@export var object_movement_upper_threshold := 0.0
-
-var _tile_max_x : StringName = "tile_max_x"
-
-var _tile_max : StringName = "tile_max"
-
-var _neighbor_max : StringName = "neighbor_max"
-
-var _tile_variance : StringName = "tile_variance"
-
-var _custom_velocity : StringName = "custom_velocity"
-
-var _color_output : StringName = "color_output"
 
 var _previous_time : float = 0
 
@@ -65,12 +38,12 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		
 		temp_intensity = intensity * capped_frame_time / delta_time
 	
-	ensure_texture(_tile_max_x, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1.))
-	ensure_texture(_tile_max, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
-	ensure_texture(_neighbor_max, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
-	ensure_texture(_tile_variance, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
-	ensure_texture(_custom_velocity, render_scene_buffers)
-	ensure_texture(_color_output, render_scene_buffers)
+	ensure_texture(TILE_MAX_X_TEXTURE_NAME, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1.))
+	ensure_texture(TILE_MAX_TEXTURE_NAME, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
+	ensure_texture(NEIGHBOR_MAX_TEXTURE_NAME, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
+	ensure_texture(TILE_VARIANCE_TEXTURE_NAME, render_scene_buffers, RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, Vector2(1. / tile_size, 1. / tile_size))
+	ensure_texture(CUSTOM_VELOCITY_TEXTURE_NAME, render_scene_buffers)
+	ensure_texture(COLOR_OUTPUT_TEXTURE_NAME, render_scene_buffers)
 	
 	var float_pre_blur_push_constants: PackedFloat32Array = [
 		camera_rotation_multiplier,
@@ -82,7 +55,7 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		camera_rotation_upper_threshold,
 		camera_movement_upper_threshold,
 		object_movement_upper_threshold,
-		1 if true else 0,
+		support_fsr2,
 		temp_intensity,
 		0,
 	]
@@ -99,12 +72,14 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		0,
 		0
 	]
+	
 	var int_tile_max_x_push_constants : PackedInt32Array = [
 		tile_size,
 		0,
 		0,
 		0
 	]
+	
 	var tile_max_x_push_constants_byte_array = float_tile_max_x_push_constants.to_byte_array()
 	tile_max_x_push_constants_byte_array.append_array(int_tile_max_x_push_constants.to_byte_array())
 	
@@ -114,12 +89,14 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		0,
 		0
 	]
+	
 	var int_tile_max_y_push_constants : PackedInt32Array = [
 		tile_size,
 		0,
 		0,
 		0
 	]
+	
 	var tile_max_y_push_constants_byte_array = float_tile_max_y_push_constants.to_byte_array()
 	tile_max_y_push_constants_byte_array.append_array(int_tile_max_y_push_constants.to_byte_array())
 	
@@ -129,12 +106,14 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		0,
 		0
 	]
+	
 	var int_neighbor_max_push_constants : PackedInt32Array = [
 		0,
 		0,
 		0,
 		0
 	]
+	
 	var neighbor_max_push_constants_byte_array = float_neighbor_max_push_constants.to_byte_array()
 	neighbor_max_push_constants_byte_array.append_array(int_neighbor_max_push_constants.to_byte_array())
 	
@@ -144,21 +123,24 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		0,
 		0
 	]
+	
 	var int_tile_variance_push_constants : PackedInt32Array = [
 		0,
 		0,
 		0,
 		0
 	]
+	
 	var tile_variance_push_constants_byte_array = float_tile_variance_push_constants.to_byte_array()
 	tile_variance_push_constants_byte_array.append_array(int_tile_variance_push_constants.to_byte_array())
 	
 	var float_blur_push_constants: PackedFloat32Array = [
-		minimum_user_threshold, 
-		0,
-		maximum_jitter_value, 
 		temp_intensity,
+		0, 
+		0,
+		0, 
 	]
+	
 	var int_blur_push_constants : PackedInt32Array = [
 		tile_size,
 		samples,
@@ -173,11 +155,13 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 	
 	for view in range(view_count):
 		rd.draw_command_begin_label("Pre Blur Processing", Color(1.0, 1.0, 1.0, 1.0))
+		
 		var depth_image := render_scene_buffers.get_depth_layer(view)
 		var velocity_image := render_scene_buffers.get_velocity_layer(view)
-		var custom_velocity_image := render_scene_buffers.get_texture_slice(context, _custom_velocity, view, 0, 1, 1)
+		var custom_velocity_image := render_scene_buffers.get_texture_slice(context, CUSTOM_VELOCITY_TEXTURE_NAME, view, 0, 1, 1)
 		var scene_data_buffer : RID = render_scene_data.get_uniform_buffer()
 		var scene_data_buffer_uniform := RDUniform.new()
+		
 		scene_data_buffer_uniform.uniform_type = RenderingDevice.UNIFORM_TYPE_UNIFORM_BUFFER
 		scene_data_buffer_uniform.binding = 3
 		scene_data_buffer_uniform.add_id(scene_data_buffer)
@@ -205,11 +189,11 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 		rd.draw_command_begin_label("Motion Blur", Color(1.0, 1.0, 1.0, 1.0))
 		
 		var color_image := render_scene_buffers.get_color_layer(view)
-		var color_output_image := render_scene_buffers.get_texture_slice(context, _color_output, view, 0, 1, 1)
-		var tile_max_x_image := render_scene_buffers.get_texture_slice(context, _tile_max_x, view, 0, 1, 1)
-		var tile_max_image := render_scene_buffers.get_texture_slice(context, _tile_max, view, 0, 1, 1)
-		var neighbor_max_image := render_scene_buffers.get_texture_slice(context, _neighbor_max, view, 0, 1, 1)
-		var tile_variance_image := render_scene_buffers.get_texture_slice(context, _tile_variance, view, 0, 1, 1)
+		var color_output_image := render_scene_buffers.get_texture_slice(context, COLOR_OUTPUT_TEXTURE_NAME, view, 0, 1, 1)
+		var tile_max_x_image := render_scene_buffers.get_texture_slice(context, TILE_MAX_X_TEXTURE_NAME, view, 0, 1, 1)
+		var tile_max_image := render_scene_buffers.get_texture_slice(context, TILE_MAX_TEXTURE_NAME, view, 0, 1, 1)
+		var neighbor_max_image := render_scene_buffers.get_texture_slice(context, NEIGHBOR_MAX_TEXTURE_NAME, view, 0, 1, 1)
+		var tile_variance_image := render_scene_buffers.get_texture_slice(context, TILE_VARIANCE_TEXTURE_NAME, view, 0, 1, 1)
 		
 		x_groups = floori((render_size.x / tile_size - 1) / group_size + 1)
 		y_groups = floori((render_size.y - 1) / group_size + 1)

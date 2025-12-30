@@ -30,12 +30,13 @@ effect_callback_type = 4
 needs_motion_vectors = true
 needs_normal_roughness = false
 script = ExtResource("4_ihvrq")
-shader_stages/pre_blur_processor_stage = ExtResource("4_wgrvi")
+support_fsr2 = null
 shader_stages/blur_stage = ExtResource("1_65abe")
 shader_stages/overlay_stage = ExtResource("3_hr8rx")
 shader_stages/tile_max_x_stage = ExtResource("5_7tef1")
 shader_stages/tile_max_y_stage = ExtResource("6_vy2yv")
 shader_stages/neighbor_max_stage = ExtResource("2_gicau")
+shader_stages/pre_blur_processor_stage = ExtResource("4_wgrvi")
 metadata/_custom_type_script = "uid://c5jewnyvlca7j"
 
 [sub_resource type="CompositorEffect" id="CompositorEffect_nk31j"]

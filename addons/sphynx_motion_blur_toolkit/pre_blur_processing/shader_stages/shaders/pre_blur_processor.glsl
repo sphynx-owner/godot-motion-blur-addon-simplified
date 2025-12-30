@@ -88,7 +88,7 @@ layout(push_constant, std430) uniform Params
 	float rotation_velocity_upper_threshold;
 	float movement_velocity_upper_threshold;
 	float object_velocity_upper_threshold;
-	float is_fsr2;
+	float support_fsr;
 	float motion_blur_intensity;
 	float nan_fl_2;
 } params;
@@ -166,7 +166,7 @@ void main()
 		);
 	
 	// fsr just makes it so values are larger than 1, I assume its the only case when it happens
-	if(params.is_fsr2 > 0.5 && dot(base_velocity.xy, base_velocity.xy) >= 1)
+	if(params.support_fsr > 0.5 && dot(base_velocity.xy, base_velocity.xy) >= 1)
 	{
 		base_velocity = camera_uv_change;
 	}

@@ -39,6 +39,30 @@ extends "res://addons/sphynx_enhanced_compositor_toolkit/base_classes/enhanced_c
 
 @export var use_custom_curve: bool
 
+@export var support_fsr2 := true
+
+@export_storage var pre_blur_processor_stage : ShaderStageResource = preload("res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres")
+
+@export_group("Movement Separation")
+
+@export_subgroup("Camera Rotation")
+
+@export var camera_rotation_multiplier := 1.0
+@export var camera_rotation_lower_threshold := 0.0
+@export var camera_rotation_upper_threshold := 0.0
+
+@export_subgroup("Camera Movement")
+
+@export var camera_movement_multiplier := 1.0
+@export var camera_movement_lower_threshold := 0.0
+@export var camera_movement_upper_threshold := 0.0
+
+@export_subgroup("Object Movement")
+
+@export var object_movement_multiplier := 1.0
+@export var object_movement_lower_threshold := 0.0
+@export var object_movement_upper_threshold := 0.0
+
 var custom_curve_texture_rd: Texture2DRD
 
 var _properties_to_remove: Dictionary[String, bool] = {

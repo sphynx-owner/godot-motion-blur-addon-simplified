@@ -15,10 +15,10 @@ layout(set = 0, binding = 5) uniform sampler2D custom_curve;
 
 layout(push_constant, std430) uniform Params 
 {	
-	float minimum_user_threshold;
+	float motion_blur_intensity;
+	float nan0;
 	float nan1;
 	float nan2;
-	float motion_blur_intensity;
 	int tile_size;
 	int sample_count;
 	int frame;
