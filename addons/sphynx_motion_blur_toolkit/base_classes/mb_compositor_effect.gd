@@ -6,11 +6,11 @@ extends "res://addons/sphynx_enhanced_compositor_toolkit/base_classes/enhanced_c
 
 @export_group("Motion Blur Parameters")
 
-# diminishing returns over 16
-@export_range(4, 64) var samples: int = 16
+# diminishing returns over 8
+@export_range(4, 64) var samples: int = 8
 
 # you really don't want this over 0.5, but you can if you want to try
-@export_range(0, 0.5, 0.001, "or_greater") var intensity: float = 1
+@export_range(0, 1.0, 0.001, "or_greater") var intensity: float = 1
 
 @export_range(0, 1) var center_fade: float = 0.0
 
@@ -108,10 +108,15 @@ func _custom_curve_updated() -> void:
 	
 	curve_texture_format.format = RenderingDevice.DATA_FORMAT_R32G32B32A32_SFLOAT
 	
-	curve_texture_format.usage_bits = RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT
+	curve_texture_format.usage_bits = \
+	RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT
 	
 	var paint_texture_view : RDTextureView = RDTextureView.new()
 	
 	custom_curve_texture_rd = Texture2DRD.new()
 	
-	custom_curve_texture_rd.texture_rd_rid = rd.texture_create(curve_texture_format, paint_texture_view, [curve_image.get_data()])
+	custom_curve_texture_rd.texture_rd_rid = rd.texture_create(
+		curve_texture_format, 
+		paint_texture_view, 
+		[curve_image.get_data()]
+	)

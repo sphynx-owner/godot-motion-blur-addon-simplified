@@ -232,20 +232,19 @@ func get_push_constants(
 	var ret: PackedByteArray
 	
 	if floats.size() > 0 or force_four_minimum_entries:
-		var floats_padding: int = 4 - floats.size() % 4
-		
-		for i in floats_padding:
-			floats.append(0)
-		
-		ret.append_array(floats.to_byte_array())
+		@warning_ignore("integer_division")
+		floats.resize((((floats.size() - 1) / 4 + 1) * 4))
+	
+	ret.append_array(floats.to_byte_array())
+	
+	if ret.size() == 48:
+		pass
 	
 	if ints.size() > 0 or force_four_minimum_entries:
-		var ints_padding: int = 4 - ints.size() % 4
-		
-		for i in ints_padding:
-			ints.append(0)
-		
-		ret.append_array(ints.to_byte_array())
+		@warning_ignore("integer_division")
+		ints.resize((((ints.size() - 1) / 4 + 1) * 4))
+	
+	ret.append_array(ints.to_byte_array())
 	
 	return ret
 

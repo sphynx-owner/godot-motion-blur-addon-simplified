@@ -85,8 +85,7 @@ func _render_callback_2(
 		camera_movement_upper_threshold,
 		object_movement_upper_threshold,
 		support_fsr2,
-		temp_intensity,
-		0,
+		temp_intensity
 	])
 	
 	var tile_max_x_push_constants: PackedByteArray = get_push_constants([], [tile_size], true)
