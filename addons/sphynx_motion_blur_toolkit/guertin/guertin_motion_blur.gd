@@ -6,8 +6,6 @@ const TILE_MAX_X_TEXTURE_NAME : StringName = "tile_max_x"
 const TILE_MAX_TEXTURE_NAME : StringName = "tile_max"
 const NEIGHBOR_MAX_TEXTURE_NAME : StringName = "neighbor_max"
 const TILE_VARIANCE_TEXTURE_NAME : StringName = "tile_variance"
-const CUSTOM_VELOCITY_TEXTURE_NAME : StringName = "custom_velocity"
-const COLOR_OUTPUT_TEXTURE_NAME : StringName = "color_output"
 
 @export_storage var blur_stage : ShaderStageResource = preload("res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres")
 
