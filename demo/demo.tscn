@@ -30,7 +30,6 @@ effect_callback_type = 4
 needs_motion_vectors = true
 needs_normal_roughness = false
 script = ExtResource("4_ihvrq")
-support_fsr2 = null
 shader_stages/blur_stage = ExtResource("1_65abe")
 shader_stages/overlay_stage = ExtResource("3_hr8rx")
 shader_stages/tile_max_x_stage = ExtResource("5_7tef1")
