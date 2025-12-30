@@ -119,14 +119,7 @@ func _render_callback_2(
 		var velocity_image: RID = render_scene_buffers.get_velocity_layer(view)
 		var scene_data_buffer: RID = render_scene_data.get_uniform_buffer()
 		
-		var custom_velocity_image: RID = render_scene_buffers.get_texture_slice(
-			context, 
-			CUSTOM_VELOCITY_TEXTURE_NAME, 
-			view, 
-			0, 
-			1, 
-			1
-		)
+		var custom_velocity_image: RID = get_texture(CUSTOM_VELOCITY_TEXTURE_NAME, render_scene_buffers)
 		
 		var x_groups := floori((render_size.x - 1) / 16 + 1)
 		var y_groups := floori((render_size.y - 1) / 16 + 1)
@@ -147,52 +140,17 @@ func _render_callback_2(
 		
 		rd.draw_command_begin_label("Motion Blur", Color(1.0, 1.0, 1.0, 1.0))
 		
-		var color_image := render_scene_buffers.get_color_layer(view)
+		var color_image: RID= render_scene_buffers.get_color_layer(view)
 		
-		var color_output_image := render_scene_buffers.get_texture_slice(
-			context, 
-			COLOR_OUTPUT_TEXTURE_NAME, 
-			view, 
-			0, 
-			1, 
-			1
-		)
+		var color_output_image: RID = get_texture(COLOR_OUTPUT_TEXTURE_NAME, render_scene_buffers)
 		
-		var tile_max_x_image := render_scene_buffers.get_texture_slice(
-			context, 
-			TILE_MAX_X_TEXTURE_NAME, 
-			view, 
-			0, 
-			1, 
-			1
-		)
+		var tile_max_x_image: RID = get_texture(TILE_MAX_X_TEXTURE_NAME, render_scene_buffers)
 		
-		var tile_max_image := render_scene_buffers.get_texture_slice(
-			context, 
-			TILE_MAX_TEXTURE_NAME, 
-			view, 
-			0, 
-			1, 
-			1
-		)
+		var tile_max_image: RID = get_texture(TILE_MAX_TEXTURE_NAME, render_scene_buffers)
 		
-		var neighbor_max_image := render_scene_buffers.get_texture_slice(
-			context, 
-			NEIGHBOR_MAX_TEXTURE_NAME, 
-			view, 
-			0, 
-			1, 
-			1
-		)
+		var neighbor_max_image: RID = get_texture(NEIGHBOR_MAX_TEXTURE_NAME, render_scene_buffers)
 		
-		var tile_variance_image := render_scene_buffers.get_texture_slice(
-			context, 
-			TILE_VARIANCE_TEXTURE_NAME, 
-			view, 
-			0, 
-			1, 
-			1
-		)
+		var tile_variance_image: RID = get_texture(TILE_VARIANCE_TEXTURE_NAME, render_scene_buffers)
 		
 		
 		x_groups = floori((render_size.x / tile_size - 1) / compute_dispatch_group_size + 1)

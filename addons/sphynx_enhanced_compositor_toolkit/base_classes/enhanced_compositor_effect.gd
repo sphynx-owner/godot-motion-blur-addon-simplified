@@ -199,6 +199,10 @@ func ensure_texture(texture_name : StringName, render_scene_buffers : RenderScen
 		render_scene_buffers.create_texture(context, texture_name, texture_format, usage_bits, RenderingDevice.TEXTURE_SAMPLES_1, render_size, 1, 1, true, false)
 
 
+func get_texture(texture_name: StringName, render_scene_buffers : RenderSceneBuffersRD) -> RID:
+	return render_scene_buffers.get_texture_slice(context, texture_name, 0, 0, 1, 1)
+
+
 func get_image_uniform(image: RID, binding: int) -> RDUniform:
 	var uniform: RDUniform = RDUniform.new()
 	uniform.uniform_type = RenderingDevice.UNIFORM_TYPE_IMAGE
