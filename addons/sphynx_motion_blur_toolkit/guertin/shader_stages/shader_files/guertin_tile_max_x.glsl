@@ -47,10 +47,11 @@ void main()
 		
 		// If the depth at the potential dominant velocity is infinity (background or skybox)
 		// then it will never go in front of other geometry, and can be skipped.
-		if(velocity_sample.w == (-1.0 / 0.0))
-		{
-			continue;
-		}
+		// TODO @sphynx-owner: enable when considering ignoring skybox for dominant velocity
+		// if(velocity_sample.w == (-1.0 / 0.0))
+		// {
+		// 	continue;
+		// }
 
 		float current_velocity_length = dot(velocity_sample.xy, velocity_sample.xy);
 		if(current_velocity_length > max_velocity_length)

@@ -117,7 +117,8 @@ void main()
 	// We must account for cases where the dominant velocity is 0 even though 
 	// The current velocity is not. This is only the case for the skybox, which
 	// Will never overlap geometry so it can safely be ignored when calculating neighbor_max
-	if(vn_length < 0.5 && vx_length < 0.5)
+	// TODO @sphynx-owner: enable when considering ignoring skybox for dominant velocity
+	if(vn_length < 0.5)// && vx_length < 0.5)
 	{
 		imageStore(output_color, uvi, base_color);
 #ifdef DEBUG
@@ -178,7 +179,8 @@ void main()
 
 		// Foreground blending (blending of foreground geometry with dominant velocity onto current geometry)
 		// ----------------------------------------------------------------------------------
-		if (vn_length >= 0.5)
+		// TODO @sphynx-owner: enable when considering ignoring skybox for dominant velocity
+		//if (vn_length >= 0.5)
 		{
 			vec2 yn = x + t * vn / vec2(render_size);
 		
