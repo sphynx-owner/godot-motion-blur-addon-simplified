@@ -112,11 +112,16 @@ void main()
 	// We get the xy components of the true velocity (see declaration of vn)
 	vec2 vx = vxzw.xy;
 
-	if(vn_length < 0.5)
+	float vx_length = length(vx);
+
+	// We must account for cases where the dominant velocity is 0 even though 
+	// The current velocity is not. This is only the case for the skybox, which
+	// Will never overlap geometry so it can safely be ignored when calculating neighbor_max
+	if(vn_length < 0.5 && vx_length < 0.5)
 	{
 		imageStore(output_color, uvi, base_color);
 #ifdef DEBUG
-		imageStore(debug_1_image, uvi, textureLod(custom_curve, x, 0.0));
+		imageStore(debug_1_image, uvi, vec4(1, 0, 1, 1));
 		imageStore(debug_2_image, uvi, vec4(vxzw.xy / render_size * 2, 0, 1));
 		imageStore(debug_3_image, uvi, vec4(step(0, vxzw.w), abs(vxzw.w) / 500, 0, 0));
 		imageStore(debug_4_image, uvi, vec4(step(0, vxzw.z), abs(vxzw.z), 0, 0));
@@ -126,8 +131,6 @@ void main()
 
 	// We normalize neighbor-max velocity
 	vec2 wn = safenorm(vn);
-
-	float vx_length = max(0.5, length(vx));
 
 	vec2 wx = safenorm(vx);
 	
@@ -151,56 +154,66 @@ void main()
 		// A point in time along the blur interval, used to scale velocity vectors to sample for color.
 		float t = mix(-1.0, 1.0, ti);
 
-		// Get sample points
-		vec2 yx = x + t * vx / vec2(render_size);
-		
-		vec2 yn = x + t * vn / vec2(render_size);
-
-		// Get the true velocities at the sample points.
-		vec4 vyzwx = textureLod(velocity_sampler, yx, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity;
-		
-		vec4 vyzwn = textureLod(velocity_sampler, yn, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity; 
-
-		vec2 vyn = vyzwn.xy;
-
-		// Get the depth at the sample point.
-		float zyx = vyzwx.w;
-
-		float zyn = vyzwn.w;
-
-		float overlapx = 1 - z_compare(zx + vxzw.z * t, zyx, -10);
-
-		float overlapn = 1 - z_compare(zyn - vyzwn.z * t, zx, -10);
-
-		vec2 wyn = safenorm(vyn);
-
-		float Tn = abs(t * length(vn));
-
-		float vyn_length = max(0.5, length(vyn));
-
-		float projected = abs(dot(wyn, wn));
-
-		float current_weightn = step(Tn, vyn_length * projected) * overlapn;
-
-		float current_weightx = overlapx;
-
 		float custom_curve_sample = params.use_custom_curve == 1 ? textureLod(custom_curve, vec2(ti, 0.5), 0.0).x : 1;
-
+		
 		// TODO @sphynx-owner: figure out the best blending scheme that would balance seamlessness with intelligent edge case handling.
 		// Right now you get underblurring against occluding geometry, and vectors that match the dominant velocity don't get picked
 		// up as much as they could.
-		float current_total_weight = max(max(current_weightn, current_weightx), 1) * custom_curve_sample;
+		float current_total_weight = custom_curve_sample;
+
+		// Background blending (blending of the background onto the current geometry to simulate transparency)
+		// ----------------------------------------------------------------------------------
+		vec2 yx = x + t * vx / vec2(render_size);
+
+		vec4 vyzwx = textureLod(velocity_sampler, yx, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity;
+
+		float zyx = vyzwx.w;
+
+		float overlapx = 1 - z_compare(zx + vxzw.z * t, zyx, -10);
+
+		float current_weightx = overlapx;
+		
+		vec4 color = mix(base_color, textureLod(color_sampler, yx, 0.0), current_weightx);
+		// ----------------------------------------------------------------------------------
+
+		// Foreground blending (blending of foreground geometry with dominant velocity onto current geometry)
+		// ----------------------------------------------------------------------------------
+		if (vn_length >= 0.5)
+		{
+			vec2 yn = x + t * vn / vec2(render_size);
+		
+			vec4 vyzwn = textureLod(velocity_sampler, yn, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity; 
+
+			vec2 vyn = vyzwn.xy;
+
+			float zyn = vyzwn.w;
+
+			float overlapn = 1 - z_compare(zyn - vyzwn.z * t, zx, -10);
+
+			vec2 wyn = safenorm(vyn);
+
+			float Tn = abs(t * length(vn));
+
+			float vyn_length = max(0.5, length(vyn));
+
+			float projected = abs(dot(wyn, wn));
+
+			float current_weightn = step(Tn, vyn_length * projected) * overlapn;
+
+			color = mix(color, textureLod(color_sampler, yn, 0.0), current_weightn) * current_total_weight;
+		}
+		// ----------------------------------------------------------------------------------
 
 		weight += current_total_weight;
 
-		sum += mix(mix(base_color, textureLod(color_sampler, yx, 0.0), current_weightx), textureLod(color_sampler, yn, 0.0), current_weightn) * current_total_weight;
+		sum += color * current_total_weight;
 	}
 
 	sum /= weight;
 
 	imageStore(output_color, uvi, sum);
 #ifdef DEBUG
-	imageStore(debug_1_image, uvi, textureLod(custom_curve, x, 0.0));
+	imageStore(debug_1_image, uvi, base_color);
 	imageStore(debug_2_image, uvi, vec4(vxzw.xy / render_size * 2, 0, 1));
 	imageStore(debug_3_image, uvi, vec4(step(0, vxzw.w), abs(vxzw.w) / 500, 0, 0));
 	imageStore(debug_4_image, uvi, vec4(step(0, vxzw.z), abs(vxzw.z), 0, 0));

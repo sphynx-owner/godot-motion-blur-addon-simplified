@@ -1,7 +1,8 @@
-[gd_scene load_steps=25 format=3 uid="uid://cht1ha628cnlv"]
+[gd_scene load_steps=26 format=3 uid="uid://cht1ha628cnlv"]
 
 [ext_resource type="Resource" uid="uid://ca45noqewsyvp" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="1_65abe"]
 [ext_resource type="Texture2D" uid="uid://dsuk326vswcp4" path="res://demo/icon.svg" id="1_h320m"]
+[ext_resource type="Texture2D" uid="uid://ddheli1mxovfi" path="res://image-1.png" id="1_tdg64"]
 [ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="2_gicau"]
 [ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="3_hr8rx"]
 [ext_resource type="Script" uid="uid://c5jewnyvlca7j" path="res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd" id="4_ihvrq"]
@@ -13,10 +14,11 @@
 [ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://demo/camera_3d.gd" id="15_peffh"]
 [ext_resource type="Script" uid="uid://xhlnav7ttw0t" path="res://demo/basic_strafe.gd" id="17_33ie6"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rlupr"]
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_nk31j"]
+panorama = ExtResource("1_tdg64")
 
 [sub_resource type="Sky" id="Sky_6nr2b"]
-sky_material = SubResource("ProceduralSkyMaterial_rlupr")
+sky_material = SubResource("PanoramaSkyMaterial_nk31j")
 
 [sub_resource type="Environment" id="Environment_tre8e"]
 background_mode = 2
@@ -30,6 +32,7 @@ effect_callback_type = 4
 needs_motion_vectors = true
 needs_normal_roughness = false
 script = ExtResource("4_ihvrq")
+debug = true
 shader_stages/blur_stage = ExtResource("1_65abe")
 shader_stages/overlay_stage = ExtResource("3_hr8rx")
 shader_stages/tile_max_x_stage = ExtResource("5_7tef1")
