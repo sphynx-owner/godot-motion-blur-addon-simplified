@@ -71,7 +71,7 @@ struct SceneData {
 	float pass_alpha_multiplier;
 };
 
-layout(set = 0, binding = 5, std140) uniform SceneDataBlock {
+layout(set = 0, binding = 3, std140) uniform SceneDataBlock {
 	SceneData data;
 	SceneData prev_data;
 }

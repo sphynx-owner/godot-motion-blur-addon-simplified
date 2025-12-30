@@ -4,16 +4,19 @@ extends "res://addons/sphynx_enhanced_compositor_toolkit/base_classes/enhanced_c
 ## This class abstracts some of the default settings that are expected 
 ## from a motion blur compositor effect. 
 
-# diminishing returns over 16
-var samples: int = 16
-# you really don't want this over 0.5, but you can if you want to try
-var intensity: float = 1
+@export_group("Motion Blur Parameters")
 
-var center_fade: float = 0.0
+# diminishing returns over 16
+@export_range(4, 64) var samples: int = 16
+
+# you really don't want this over 0.5, but you can if you want to try
+@export_range(0, 0.5, 0.001, "or_greater") var intensity: float = 1
+
+@export_range(0, 1) var center_fade: float = 0.0
 
 ## wether this motion blur stays the same intensity below
 ## target_constant_framerate
-var framerate_independent : bool = true
+@export var framerate_independent : bool = true
 
 ## Description: Removes clamping on motion blur scale to allow framerate independent motion
 ## blur to scale longer than realistically possible when render framerate is higher
@@ -21,35 +24,43 @@ var framerate_independent : bool = true
 ## [color=yellow]Warning:[/color] Turning this on would allow over-blurring of pixels, which 
 ## produces inaccurate results, and would likely cause nausea in players over
 ## long exposure durations, use with caution and out of artistic intent
-var uncapped_independence : bool = false
+@export var uncapped_independence : bool = false
 
 ## if framerate_independent is enabled, the blur would simulate 
 ## sutter speeds at that framerate, and up.
-var target_constant_framerate : float = 30
+@export var target_constant_framerate : float = 30
 
-var custom_curve: Curve:
-	set(value):
-		if custom_curve and custom_curve.changed.is_connected(_custom_curve_updated):
-			custom_curve.changed.disconnect(_custom_curve_updated)
-		
-		custom_curve = value
-		
-		if custom_curve and !custom_curve.changed.is_connected(_custom_curve_updated):
-			custom_curve.changed.connect(_custom_curve_updated)
-		
-		_custom_curve_updated()
+## Modifies the otherwise regular average color over time
+## to be weighted average over time based on a distribution curve.
+## flat line is equivalent to the default, and you can choose 
+## to modify the amount of color during the motion blur frame from
+## start to finish.
+@export var custom_curve: Curve
 
-
-var use_custom_curve: bool = false
+@export var use_custom_curve: bool
 
 var custom_curve_texture_rd: Texture2DRD
 
+var _properties_to_remove: Dictionary[String, bool] = {
+	"needs_motion_vectors": true,
+	"needs_normal_roughness": true,
+}
+
 
 func _init():
+	context = "MotionBlur"
+	
 	needs_motion_vectors = true
-	set_deferred("context", "MotionBlur")
+	needs_normal_roughness = false
+	
 	_custom_curve_updated()
+	
 	super()
+
+
+func _validate_property(property: Dictionary) -> void:
+	if _properties_to_remove.has(property.name):
+		property.usage = PROPERTY_USAGE_NO_EDITOR
 
 
 func _custom_curve_updated() -> void:

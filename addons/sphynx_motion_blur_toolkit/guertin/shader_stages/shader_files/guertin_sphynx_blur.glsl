@@ -16,8 +16,8 @@ layout(set = 0, binding = 5) uniform sampler2D custom_curve;
 layout(push_constant, std430) uniform Params 
 {	
 	float minimum_user_threshold;
-	float importance_bias;
-	float maximum_jitter_value;
+	float nan1;
+	float nan2;
 	float motion_blur_intensity;
 	int tile_size;
 	int sample_count;
@@ -131,10 +131,10 @@ void main()
 
 	vec2 wx = safenorm(vx);
 	
-	// We get some random value for the current pixel. This will be used to
+	// We get some random value for the current pixel between 0 and 1. This will be used to
 	// jitter the blur sampling, and achieve smoother looking blur gradient
 	// with a fraction of the sample count.
-	float j = interleaved_gradient_noise(uvi) * 2. - 1.;
+	float j = interleaved_gradient_noise(uvi);
 
 	// Get the depth at current pixel
 	float zx = vxzw.w;
@@ -146,7 +146,7 @@ void main()
 
 	for(int i = 0; i < params.sample_count; i++)
 	{
-		float ti = (i + j * params.maximum_jitter_value + 1.0) / (params.sample_count + 1.0);
+		float ti = (i + j) / params.sample_count;
 
 		// A point in time along the blur interval, used to scale velocity vectors to sample for color.
 		float t = mix(-1.0, 1.0, ti);
