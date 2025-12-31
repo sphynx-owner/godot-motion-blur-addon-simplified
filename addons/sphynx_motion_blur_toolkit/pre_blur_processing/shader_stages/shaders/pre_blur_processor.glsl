@@ -81,7 +81,7 @@ struct SceneData {
 	float pass_alpha_multiplier;
 };
 
-layout(set = 0, binding = 5, std140) uniform SceneDataBlock {
+layout(set = 0, binding = 3, std140) uniform SceneDataBlock {
 	SceneData data;
 	SceneData prev_data;
 }
@@ -98,7 +98,7 @@ layout(push_constant, std430) uniform Params
 	float rotation_velocity_upper_threshold;
 	float movement_velocity_upper_threshold;
 	float object_velocity_upper_threshold;
-	float is_fsr2;
+	float support_fsr2;
 	float motion_blur_intensity;
 	float nan_fl_2;
 } params;
@@ -146,11 +146,11 @@ void main()
 
 	view_past_ndc.xyz /= view_past_ndc.w;
 
-	vec3 past_uv = vec3(view_past_ndc.xy * 0.5 + 0.5, view_past_ndc.z);
+	vec3 past_uv = vec3(view_past_ndc.xy * 0.5 + 0.5, view_past_position.z);
 
 	vec4 view_past_ndc_cache = view_past_ndc;
 
-	vec3 camera_uv_change = past_uv - vec3(uvn, depth);
+	vec3 camera_uv_change = past_uv - vec3(uvn, view_position.z);
 
 	// get just rotation change
 	world_local_position = mat4(mat3(inverse(scene_data.view_matrix))) * vec4(view_position.xyz, 1.0);
@@ -161,9 +161,9 @@ void main()
 
 	view_past_ndc.xyz /= view_past_ndc.w;
 
-	past_uv = vec3(view_past_ndc.xy * 0.5 + 0.5, view_past_ndc.z);
+	past_uv = vec3(view_past_ndc.xy * 0.5 + 0.5, view_past_position.z);
 
-	vec3 camera_rotation_uv_change = past_uv - vec3(uvn, depth);
+	vec3 camera_rotation_uv_change = past_uv - vec3(uvn, view_position.z);
 	
 	// get just movement change
 	vec3 camera_movement_uv_change = camera_uv_change - camera_rotation_uv_change;
@@ -172,11 +172,11 @@ void main()
 	vec3 base_velocity = vec3(
 		textureLod(vector_sampler, uvn, 0.0).xy + 
 		mix(vec2(0), camera_uv_change.xy, step(depth, 0.)), 
-		camera_uv_change.z
+		depth == 0 ? 0 : camera_uv_change.z
 		);
 	
 	// fsr just makes it so values are larger than 1, I assume its the only case when it happens
-	if(params.is_fsr2 > 0.5 && dot(base_velocity.xy, base_velocity.xy) >= 1)
+	if(params.support_fsr2 > 0.5 && dot(base_velocity.xy, base_velocity.xy) >= 1)
 	{
 		base_velocity = camera_uv_change;
 	}
@@ -189,15 +189,15 @@ void main()
 	
 	camera_rotation_uv_change * params.rotation_velocity_multiplier * 
 	sharp_step(params.rotation_velocity_lower_threshold, params.rotation_velocity_upper_threshold, 
-	length(camera_rotation_uv_change) * params.rotation_velocity_multiplier * params.motion_blur_intensity)
+	length(camera_rotation_uv_change.xy) * params.rotation_velocity_multiplier * params.motion_blur_intensity)
 
 	+ camera_movement_uv_change * params.movement_velocity_multiplier * 
 	sharp_step(params.movement_velocity_lower_threshold, params.movement_velocity_upper_threshold, 
-	length(camera_movement_uv_change) * params.movement_velocity_multiplier * params.motion_blur_intensity)
+	length(camera_movement_uv_change.xy) * params.movement_velocity_multiplier * params.motion_blur_intensity)
 
 	+ object_uv_change * params.object_velocity_multiplier * 
 	sharp_step(params.object_velocity_lower_threshold, params.object_velocity_upper_threshold, 
-	length(object_uv_change) * params.object_velocity_multiplier * params.motion_blur_intensity);
+	length(object_uv_change.xy) * params.object_velocity_multiplier * params.motion_blur_intensity);
 	
 	// if objects move, clear z direction, (velocity z can only be assumed for static environment)
 	if(dot(object_uv_change.xy, object_uv_change.xy) > 0.000001)
@@ -212,13 +212,14 @@ void main()
 		total_velocity = base_velocity;
 	}
 
-	float total_velocity_length = max(FLT_MIN, length(total_velocity));
+	float total_velocity_length = max(FLT_MIN, length(total_velocity.xy));
 	total_velocity = total_velocity * clamp(total_velocity_length, 0, 1) / total_velocity_length;
 
 	// If the previous position is happening behind the camera, the w component of the projected vector would be negative, 
 	// and the velocity vector would be flipped. (I am not 100% sure this is the whole story but this handles velocities
 	// that are extracted from the environment when the camera moves backwards rapidly, avoiding crazy artifacts)
-	imageStore(vector_output, uvi, vec4(total_velocity * (view_past_ndc_cache.w < 0 ? -1 : 1), depth));
+	// If degth == 0 (skybox), we use an arithmetic operation to generate a negative infinity float.
+	imageStore(vector_output, uvi, vec4(total_velocity * (view_past_ndc_cache.w < 0 ? -1 : 1), depth == 0 ? (-1.0 / 0.0) : view_position.z));
 
 #ifdef DEBUG
 	vec2 velocity = textureLod(vector_sampler, uvn, 0.0).xy;

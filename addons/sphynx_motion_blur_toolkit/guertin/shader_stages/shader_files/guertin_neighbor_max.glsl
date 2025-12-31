@@ -68,5 +68,5 @@ void main()
 		}
 	}
 
-	imageStore(neighbor_max, uvi, vec4(max_neighbor_velocity, 0, 1));
+	imageStore(neighbor_max, uvi, vec4(max_neighbor_velocity, 0, 0));
 }
