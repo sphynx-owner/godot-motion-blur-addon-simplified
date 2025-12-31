@@ -43,13 +43,25 @@ void main()
 	for(int i = 0; i < params.tile_size; i++)
 	{
 		vec2 current_uv = uvn + vec2(float(i) / render_size.x, 0);
-		vec3 velocity_sample = textureLod(velocity_sampler, current_uv, 0.0).xyz;
+		vec4 velocity_sample = textureLod(velocity_sampler, current_uv, 0.0);
+		
+		// If the depth at the potential dominant velocity is infinity (background or skybox)
+		// then it will never go in front of other geometry, and can be skipped.
+		// TODO @sphynx-owner: enable when considering ignoring skybox for dominant velocity
+		// if(velocity_sample.w == (-1.0 / 0.0))
+		// {
+		// 	continue;
+		// }
+
 		float current_velocity_length = dot(velocity_sample.xy, velocity_sample.xy);
 		if(current_velocity_length > max_velocity_length)
 		{
 			max_velocity_length = current_velocity_length;
-			max_velocity = vec4(velocity_sample, textureLod(depth_sampler, current_uv, 0.0).x);
+			max_velocity = vec4(velocity_sample.xy, 0, 0);
 		}
 	}
+
+	// TODO @sphynx-owner: replace the buffer with a red-green buffer only,
+	// no need to store depth and z velocity here.
 	imageStore(tile_max_x, uvi, max_velocity);
 }

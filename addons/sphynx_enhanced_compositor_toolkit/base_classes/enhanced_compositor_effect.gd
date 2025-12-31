@@ -193,10 +193,14 @@ func ensure_texture(texture_name : StringName, render_scene_buffers : RenderScen
 		var tf: RDTextureFormat = render_scene_buffers.get_texture_format(context, texture_name)
 		if tf.width != render_size.x or tf.height != render_size.y:
 			render_scene_buffers.clear_context(context)
-
+	
 	if !render_scene_buffers.has_texture(context, texture_name):
 		var usage_bits: int = RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT
 		render_scene_buffers.create_texture(context, texture_name, texture_format, usage_bits, RenderingDevice.TEXTURE_SAMPLES_1, render_size, 1, 1, true, false)
+
+
+func get_texture(texture_name: StringName, render_scene_buffers : RenderSceneBuffersRD) -> RID:
+	return render_scene_buffers.get_texture_slice(context, texture_name, 0, 0, 1, 1)
 
 
 func get_image_uniform(image: RID, binding: int) -> RDUniform:
@@ -215,6 +219,38 @@ func get_sampler_uniform(image: RID, binding: int, linear : bool = true) -> RDUn
 	uniform.add_id(image)
 	return uniform
 
+
+func get_buffer_uniform(buffer: RID, binding: int) -> RDUniform:
+	var uniform := RDUniform.new()
+	uniform.uniform_type = RenderingDevice.UNIFORM_TYPE_UNIFORM_BUFFER
+	uniform.binding = binding
+	uniform.add_id(buffer)
+	return uniform
+
+
+func get_push_constants(
+	floats: PackedFloat32Array = [], 
+	ints: PackedInt32Array = [], 
+	force_four_minimum_entries := false
+) -> PackedByteArray:
+	var ret: PackedByteArray
+	
+	if floats.size() > 0 or force_four_minimum_entries:
+		@warning_ignore("integer_division")
+		floats.resize((((floats.size() - 1) / 4 + 1) * 4))
+	
+	ret.append_array(floats.to_byte_array())
+	
+	if ret.size() == 48:
+		pass
+	
+	if ints.size() > 0 or force_four_minimum_entries:
+		@warning_ignore("integer_division")
+		ints.resize((((ints.size() - 1) / 4 + 1) * 4))
+	
+	ret.append_array(ints.to_byte_array())
+	
+	return ret
 
 
 func dispatch_stage(stage : ShaderStageResource, uniforms : Array[RDUniform], push_constants : PackedByteArray, dispatch_size : Vector3i, label : String = "DefaultLabel", view : int = 0, color : Color = Color(1, 1, 1, 1)):
