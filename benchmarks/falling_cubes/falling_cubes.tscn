@@ -13,11 +13,11 @@
 [ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="9_f44yt"]
 [ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="11_e2kve"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_aa0ni"]
-ground_bottom_color = Color(0.7643263, 0.70130444, 0.6326396, 1)
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_w8xxa"]
+ground_bottom_color = Color(0.7907238, 0.73137456, 0.6657407, 1)
 
 [sub_resource type="Sky" id="Sky_aa0ni"]
-sky_material = SubResource("ProceduralSkyMaterial_aa0ni")
+sky_material = SubResource("ProceduralSkyMaterial_w8xxa")
 
 [sub_resource type="Environment" id="Environment_r6scx"]
 background_mode = 2
@@ -69,32 +69,35 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-focus_mode = 1
+focus_mode = 2
 
-[node name="SpawnButton" type="Button" parent="CanvasLayer/FocusControl"]
-layout_mode = 1
+[node name="RelpayMenu" parent="CanvasLayer" instance=ExtResource("1_dgpyu")]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -306.0
+offset_right = -73.0
+grow_horizontal = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer"]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -29.5
+offset_left = -54.5
 offset_top = -40.0
-offset_right = 29.5
+offset_right = 54.5
 grow_horizontal = 2
 grow_vertical = 0
+
+[node name="SpawnButton" type="Button" parent="CanvasLayer/HBoxContainer"]
+layout_mode = 2
 text = "spawn"
 
-[node name="RelpayMenu" parent="CanvasLayer" instance=ExtResource("1_dgpyu")]
-anchors_preset = -1
-anchor_left = 0.34600002
-anchor_top = 0.924
-anchor_right = 0.455
-anchor_bottom = 0.994
-offset_left = 0.11999512
-offset_top = 19.71997
-offset_right = -19.400024
-offset_bottom = 0.32000732
+[node name="ClearButton" type="Button" parent="CanvasLayer/HBoxContainer"]
+layout_mode = 2
+text = "clear"
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_r6scx")
@@ -116,6 +119,7 @@ skeleton = NodePath("../..")
 [node name="CubeSpawner" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18.770802, 0)
 script = ExtResource("1_aa0ni")
+spawn_at_start = false
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(-0.76206297, -0.4217897, 0.4912774, 0, 0.7587261, 0.6514098, -0.6475029, 0.49641526, -0.5781971, 11.660009, 16.856941, -13.644352)
@@ -123,4 +127,5 @@ script = ExtResource("11_e2kve")
 initial_mouse_mode = 0
 
 [connection signal="focus_entered" from="CanvasLayer/FocusControl" to="Camera3D" method="capture_mouse"]
-[connection signal="pressed" from="CanvasLayer/FocusControl/SpawnButton" to="CubeSpawner" method="spawn_cubes"]
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/SpawnButton" to="CubeSpawner" method="spawn_cubes"]
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/ClearButton" to="CubeSpawner" method="clear_cubes"]

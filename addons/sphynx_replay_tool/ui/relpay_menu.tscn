@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://b4t1vbd82lvn5"]
+[gd_scene load_steps=4 format=3 uid="uid://b4t1vbd82lvn5"]
 
 [ext_resource type="Script" uid="uid://qdfkynhye77v" path="res://addons/sphynx_replay_tool/replay_manager.gd" id="1_vp06r"]
+[ext_resource type="Script" uid="uid://crn1h6ololsrb" path="res://addons/sphynx_replay_tool/classes/recorder.gd" id="2_lrmc6"]
+[ext_resource type="Script" uid="uid://bcksmwxwkpkw8" path="res://addons/sphynx_replay_tool/classes/replayer.gd" id="3_rwxun"]
 
-[node name="ReplayMenu" type="PanelContainer" node_paths=PackedStringArray("record_button", "replay_button")]
+[node name="ReplayMenu" type="PanelContainer" node_paths=PackedStringArray("record_button", "replay_button", "save_button", "load_button", "recorder", "replayer")]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -12,6 +14,10 @@ grow_vertical = 0
 script = ExtResource("1_vp06r")
 record_button = NodePath("MarginContainer/HBoxContainer/RecordButton")
 replay_button = NodePath("MarginContainer/HBoxContainer/ReplayButton")
+save_button = NodePath("MarginContainer/HBoxContainer/SaveButton")
+load_button = NodePath("MarginContainer/HBoxContainer/LoadButton")
+recorder = NodePath("Recorder")
+replayer = NodePath("Replayer")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
@@ -34,5 +40,18 @@ layout_mode = 2
 toggle_mode = true
 text = "replay"
 
-[connection signal="toggled" from="MarginContainer/HBoxContainer/RecordButton" to="MarginContainer/HBoxContainer" method="_on_record_button_toggled"]
-[connection signal="toggled" from="MarginContainer/HBoxContainer/ReplayButton" to="MarginContainer/HBoxContainer" method="_on_replay_button_toggled"]
+[node name="SaveButton" type="Button" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+text = "save"
+
+[node name="LoadButton" type="Button" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+text = "load"
+
+[node name="Recorder" type="Node" parent="."]
+script = ExtResource("2_lrmc6")
+metadata/_custom_type_script = "uid://crn1h6ololsrb"
+
+[node name="Replayer" type="Node" parent="."]
+script = ExtResource("3_rwxun")
+metadata/_custom_type_script = "uid://bcksmwxwkpkw8"
