@@ -19,10 +19,11 @@ config/icon="res://demo/icon.svg"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
+window/size/mode=2
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/sphynx_enhanced_compositor_toolkit/plugin.cfg", "res://addons/sphynx_motion_blur_toolkit/plugin.cfg")
+enabled=PackedStringArray("res://addons/sphynx_enhanced_compositor_toolkit/plugin.cfg", "res://addons/sphynx_motion_blur_toolkit/plugin.cfg", "res://addons/sphynx_replay_tool/plugin.cfg")
 
 [input]
 

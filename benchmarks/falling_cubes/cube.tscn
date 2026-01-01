@@ -1,0 +1,25 @@
+[gd_scene load_steps=6 format=3 uid="uid://ddahhj3gi1cos"]
+
+[ext_resource type="Script" uid="uid://undg3djijhhx" path="res://benchmarks/falling_cubes/mesh_with_random_albedo.gd" id="1_mlfay"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_c8rd7"]
+bounce = 0.5
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_v4myo"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_0nfwg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1m42x"]
+resource_local_to_scene = true
+albedo_color = Color(0.34216103, 0.41788793, 0.28791836, 1)
+
+[node name="Cube" type="RigidBody3D"]
+physics_material_override = SubResource("PhysicsMaterial_c8rd7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_v4myo")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CollisionShape3D"]
+mesh = SubResource("BoxMesh_0nfwg")
+surface_material_override/0 = SubResource("StandardMaterial3D_1m42x")
+script = ExtResource("1_mlfay")

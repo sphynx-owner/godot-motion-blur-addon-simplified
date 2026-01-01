@@ -11,7 +11,7 @@
 [ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="6_vy2yv"]
 [ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="8_xm42s"]
 [ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="9_tdg64"]
-[ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://demo/camera_3d.gd" id="15_peffh"]
+[ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="15_peffh"]
 [ext_resource type="Script" uid="uid://xhlnav7ttw0t" path="res://demo/basic_strafe.gd" id="17_33ie6"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_nk31j"]
