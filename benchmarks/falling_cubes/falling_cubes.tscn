@@ -1,6 +1,7 @@
-[gd_scene load_steps=20 format=3 uid="uid://bngg0hdt3buas"]
+[gd_scene load_steps=21 format=3 uid="uid://bngg0hdt3buas"]
 
 [ext_resource type="Script" uid="uid://bkjpm2dp8knf3" path="res://benchmarks/falling_cubes/cube_spawner.gd" id="1_aa0ni"]
+[ext_resource type="PackedScene" uid="uid://b4t1vbd82lvn5" path="res://addons/sphynx_replay_tool/ui/relpay_menu.tscn" id="1_dgpyu"]
 [ext_resource type="Resource" uid="uid://ca45noqewsyvp" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="1_hnt31"]
 [ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="2_e2kve"]
 [ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="3_dgpyu"]
@@ -83,6 +84,17 @@ offset_right = 29.5
 grow_horizontal = 2
 grow_vertical = 0
 text = "spawn"
+
+[node name="RelpayMenu" parent="CanvasLayer" instance=ExtResource("1_dgpyu")]
+anchors_preset = -1
+anchor_left = 0.34600002
+anchor_top = 0.924
+anchor_right = 0.455
+anchor_bottom = 0.994
+offset_left = 0.11999512
+offset_top = 19.71997
+offset_right = -19.400024
+offset_bottom = 0.32000732
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_r6scx")

@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3 uid="uid://b4t1vbd82lvn5"]
+
+[ext_resource type="Script" uid="uid://qdfkynhye77v" path="res://addons/sphynx_replay_tool/replay_manager.gd" id="1_vp06r"]
+
+[node name="ReplayMenu" type="PanelContainer" node_paths=PackedStringArray("record_button", "replay_button")]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -51.0
+offset_right = 140.0
+grow_vertical = 0
+script = ExtResource("1_vp06r")
+record_button = NodePath("MarginContainer/HBoxContainer/RecordButton")
+replay_button = NodePath("MarginContainer/HBoxContainer/ReplayButton")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="RecordButton" type="Button" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+toggle_mode = true
+text = "record"
+
+[node name="ReplayButton" type="Button" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+toggle_mode = true
+text = "replay"
+
+[connection signal="toggled" from="MarginContainer/HBoxContainer/RecordButton" to="MarginContainer/HBoxContainer" method="_on_record_button_toggled"]
+[connection signal="toggled" from="MarginContainer/HBoxContainer/ReplayButton" to="MarginContainer/HBoxContainer" method="_on_replay_button_toggled"]
