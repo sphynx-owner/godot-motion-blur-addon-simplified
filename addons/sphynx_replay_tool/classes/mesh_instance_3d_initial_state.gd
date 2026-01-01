@@ -31,3 +31,6 @@ func _capture_node_initial_state(node: Node) -> void:
 			continue
 		
 		state[property] = value
+	
+	for i in node.get_surface_override_material_count():
+		state["surface_material_override/" + str(i)] = node.get_surface_override_material(i) 
