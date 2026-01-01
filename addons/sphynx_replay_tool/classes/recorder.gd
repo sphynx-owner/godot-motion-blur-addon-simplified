@@ -37,6 +37,6 @@ func _on_node_removed(node: Node) -> void:
 
 
 func _on_frame_post_draw() -> void:
-	current_scene_record.update_all_active_records(current_frame)
+	current_scene_record.update_all_active_records()
 	
 	current_frame += 1

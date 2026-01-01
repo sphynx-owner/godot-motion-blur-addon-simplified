@@ -1,0 +1,131 @@
+[gd_scene load_steps=21 format=3 uid="uid://bngg0hdt3buas"]
+
+[ext_resource type="Script" uid="uid://bkjpm2dp8knf3" path="res://benchmarks/falling_cubes/cube_spawner.gd" id="1_aa0ni"]
+[ext_resource type="PackedScene" uid="uid://b4t1vbd82lvn5" path="res://addons/sphynx_replay_tool/ui/relpay_menu.tscn" id="1_dgpyu"]
+[ext_resource type="Resource" uid="uid://ca45noqewsyvp" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="1_hnt31"]
+[ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="2_e2kve"]
+[ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="3_dgpyu"]
+[ext_resource type="Resource" uid="uid://c8ulad7utgrg7" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres" id="4_74s67"]
+[ext_resource type="Script" uid="uid://c5jewnyvlca7j" path="res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd" id="5_xoery"]
+[ext_resource type="Resource" uid="uid://dipvwksvqb3dm" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_x_stage.tres" id="6_hsw1i"]
+[ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="7_7edp2"]
+[ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="8_8or0i"]
+[ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="9_f44yt"]
+[ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="11_e2kve"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_w8xxa"]
+ground_bottom_color = Color(0.7907238, 0.73137456, 0.6657407, 1)
+
+[sub_resource type="Sky" id="Sky_aa0ni"]
+sky_material = SubResource("ProceduralSkyMaterial_w8xxa")
+
+[sub_resource type="Environment" id="Environment_r6scx"]
+background_mode = 2
+sky = SubResource("Sky_aa0ni")
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_74457"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = true
+needs_normal_roughness = false
+script = ExtResource("5_xoery")
+shader_stages/blur_stage = ExtResource("1_hnt31")
+shader_stages/overlay_stage = ExtResource("3_dgpyu")
+shader_stages/tile_max_x_stage = ExtResource("6_hsw1i")
+shader_stages/tile_max_y_stage = ExtResource("7_7edp2")
+shader_stages/neighbor_max_stage = ExtResource("2_e2kve")
+shader_stages/pre_blur_processor_stage = ExtResource("4_74s67")
+metadata/_custom_type_script = "uid://c5jewnyvlca7j"
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_xmhx4"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = false
+needs_normal_roughness = false
+script = ExtResource("9_f44yt")
+debug = true
+shader_stages/overlay_stage = ExtResource("8_8or0i")
+metadata/_custom_type_script = "uid://bi6xhl7lpiu4n"
+
+[sub_resource type="Compositor" id="Compositor_j3jap"]
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_74457"), SubResource("CompositorEffect_xmhx4")])
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_w8xxa"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_aa0ni"]
+
+[node name="FallingCubes" type="Node3D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="FocusControl" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+
+[node name="RelpayMenu" parent="CanvasLayer" instance=ExtResource("1_dgpyu")]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -306.0
+offset_right = -73.0
+grow_horizontal = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -54.5
+offset_top = -40.0
+offset_right = 54.5
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="SpawnButton" type="Button" parent="CanvasLayer/HBoxContainer"]
+layout_mode = 2
+text = "spawn"
+
+[node name="ClearButton" type="Button" parent="CanvasLayer/HBoxContainer"]
+layout_mode = 2
+text = "clear"
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_r6scx")
+compositor = SubResource("Compositor_j3jap")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.35059968, 0.9365254, 0, -0.9365254, 0.35059968, 0, 0, 0)
+
+[node name="RigidBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+shape = SubResource("SphereShape3D_w8xxa")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D/CollisionShape3D"]
+mesh = SubResource("SphereMesh_aa0ni")
+skeleton = NodePath("../..")
+
+[node name="CubeSpawner" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18.770802, 0)
+script = ExtResource("1_aa0ni")
+spawn_at_start = false
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(-0.76206297, -0.4217897, 0.4912774, 0, 0.7587261, 0.6514098, -0.6475029, 0.49641526, -0.5781971, 11.660009, 16.856941, -13.644352)
+script = ExtResource("11_e2kve")
+initial_mouse_mode = 0
+
+[connection signal="focus_entered" from="CanvasLayer/FocusControl" to="Camera3D" method="capture_mouse"]
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/SpawnButton" to="CubeSpawner" method="spawn_cubes"]
+[connection signal="pressed" from="CanvasLayer/HBoxContainer/ClearButton" to="CubeSpawner" method="clear_cubes"]

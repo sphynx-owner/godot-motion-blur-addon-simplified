@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://cht1ha628cnlv"]
+[gd_scene load_steps=27 format=3 uid="uid://cht1ha628cnlv"]
 
 [ext_resource type="Resource" uid="uid://ca45noqewsyvp" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="1_65abe"]
 [ext_resource type="Texture2D" uid="uid://dsuk326vswcp4" path="res://demo/icon.svg" id="1_h320m"]
@@ -11,6 +11,7 @@
 [ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="6_vy2yv"]
 [ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="8_xm42s"]
 [ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="9_tdg64"]
+[ext_resource type="PackedScene" uid="uid://b4t1vbd82lvn5" path="res://addons/sphynx_replay_tool/ui/relpay_menu.tscn" id="14_nk31j"]
 [ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="15_peffh"]
 [ext_resource type="Script" uid="uid://xhlnav7ttw0t" path="res://demo/basic_strafe.gd" id="17_33ie6"]
 
@@ -76,6 +77,26 @@ albedo_color = Color(1, 1, 0, 1)
 albedo_texture = ExtResource("1_h320m")
 
 [node name="Demo" type="Node3D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="FocusControl" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+
+[node name="RelpayMenu" parent="CanvasLayer" instance=ExtResource("14_nk31j")]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -306.0
+offset_right = -73.0
+grow_horizontal = 2
+metadata/_edit_use_anchors_ = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_tre8e")

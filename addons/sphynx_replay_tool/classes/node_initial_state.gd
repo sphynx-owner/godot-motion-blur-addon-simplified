@@ -1,17 +1,8 @@
 @abstract 
 class_name NodeInitialState
-extends Resource
 
-@export_storage var state: Dictionary[String, Variant]
+static func recreate_node(state: Dictionary[String, Variant]) -> Node:
+	return null
 
-
-func _init(node: MeshInstance3D = null) -> void:
-	if !node:
-		return
-	
-	_capture_node_initial_state(node)
-
-
-@abstract func recreate_node() -> Node
-
-@abstract func _capture_node_initial_state(node: Node) -> void
+static func capture_node_initial_state(node: Node) -> Dictionary[String, Variant]:
+	return {}

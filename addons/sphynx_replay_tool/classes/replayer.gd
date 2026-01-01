@@ -14,6 +14,7 @@ var active_node_replays: Dictionary[Node, NodeRecord]
 
 var replaying := false
 
+
 func start_replaying() -> void:
 	current_frame = 0
 	

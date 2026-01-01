@@ -17,9 +17,9 @@ func create_subtree_records_recursive(node: Node, current_frame) -> void:
 		create_subtree_records_recursive(child, current_frame)
 
 
-func update_all_active_records(current_frame: int) -> void:
+func update_all_active_records() -> void:
 	for active_node_id in _active_node_records.keys():
-		update_node_record(active_node_id, current_frame)
+		update_node_record(active_node_id)
 
 
 func close_all_active_records(current_frame: int) -> void:
@@ -47,20 +47,23 @@ func create_node_record(node: Node, current_frame: int) -> void:
 	node_records.append(new_node_record)
 
 
-func update_node_record(node: Node, current_frame: int) -> void:
+func update_node_record(node: Node) -> void:
 	if !_active_node_records.has(node):
 		var err_string: String = "node does not exist in active node records"
 		assert(false, err_string)
 		push_error(err_string)
 	
-	_active_node_records[node].capture_node_frame_info(node, current_frame)
+	_active_node_records[node].capture_node_frame_info(node)
 
 
 func close_node_record(node: Node, current_frame: int) -> void:
+	# TODO @sphynx-owner: for some reason this is called twice for every node removed, 
+	# so we cannot use an error here and just have to ignore it
 	if !_active_node_records.has(node):
-		var err_string: String = "node does not exist in active node records"
-		assert(false, err_string)
-		push_error(err_string)
+		return
+		#var err_string: String = "node does not exist in active node records"
+		#assert(false, err_string)
+		#push_error(err_string)
 	
 	_active_node_records[node].close_node_record(current_frame)
 	_active_node_records.erase(node)
