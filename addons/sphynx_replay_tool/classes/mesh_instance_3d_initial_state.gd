@@ -36,23 +36,26 @@ const PROPERTY_LIST: Array[String] = [
 	"visibility_parent",
 ]
 
-static func recreate_node(state: Dictionary[String, Variant]) -> Node:
+static func recreate_node(state: Variant) -> Node:
 	var new_node := MeshInstance3D.new()
 	
-	for property: String in state.keys():
-		var value: Variant = state[property]
+	for i in PROPERTY_LIST.size():
+		var value: Variant = state[i]
 		
 		if value is Resource:
-			new_node.set(property, value.duplicate(true))
+			new_node.set(PROPERTY_LIST[i], value.duplicate(true))
 			
 		else:
-			new_node.set(property, value)
+			new_node.set(PROPERTY_LIST[i], value)
+	
+	for i in range(PROPERTY_LIST.size(), state.size()):
+		new_node.set("surface_material_override/" + str(i - PROPERTY_LIST.size()), state[i])
 	
 	return new_node
 
 
-static func capture_node_initial_state(node: Node) -> Dictionary[String, Variant]:
-	var state: Dictionary[String, Variant]
+static func capture_node_initial_state(node: Node) -> Variant:
+	var state: Array[Variant]
 	
 	for property in PROPERTY_LIST:
 		if property.begins_with("global_"):
@@ -66,9 +69,9 @@ static func capture_node_initial_state(node: Node) -> Dictionary[String, Variant
 		elif value is Node:
 			continue
 		
-		state[property] = value
+		state.append(value)
 	
 	for i in node.get_surface_override_material_count():
-		state["surface_material_override/" + str(i)] = node.get_surface_override_material(i) 
+		state.append(node.get_surface_override_material(i))
 	
 	return state

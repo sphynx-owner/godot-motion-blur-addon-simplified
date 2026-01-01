@@ -2,7 +2,7 @@ class_name NodeRecord
 extends Resource
 
 # The initial state of a node, used to recreate it
-@export_storage var node_initial_state: Dictionary[String, Variant]
+@export_storage var node_initial_state: Variant
 
 @export_storage var spawn_frame: int = 0
 @export_storage var despawn_frame: int = 0
@@ -45,61 +45,66 @@ func recreate_frame(node: Node, current_frame: int) -> void:
 	#Node3DFrameInfo.recreate_frame(node, recorded_info[current_frame - spawn_frame])
 
 
+const FLOAT_SIZE := 2
+
+const TRANSFORM_SIZE := 12
+
+
 func capture_node_transform(node: Node) -> void:
 	var offset: int = recorded_transform_info.size()
 	
-	recorded_transform_info.resize(offset + 4 * 12)
+	recorded_transform_info.resize(offset + FLOAT_SIZE * TRANSFORM_SIZE)
 	
 	var global_transform: Transform3D = node.global_transform
 	
-	recorded_transform_info.encode_float(offset, global_transform.basis.x.x)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.basis.x.y)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.basis.x.z)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.basis.y.x)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.basis.y.y)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.basis.y.z)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.basis.z.x)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.basis.z.y)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.basis.z.z)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.origin.x)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.origin.y)
-	offset += 4
-	recorded_transform_info.encode_float(offset, global_transform.origin.z)
+	recorded_transform_info.encode_half(offset, global_transform.basis.x.x)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.basis.x.y)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.basis.x.z)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.basis.y.x)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.basis.y.y)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.basis.y.z)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.basis.z.x)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.basis.z.y)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.basis.z.z)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.origin.x)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.origin.y)
+	offset += FLOAT_SIZE
+	recorded_transform_info.encode_half(offset, global_transform.origin.z)
 
 
 
 func recreate_node_transform(node: Node, current_frame: int) -> void:
-	var offset: int = (current_frame - spawn_frame) * 4 * 12
+	var offset: int = (current_frame - spawn_frame) * FLOAT_SIZE * TRANSFORM_SIZE
 	
 	node.global_transform = Transform3D(
 		Vector3(
-			recorded_transform_info.decode_float(offset + 0 * 4),
-			recorded_transform_info.decode_float(offset + 1 * 4),
-			recorded_transform_info.decode_float(offset + 2 * 4),
+			recorded_transform_info.decode_half(offset + 0 * FLOAT_SIZE),
+			recorded_transform_info.decode_half(offset + 1 * FLOAT_SIZE),
+			recorded_transform_info.decode_half(offset + 2 * FLOAT_SIZE),
 		),
 		Vector3(
-			recorded_transform_info.decode_float(offset + 3 * 4),
-			recorded_transform_info.decode_float(offset + 4 * 4),
-			recorded_transform_info.decode_float(offset + 5 * 4),
+			recorded_transform_info.decode_half(offset + 3 * FLOAT_SIZE),
+			recorded_transform_info.decode_half(offset + 4 * FLOAT_SIZE),
+			recorded_transform_info.decode_half(offset + 5 * FLOAT_SIZE),
 		),
 		Vector3(
-			recorded_transform_info.decode_float(offset + 6 * 4),
-			recorded_transform_info.decode_float(offset + 7 * 4),
-			recorded_transform_info.decode_float(offset + 8 * 4),
+			recorded_transform_info.decode_half(offset + 6 * FLOAT_SIZE),
+			recorded_transform_info.decode_half(offset + 7 * FLOAT_SIZE),
+			recorded_transform_info.decode_half(offset + 8 * FLOAT_SIZE),
 		),
 		Vector3(
-			recorded_transform_info.decode_float(offset + 9 * 4),
-			recorded_transform_info.decode_float(offset + 10 * 4),
-			recorded_transform_info.decode_float(offset + 11 * 4),
+			recorded_transform_info.decode_half(offset + 9 * FLOAT_SIZE),
+			recorded_transform_info.decode_half(offset + 10 * FLOAT_SIZE),
+			recorded_transform_info.decode_half(offset + 11 * FLOAT_SIZE),
 		)
 	)

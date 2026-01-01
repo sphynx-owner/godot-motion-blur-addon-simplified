@@ -78,6 +78,7 @@ anchor_right = 0.5
 offset_left = -306.0
 offset_right = -73.0
 grow_horizontal = 2
+metadata/_edit_use_anchors_ = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer"]
 anchors_preset = 7
