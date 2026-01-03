@@ -13,6 +13,10 @@ extends Node
 
 @export var replayer: Replayer
 
+@export var replay_subviewport_container: SubViewportContainer
+
+@export var replay_viewport: SubViewport
+
 
 func _ready() -> void:
 	record_button.toggled.connect(_on_record_button_toggled)
@@ -55,11 +59,19 @@ func _stop_recording() -> void:
 
 
 func _start_replay() -> void:
+	replay_subviewport_container.visible = true
+	
+	replay_subviewport_container.grab_focus()
+	
 	replayer.current_scene_record = recorder.current_scene_record
 	replayer.start_replaying()
 
 
 func _stop_replay() -> void:
+	replay_subviewport_container.visible = false
+	
+	replay_subviewport_container.release_focus()
+	
 	replayer.stop_replaying()
 
 

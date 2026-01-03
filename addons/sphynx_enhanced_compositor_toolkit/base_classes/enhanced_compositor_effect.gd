@@ -26,6 +26,9 @@ const shader_stages_category_prefix: String = "shader_stages/"
 		
 		debug = value
 		_generate_all_shader_stages.call_deferred()
+		
+	get():
+		return debug and !Engine.is_editor_hint()
 
 var rd: RenderingDevice
 

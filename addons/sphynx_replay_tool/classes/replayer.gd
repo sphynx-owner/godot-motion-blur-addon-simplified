@@ -14,6 +14,8 @@ var active_node_replays: Dictionary[Node, NodeRecord]
 
 var replaying := false
 
+var _camera: Camera3D
+
 
 func start_replaying() -> void:
 	current_frame = 0
@@ -21,15 +23,21 @@ func start_replaying() -> void:
 	current_node_record_index = 0
 	
 	replaying = true
+	
+	_camera = Camera3D.new()
+	
+	get_parent().add_child(_camera)
 
 
 func stop_replaying() -> void:
 	for node in active_node_replays.keys():
-		get_tree().root.remove_child(node)
+		get_parent().remove_child(node)
 	
 	active_node_replays.clear()
 	
 	replaying = false
+	
+	_camera.queue_free()
 
 
 func _process(delta: float) -> void:
@@ -42,6 +50,8 @@ func _process(delta: float) -> void:
 	
 	if !replaying:
 		return
+	
+	_camera.global_transform = get_parent().get_parent().get_viewport().get_camera_3d().global_transform
 	
 	while true:
 		if current_node_record_index >=current_scene_record.node_records.size():
@@ -56,7 +66,7 @@ func _process(delta: float) -> void:
 		
 		var recreated_node: Node = current_node_record.recreate_node()
 		
-		get_tree().root.add_child(recreated_node)
+		get_parent().add_child(recreated_node)
 		
 		active_node_replays[recreated_node] = current_node_record
 	
@@ -65,7 +75,7 @@ func _process(delta: float) -> void:
 		if active_node_replays[node].despawn_frame <= current_frame:
 			active_node_replays.erase(node)
 			
-			get_tree().root.remove_child(node)
+			get_parent().remove_child(node)
 	
 	
 	for node in active_node_replays.keys():

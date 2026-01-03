@@ -15,10 +15,12 @@ extends Resource
 
 
 static func can_record_node(node: Node) -> bool:
-	return node is MeshInstance3D
+	return node is MeshInstance3D or node is WorldEnvironment or node is Light3D
 
 
 func capture_node_initial_state(node: Node, current_frame: int) -> void:
+	if node is WorldEnvironment or node is Light3D:
+		node_initial_state = WorldEnvironmentInitialState.capture_node_initial_state(node)
 	if node is MeshInstance3D:
 		node_initial_state = MeshInstance3DInitialState.capture_node_initial_state(node)
 	
@@ -26,6 +28,9 @@ func capture_node_initial_state(node: Node, current_frame: int) -> void:
 
 
 func capture_node_frame_info(node: Node) -> void:
+	if node is WorldEnvironment:
+		return
+	
 	capture_node_transform(node)
 	
 	#if node is Node3D:
@@ -37,10 +42,18 @@ func close_node_record(current_frame: int) -> void:
 
 
 func recreate_node() -> Node:
-	return MeshInstance3DInitialState.recreate_node(node_initial_state)
+	if node_initial_state is PackedScene:
+		return WorldEnvironmentInitialState.recreate_node(node_initial_state)
+	if node_initial_state is Array[Variant]:
+		return MeshInstance3DInitialState.recreate_node(node_initial_state)
+	
+	return null
 
 
 func recreate_frame(node: Node, current_frame: int) -> void:
+	if node is WorldEnvironment:
+		return
+	
 	recreate_node_transform(node, current_frame)
 	#Node3DFrameInfo.recreate_frame(node, recorded_info[current_frame - spawn_frame])
 
