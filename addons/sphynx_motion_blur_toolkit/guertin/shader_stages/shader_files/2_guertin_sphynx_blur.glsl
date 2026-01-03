@@ -68,9 +68,9 @@ vec2 jitter_tile(vec2 uvi)
 }
 // ----------------------------------------------------------
 
-vec4 sample_velocity(sampler2D texture_to_sample, vec2 uv, vec2 scale_ratio)
+vec4 sample_velocity(sampler2D texture_to_sample, vec2 uv)
 {
-	return textureLod(texture_to_sample, uv, 0.0) * vec4(scale_ratio, 1, 1) * params.motion_blur_intensity;
+	return textureLod(texture_to_sample, uv, 0.0) * params.motion_blur_intensity;
 }
 
 void main() 
@@ -100,7 +100,9 @@ void main()
 	// between tiles to hide seams between them.
 	// We then multiply the velocity by the render size to get its magnitude
 	// in pixels. We also mulitply it by the blur intensity factor.
-	vec4 vnzw = textureLod(neighbor_max, x + (params.jitter_tiles == 1 ? jitter_tile(uvi) : vec2(0)), 0.0) * vec4(render_size / 2., 1, 1) * params.motion_blur_intensity;
+	// NOTE: We multiply the velocity by the render size so that it is converted to screen coordinates, meaning
+	// directionality is not warped by the normalized uv coordinates velocities come in usually.
+	vec4 vnzw = sample_velocity(neighbor_max, x + (params.jitter_tiles == 1 ? jitter_tile(uvi) : vec2(0)));
 
 	// We get the xy components of the max tile velocity. Velocities can have a z
 	// component too (we generate it in the pre-blur processing stage for stationary
@@ -114,21 +116,21 @@ void main()
 	vec4 base_color = textureLod(color_sampler, x, 0.0);
 
 	// We get the true velocity at the current pixel, mulitplied by the motion blur intensity.
-	vec4 vxzw = textureLod(velocity_sampler, x, 0.0) * vec4(render_size / 2., 1, 1) * params.motion_blur_intensity;
+	vec4 vxzw = sample_velocity(velocity_sampler, x);
 
 	// We get the xy components of the true velocity (see declaration of vn)
 	vec2 vx = vxzw.xy;
 
 	float vx_length = length(vx);
 
-	if(params.clamp_velocities_to_tile)
+	if(params.clamp_velocities_to_tile == 1)
 	{
 		float clamp_ratio = max(vn_length / params.tile_size, 1.0);
-		vn /= clamp_ratio
+		vn /= clamp_ratio;
 		vn_length /= clamp_ratio;
 
 		clamp_ratio = max(vx_length / params.tile_size, 1.0);
-		vx /= clamp_ratio
+		vx /= clamp_ratio;
 		vx_length /= clamp_ratio;
 	}
 
@@ -184,7 +186,7 @@ void main()
 		// ----------------------------------------------------------------------------------
 		vec2 yx = x + t * vx / vec2(render_size);
 
-		vec4 vyzwx = textureLod(velocity_sampler, yx, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity;
+		vec4 vyzwx = sample_velocity(velocity_sampler, yx);
 
 		float zyx = vyzwx.w;
 
@@ -202,7 +204,7 @@ void main()
 		{
 			vec2 yn = x + t * vn / vec2(render_size);
 		
-			vec4 vyzwn = textureLod(velocity_sampler, yn, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity; 
+			vec4 vyzwn = sample_velocity(velocity_sampler, yn); 
 
 			vec2 vyn = vyzwn.xy;
 
@@ -216,15 +218,11 @@ void main()
 
 			float vyn_length = max(0.5, length(vyn));
 
-			if(params.clamp_velocities_to_tile)
+			if(params.clamp_velocities_to_tile == 1)
 			{
-				float clamp_ratio = max(vn_length / params.tile_size, 1.0);
-				vn /= clamp_ratio
-				vn_length /= clamp_ratio;
-
-				clamp_ratio = max(vx_length / params.tile_size, 1.0);
-				vx /= clamp_ratio
-				vx_length /= clamp_ratio;
+				float clamp_ratio = max(vyn_length / params.tile_size, 1.0);
+				vyn /= clamp_ratio;
+				vyn_length /= clamp_ratio;
 			}
 
 			float projected = abs(dot(wyn, wn));

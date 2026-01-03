@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://cvrlvguy5hibg"]
+[gd_scene load_steps=26 format=3 uid="uid://cvrlvguy5hibg"]
 
 [ext_resource type="Script" uid="uid://cq6foek2tewwe" path="res://benchmarks/race_track/race_track.gd" id="1_yxadb"]
 [ext_resource type="PackedScene" uid="uid://cufewixnl0wk7" path="res://benchmarks/option_slider.tscn" id="2_qon7d"]
@@ -9,11 +9,13 @@
 [ext_resource type="Resource" uid="uid://bkudf8hl37ho2" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur2_stage.tres" id="7_yxadb"]
 [ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="8_ov04b"]
 [ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="9_8c728"]
-[ext_resource type="Resource" uid="uid://c8ulad7utgrg7" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres" id="10_nnnvc"]
+[ext_resource type="Resource" uid="uid://oekvkjd75764" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/2_pre_blur_processing_stage.tres" id="10_yxadb"]
 [ext_resource type="Script" uid="uid://c5jewnyvlca7j" path="res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd" id="11_5kn4v"]
 [ext_resource type="Resource" uid="uid://dipvwksvqb3dm" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_x_stage.tres" id="12_n3j62"]
 [ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="13_jhsix"]
 [ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="14_d4thr"]
+[ext_resource type="Resource" uid="uid://ca45noqewsyvp" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="14_lb6vi"]
+[ext_resource type="Resource" uid="uid://c8ulad7utgrg7" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres" id="15_4ncjf"]
 [ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="15_jv5im"]
 
 [sub_resource type="Curve3D" id="Curve3D_7l2kl"]
@@ -35,22 +37,40 @@ background_mode = 2
 sky = SubResource("Sky_4x5hm")
 sdfgi_enabled = true
 
-[sub_resource type="CompositorEffect" id="CompositorEffect_av2lt"]
+[sub_resource type="CompositorEffect" id="CompositorEffect_lb6vi"]
 resource_local_to_scene = false
 resource_name = ""
-enabled = true
+enabled = false
 effect_callback_type = 4
 needs_motion_vectors = true
 needs_normal_roughness = false
 script = ExtResource("11_5kn4v")
 blur_stage = ExtResource("7_yxadb")
-tile_size = 10
+pre_blur_processor_stage = ExtResource("10_yxadb")
+debug = true
 shader_stages/blur_stage = ExtResource("7_yxadb")
 shader_stages/overlay_stage = ExtResource("9_8c728")
 shader_stages/tile_max_x_stage = ExtResource("12_n3j62")
 shader_stages/tile_max_y_stage = ExtResource("13_jhsix")
 shader_stages/neighbor_max_stage = ExtResource("8_ov04b")
-shader_stages/pre_blur_processor_stage = ExtResource("10_nnnvc")
+shader_stages/pre_blur_processor_stage = ExtResource("10_yxadb")
+metadata/_custom_type_script = "uid://c5jewnyvlca7j"
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_4e24t"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = false
+effect_callback_type = 4
+needs_motion_vectors = true
+needs_normal_roughness = false
+script = ExtResource("11_5kn4v")
+debug = true
+shader_stages/blur_stage = ExtResource("14_lb6vi")
+shader_stages/overlay_stage = ExtResource("9_8c728")
+shader_stages/tile_max_x_stage = ExtResource("12_n3j62")
+shader_stages/tile_max_y_stage = ExtResource("13_jhsix")
+shader_stages/neighbor_max_stage = ExtResource("8_ov04b")
+shader_stages/pre_blur_processor_stage = ExtResource("15_4ncjf")
 metadata/_custom_type_script = "uid://c5jewnyvlca7j"
 
 [sub_resource type="CompositorEffect" id="CompositorEffect_nsrtd"]
@@ -61,11 +81,12 @@ effect_callback_type = 4
 needs_motion_vectors = false
 needs_normal_roughness = false
 script = ExtResource("15_jv5im")
+debug = true
 shader_stages/overlay_stage = ExtResource("14_d4thr")
 metadata/_custom_type_script = "uid://bi6xhl7lpiu4n"
 
 [sub_resource type="Compositor" id="Compositor_3wliq"]
-compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_av2lt"), SubResource("CompositorEffect_nsrtd")])
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_lb6vi"), SubResource("CompositorEffect_4e24t"), SubResource("CompositorEffect_nsrtd")])
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_yxadb")

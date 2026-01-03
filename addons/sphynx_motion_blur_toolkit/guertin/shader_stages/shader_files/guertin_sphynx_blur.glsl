@@ -23,6 +23,10 @@ layout(push_constant, std430) uniform Params
 	int sample_count;
 	int frame;
 	int use_custom_curve;
+	int jitter_tiles;
+	int clamp_velocities_to_tile;
+	int nan4;
+	int nan5;
 } params;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;

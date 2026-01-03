@@ -87,12 +87,13 @@ func _get_property_list() -> Array[Dictionary]:
 
 
 func _set(property: StringName, value: Variant) -> bool:
-	if !h_slider:
-		return false
-	
-	_custom_property_list_values[property] = value
-	
-	h_slider.set(property, value)
+	if Engine.is_editor_hint():
+		if !h_slider:
+			return false
+		
+		_custom_property_list_values[property] = value
+		
+		h_slider.set(property, value)
 	
 	return true
 
@@ -101,8 +102,6 @@ func _get(property: StringName) -> Variant:
 	if Engine.is_editor_hint():
 		if !h_slider:
 			return null
-		
-		_custom_property_list_values[property] = h_slider.get(property)
 	
 	return _custom_property_list_values.get(property, null)
 

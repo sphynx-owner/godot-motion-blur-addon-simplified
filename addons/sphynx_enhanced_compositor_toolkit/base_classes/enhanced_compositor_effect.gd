@@ -21,14 +21,8 @@ const shader_stages_category_prefix: String = "shader_stages/"
 ## requires the DebugCompositorEffect at the end of the compositor_effects array to be usable
 @export var debug : bool = false:
 	set(value):
-		if(debug == value):
-			return
-		
 		debug = value
 		_generate_all_shader_stages.call_deferred()
-		
-	get():
-		return debug and !Engine.is_editor_hint()
 
 var rd: RenderingDevice
 
@@ -141,7 +135,7 @@ func _render_callback(p_effect_callback_type, p_render_data):
 	if render_size.x == 0 or render_size.y == 0:
 		return
 	
-	if debug:
+	if debug and !Engine.is_editor_hint():
 		ensure_texture(debug_1, render_scene_buffers)
 		ensure_texture(debug_2, render_scene_buffers)
 		ensure_texture(debug_3, render_scene_buffers)
@@ -262,21 +256,21 @@ func dispatch_stage(stage : ShaderStageResource, uniforms : Array[RDUniform], pu
 	var debug_uniforms : Array[RDUniform]
 	var debug_uniform_set : RID
 	
-	if debug:
+	if debug and !Engine.is_editor_hint():
 		for i in 8:
 			var debug_image_index = i + view * 8;
 			debug_uniforms.append(get_image_uniform(all_debug_images[debug_image_index], 10 + i))
 	
 	var tex_uniform_set = UniformSetCacheRD.get_cache(stage.shader, 0, uniforms)
 	
-	if debug:
+	if debug and !Engine.is_editor_hint():
 		debug_uniform_set = UniformSetCacheRD.get_cache(stage.shader, 1, debug_uniforms)
 	
 	var compute_list = rd.compute_list_begin()
 	rd.compute_list_bind_compute_pipeline(compute_list, stage.pipeline)
 	rd.compute_list_bind_uniform_set(compute_list, tex_uniform_set, 0)
 	
-	if debug:
+	if debug and !Engine.is_editor_hint():
 		rd.compute_list_bind_uniform_set(compute_list, debug_uniform_set, 1)
 	
 	if !push_constants.is_empty():
@@ -353,7 +347,7 @@ func _generate_shader_stage(shader_stage_weak_ref : WeakRef):
 	free_shader_stage(shader_stage)
 	
 	var shader_spirv : RDShaderSPIRV
-	if debug:
+	if debug and !Engine.is_editor_hint():
 		var file = FileAccess.open(shader_stage.shader_file.resource_path, FileAccess.READ)
 		var split_shader : PackedStringArray = file.get_as_text().split("#[compute]", true, 1)
 		var content : String = split_shader[min(1, split_shader.size() - 1)]
