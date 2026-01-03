@@ -31,7 +31,7 @@ extends Node3D
 		distance_interval = abs(value)
 		generate_poles()
 
-@export_storage var _current_poles: Array[Node]
+var _current_poles: Array[Node]
 
 
 func _notification(what: int) -> void:
@@ -59,6 +59,8 @@ func clear_poles() -> void:
 
 
 func generate_poles() -> void:
+	clear_poles()
+	
 	if path == null or pole_scene == null:
 		return
 	
@@ -73,7 +75,7 @@ func generate_poles() -> void:
 		
 		var new_pole_transform: Transform3D = curve.sample_baked_with_rotation(current_offset)
 		
-		var new_pole: Node = pole_scene.instantiate(PackedScene.GEN_EDIT_STATE_MAIN_INHERITED)
+		var new_pole: Node = pole_scene.instantiate()
 		
 		add_child.call_deferred(new_pole)
 		

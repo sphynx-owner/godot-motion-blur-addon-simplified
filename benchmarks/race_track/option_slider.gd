@@ -10,6 +10,8 @@ signal value_changed
 		
 		$Label.text = option_name
 
+@onready var h_slider: HSlider = $HSlider
+
 var _custom_property_list: Dictionary[String, Dictionary]
 
 
@@ -25,7 +27,8 @@ func _init() -> void:
 
 
 func _ready() -> void:
-	$HSlider.value_changed.connect(value_changed.emit)
+	h_slider.value_changed.connect(value_changed.emit)
+	h_slider.value_changed.connect(func(value: float): $ValueLabel.text = "%10.3f" % value)
 
 
 func _get_property_list() -> Array[Dictionary]:
@@ -33,16 +36,23 @@ func _get_property_list() -> Array[Dictionary]:
 
 
 func _set(property: StringName, value: Variant) -> bool:
-	$HSlider.set(property, value)
+	if !h_slider:
+		return false
+	
+	h_slider.set(property, value)
 	return true
 
 
 func _get(property: StringName) -> Variant:
-	return $HSlider.get(property)
+	if !h_slider:
+		return null
+	
+	return h_slider.get(property)
 
 
 func _property_can_revert(property: StringName) -> bool:
 	return _custom_property_list.has(property)
+
 
 func _property_get_revert(property: StringName) -> Variant:
 	return ClassDB.class_get_property_default_value("HSlider", property)

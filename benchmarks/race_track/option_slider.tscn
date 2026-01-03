@@ -3,15 +3,28 @@
 [ext_resource type="Script" uid="uid://28e81s37oesg" path="res://benchmarks/race_track/option_slider.gd" id="1_xmoac"]
 
 [node name="HBoxContainer" type="HBoxContainer"]
-offset_left = 55.0
-offset_right = 63.0
+layout_mode = 2
+offset_right = 8.0
 offset_bottom = 16.0
 size_flags_vertical = 0
 focus_mode = 2
 mouse_filter = 0
 script = ExtResource("1_xmoac")
+min_value = 0.0
+max_value = 100.0
+step = 1.0
+page = 0.0
+value = 0.0
+exp_edit = false
+rounded = false
+allow_greater = false
+allow_lesser = false
 
 [node name="Label" type="Label" parent="."]
+layout_mode = 2
+text = "option"
+
+[node name="ValueLabel" type="Label" parent="."]
 layout_mode = 2
 text = "option"
 
