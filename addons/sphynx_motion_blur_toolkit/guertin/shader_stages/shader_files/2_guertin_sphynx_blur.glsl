@@ -25,7 +25,7 @@ layout(push_constant, std430) uniform Params
 	int use_custom_curve;
 	int jitter_tiles;
 	int clamp_velocities_to_tile;
-	int nan4;
+	int velocity_depth_test;
 	int nan5;
 } params;
 
@@ -33,7 +33,7 @@ layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 // Guertin's functions https://research.nvidia.com/sites/default/files/pubs/2013-11_A-Fast-and/Guertin2013MotionBlur-small.pdf
 // ----------------------------------------------------------
-float z_compare(float a, float b, float sze)
+float soft_compare(float a, float b, float sze)
 {
 	return clamp(sze * (a - b), 0, 1);
 }
@@ -68,11 +68,6 @@ vec2 jitter_tile(vec2 uvi)
 }
 // ----------------------------------------------------------
 
-vec4 sample_velocity(sampler2D texture_to_sample, vec2 uv)
-{
-	return textureLod(texture_to_sample, uv, 0.0) * params.motion_blur_intensity;
-}
-
 void main() 
 {
 	// The size of the output texture
@@ -102,7 +97,7 @@ void main()
 	// in pixels. We also mulitply it by the blur intensity factor.
 	// NOTE: We multiply the velocity by the render size so that it is converted to screen coordinates, meaning
 	// directionality is not warped by the normalized uv coordinates velocities come in usually.
-	vec4 vnzw = sample_velocity(neighbor_max, x + (params.jitter_tiles == 1 ? jitter_tile(uvi) : vec2(0)));
+	vec4 vnzw = textureLod(neighbor_max, x + (params.jitter_tiles == 1 ? jitter_tile(uvi) : vec2(0)), 0.0) * params.motion_blur_intensity;
 
 	// We get the xy components of the max tile velocity. Velocities can have a z
 	// component too (we generate it in the pre-blur processing stage for stationary
@@ -116,7 +111,7 @@ void main()
 	vec4 base_color = textureLod(color_sampler, x, 0.0);
 
 	// We get the true velocity at the current pixel, mulitplied by the motion blur intensity.
-	vec4 vxzw = sample_velocity(velocity_sampler, x);
+	vec4 vxzw = textureLod(velocity_sampler, x, 0.0) * params.motion_blur_intensity;
 
 	// We get the xy components of the true velocity (see declaration of vn)
 	vec2 vx = vxzw.xy;
@@ -168,6 +163,14 @@ void main()
 	// Create an initial color sum
 	vec4 sum = base_color * weight;
 
+	float x_weight = 1;
+
+	vec4 x_sum = base_color;
+
+	float y_weight = 1e-6;
+	
+	vec4 y_sum = vec4(0);
+
 	for(int i = 0; i < params.sample_count; i++)
 	{
 		float ti = (i + j) / params.sample_count;
@@ -186,14 +189,18 @@ void main()
 		// ----------------------------------------------------------------------------------
 		vec2 yx = x + t * vx / vec2(render_size);
 
-		vec4 vyzwx = sample_velocity(velocity_sampler, yx);
+		vec4 vyzwx = textureLod(velocity_sampler, yx, 0.0) * params.motion_blur_intensity;
 
 		float zyx = vyzwx.w;
 
-		float overlapx = 1 - z_compare(zx + vxzw.z * t, zyx, -10);
+		float overlapx = 1 - soft_compare(zx + (params.velocity_depth_test == 1 ? vxzw.z * t : 0), zyx, -10);
 
 		float current_weightx = overlapx;
 		
+		x_weight += overlapx;
+
+		x_sum += textureLod(color_sampler, yx, 0.0) * overlapx;
+
 		vec4 color = mix(base_color, textureLod(color_sampler, yx, 0.0), current_weightx);
 		// ----------------------------------------------------------------------------------
 
@@ -204,13 +211,13 @@ void main()
 		{
 			vec2 yn = x + t * vn / vec2(render_size);
 		
-			vec4 vyzwn = sample_velocity(velocity_sampler, yn); 
+			vec4 vyzwn = textureLod(velocity_sampler, yn, 0.0) * params.motion_blur_intensity; 
 
 			vec2 vyn = vyzwn.xy;
 
 			float zyn = vyzwn.w;
 
-			float overlapn = 1 - z_compare(zyn - vyzwn.z * t, zx, -10);
+			float overlapn = 1 - soft_compare(zyn - (params.velocity_depth_test == 1 ? vyzwn.z * t : 0), zx, -10);
 
 			vec2 wyn = safenorm(vyn);
 
@@ -229,6 +236,10 @@ void main()
 
 			float current_weightn = step(Tn, vyn_length * projected) * overlapn;
 
+			y_weight += current_weightn;
+
+			y_sum += textureLod(color_sampler, yn, 0.0) * current_weightn;
+
 			color = mix(color, textureLod(color_sampler, yn, 0.0), current_weightn) * current_total_weight;
 		}
 		// ----------------------------------------------------------------------------------
@@ -239,6 +250,14 @@ void main()
 	}
 
 	sum /= weight;
+
+	x_sum /= x_weight;
+
+	y_sum /= y_weight;
+
+	x_sum = mix(x_sum, y_sum, y_weight / params.sample_count);
+
+	sum = mix(sum, x_sum, clamp(4 * (1 - x_weight / params.sample_count), 0, 1));
 
 	imageStore(output_color, uvi, sum);
 #ifdef DEBUG

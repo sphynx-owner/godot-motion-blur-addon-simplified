@@ -203,7 +203,7 @@ void main()
 	}
 
 	float total_velocity_length = max(FLT_MIN, length(total_velocity.xy));
-	total_velocity = total_velocity * clamp(total_velocity_length, 0, 1) / total_velocity_length;
+	total_velocity.xy /= max(total_velocity_length, 1);
 
 	// If the previous position is happening behind the camera, the w component of the projected vector would be negative, 
 	// and the velocity vector would be flipped. (I am not 100% sure this is the whole story but this handles velocities
