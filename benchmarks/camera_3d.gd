@@ -38,7 +38,7 @@ func _input(event: InputEvent) -> void:
 				speed /= 1.1
 	
 	if Input.is_action_just_pressed("ESC"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED
 
 
 func _process(delta: float) -> void:
