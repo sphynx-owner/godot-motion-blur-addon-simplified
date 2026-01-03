@@ -100,7 +100,9 @@ func _render_callback_2(
 			tile_size,
 			samples,
 			Engine.get_frames_drawn() % 8,
-			1 if use_custom_curve else 0
+			1 if use_custom_curve else 0,
+			1 if jitter_tiles else 0,
+			1 if clamp_velocities_to_tile else 0,
 		]
 	)
 	

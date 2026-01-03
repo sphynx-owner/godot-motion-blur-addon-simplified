@@ -23,6 +23,10 @@ layout(push_constant, std430) uniform Params
 	int sample_count;
 	int frame;
 	int use_custom_curve;
+	int jitter_tiles;
+	int clamp_velocities_to_tile;
+	int nan4;
+	int nan5;
 } params;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
@@ -64,6 +68,11 @@ vec2 jitter_tile(vec2 uvi)
 }
 // ----------------------------------------------------------
 
+vec4 sample_velocity(sampler2D texture_to_sample, vec2 uv, vec2 scale_ratio)
+{
+	return textureLod(texture_to_sample, uv, 0.0) * vec4(scale_ratio, 1, 1) * params.motion_blur_intensity;
+}
+
 void main() 
 {
 	// The size of the output texture
@@ -91,9 +100,7 @@ void main()
 	// between tiles to hide seams between them.
 	// We then multiply the velocity by the render size to get its magnitude
 	// in pixels. We also mulitply it by the blur intensity factor.
-	// TODO @sphynx-owner: figure out whether adding half a tile size to x is 
-	// correct. 
-	vec4 vnzw = textureLod(neighbor_max, x + jitter_tile(uvi), 0.0) * vec4(render_size / 2., 1, 1) * params.motion_blur_intensity;
+	vec4 vnzw = textureLod(neighbor_max, x + (params.jitter_tiles == 1 ? jitter_tile(uvi) : vec2(0)), 0.0) * vec4(render_size / 2., 1, 1) * params.motion_blur_intensity;
 
 	// We get the xy components of the max tile velocity. Velocities can have a z
 	// component too (we generate it in the pre-blur processing stage for stationary
@@ -113,6 +120,17 @@ void main()
 	vec2 vx = vxzw.xy;
 
 	float vx_length = length(vx);
+
+	if(params.clamp_velocities_to_tile)
+	{
+		float clamp_ratio = max(vn_length / params.tile_size, 1.0);
+		vn /= clamp_ratio
+		vn_length /= clamp_ratio;
+
+		clamp_ratio = max(vx_length / params.tile_size, 1.0);
+		vx /= clamp_ratio
+		vx_length /= clamp_ratio;
+	}
 
 	// We must account for cases where the dominant velocity is 0 even though 
 	// The current velocity is not. This is only the case for the skybox, which
@@ -153,7 +171,7 @@ void main()
 		float ti = (i + j) / params.sample_count;
 
 		// A point in time along the blur interval, used to scale velocity vectors to sample for color.
-		float t = mix(-1.0, 1.0, ti);
+		float t = mix(-0.5, 0.5, ti);
 
 		float custom_curve_sample = params.use_custom_curve == 1 ? textureLod(custom_curve, vec2(ti, 0.5), 0.0).x : 1;
 		
@@ -197,6 +215,17 @@ void main()
 			float Tn = abs(t * length(vn));
 
 			float vyn_length = max(0.5, length(vyn));
+
+			if(params.clamp_velocities_to_tile)
+			{
+				float clamp_ratio = max(vn_length / params.tile_size, 1.0);
+				vn /= clamp_ratio
+				vn_length /= clamp_ratio;
+
+				clamp_ratio = max(vx_length / params.tile_size, 1.0);
+				vx /= clamp_ratio
+				vx_length /= clamp_ratio;
+			}
 
 			float projected = abs(dot(wyn, wn));
 

@@ -1,20 +1,20 @@
 [gd_scene load_steps=23 format=3 uid="uid://cvrlvguy5hibg"]
 
-[ext_resource type="Script" uid="uid://cq6foek2tewwe" path="res://benchmarks/race_track/main.gd" id="1_cfyq7"]
-[ext_resource type="Script" uid="uid://bqetsc5r7v7oo" path="res://benchmarks/race_track/poles_generator.gd" id="1_uxff0"]
-[ext_resource type="PackedScene" uid="uid://cufewixnl0wk7" path="res://benchmarks/option_slider.tscn" id="2_ahbk3"]
-[ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="2_ibi5f"]
-[ext_resource type="Material" uid="uid://bddwtc61668pi" path="res://benchmarks/race_track/assets/track_1_material.tres" id="2_igxg6"]
-[ext_resource type="PackedScene" uid="uid://b4x4fpfr80baw" path="res://benchmarks/race_track/assets/pole.tscn" id="3_uxff0"]
-[ext_resource type="Resource" uid="uid://ca45noqewsyvp" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="7_xbcge"]
-[ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="8_yeolg"]
-[ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="9_r02vc"]
-[ext_resource type="Resource" uid="uid://c8ulad7utgrg7" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres" id="10_x1if8"]
-[ext_resource type="Script" uid="uid://c5jewnyvlca7j" path="res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd" id="11_krusm"]
-[ext_resource type="Resource" uid="uid://dipvwksvqb3dm" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_x_stage.tres" id="12_0mmco"]
-[ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="13_ha0xw"]
-[ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="14_bi54y"]
-[ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="15_e8mb8"]
+[ext_resource type="Script" uid="uid://cq6foek2tewwe" path="res://benchmarks/race_track/race_track.gd" id="1_yxadb"]
+[ext_resource type="PackedScene" uid="uid://cufewixnl0wk7" path="res://benchmarks/option_slider.tscn" id="2_qon7d"]
+[ext_resource type="Material" uid="uid://bddwtc61668pi" path="res://benchmarks/race_track/assets/track_1_material.tres" id="3_lb6vi"]
+[ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="4_4ncjf"]
+[ext_resource type="Script" uid="uid://bqetsc5r7v7oo" path="res://benchmarks/race_track/poles_generator.gd" id="5_4e24t"]
+[ext_resource type="PackedScene" uid="uid://b4x4fpfr80baw" path="res://benchmarks/race_track/assets/pole.tscn" id="6_p38i3"]
+[ext_resource type="Resource" uid="uid://bkudf8hl37ho2" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur2_stage.tres" id="7_yxadb"]
+[ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="8_ov04b"]
+[ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="9_8c728"]
+[ext_resource type="Resource" uid="uid://c8ulad7utgrg7" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres" id="10_nnnvc"]
+[ext_resource type="Script" uid="uid://c5jewnyvlca7j" path="res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd" id="11_5kn4v"]
+[ext_resource type="Resource" uid="uid://dipvwksvqb3dm" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_x_stage.tres" id="12_n3j62"]
+[ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="13_jhsix"]
+[ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="14_d4thr"]
+[ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="15_jv5im"]
 
 [sub_resource type="Curve3D" id="Curve3D_7l2kl"]
 closed = true
@@ -42,13 +42,15 @@ enabled = true
 effect_callback_type = 4
 needs_motion_vectors = true
 needs_normal_roughness = false
-script = ExtResource("11_krusm")
-shader_stages/blur_stage = ExtResource("7_xbcge")
-shader_stages/overlay_stage = ExtResource("9_r02vc")
-shader_stages/tile_max_x_stage = ExtResource("12_0mmco")
-shader_stages/tile_max_y_stage = ExtResource("13_ha0xw")
-shader_stages/neighbor_max_stage = ExtResource("8_yeolg")
-shader_stages/pre_blur_processor_stage = ExtResource("10_x1if8")
+script = ExtResource("11_5kn4v")
+blur_stage = ExtResource("7_yxadb")
+tile_size = 10
+shader_stages/blur_stage = ExtResource("7_yxadb")
+shader_stages/overlay_stage = ExtResource("9_8c728")
+shader_stages/tile_max_x_stage = ExtResource("12_n3j62")
+shader_stages/tile_max_y_stage = ExtResource("13_jhsix")
+shader_stages/neighbor_max_stage = ExtResource("8_ov04b")
+shader_stages/pre_blur_processor_stage = ExtResource("10_nnnvc")
 metadata/_custom_type_script = "uid://c5jewnyvlca7j"
 
 [sub_resource type="CompositorEffect" id="CompositorEffect_nsrtd"]
@@ -58,15 +60,15 @@ enabled = true
 effect_callback_type = 4
 needs_motion_vectors = false
 needs_normal_roughness = false
-script = ExtResource("15_e8mb8")
-shader_stages/overlay_stage = ExtResource("14_bi54y")
+script = ExtResource("15_jv5im")
+shader_stages/overlay_stage = ExtResource("14_d4thr")
 metadata/_custom_type_script = "uid://bi6xhl7lpiu4n"
 
 [sub_resource type="Compositor" id="Compositor_3wliq"]
 compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_av2lt"), SubResource("CompositorEffect_nsrtd")])
 
 [node name="Main" type="Node3D"]
-script = ExtResource("1_cfyq7")
+script = ExtResource("1_yxadb")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -89,7 +91,7 @@ folded = true
 visible = false
 layout_mode = 2
 
-[node name="SpeedOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_ahbk3")]
+[node name="SpeedOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_qon7d")]
 option_name = "speed"
 target_node = NodePath("../../../..")
 _custom_property_list_values = Dictionary[String, Variant]({
@@ -123,7 +125,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "light_mask": 1,
 "localize_numeral_system": true,
 "material": null,
-"max_value": 100.0,
+"max_value": 1000.0,
 "min_value": 0.0,
 "modulate": Color(1, 1, 1, 1),
 "mouse_behavior_recursive": 0,
@@ -149,7 +151,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "size_flags_horizontal": 3,
 "size_flags_stretch_ratio": 1.0,
 "size_flags_vertical": 0,
-"step": 1.0,
+"step": 10.0,
 "texture_filter": 0,
 "texture_repeat": 0,
 "theme": null,
@@ -167,8 +169,10 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "z_as_relative": true,
 "z_index": 0
 })
+max_value = 1000.0
+step = 10.0
 
-[node name="HOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_ahbk3")]
+[node name="HOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_qon7d")]
 option_name = "h_offset"
 target_node = NodePath("../../../../Path3D/PathFollow3D")
 _custom_property_list_values = Dictionary[String, Variant]({
@@ -202,8 +206,8 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "light_mask": 1,
 "localize_numeral_system": true,
 "material": null,
-"max_value": 100.0,
-"min_value": 0.0,
+"max_value": 50.0,
+"min_value": -50.0,
 "modulate": Color(1, 1, 1, 1),
 "mouse_behavior_recursive": 0,
 "mouse_default_cursor_shape": 0,
@@ -228,7 +232,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "size_flags_horizontal": 3,
 "size_flags_stretch_ratio": 1.0,
 "size_flags_vertical": 0,
-"step": 1.0,
+"step": 0.0,
 "texture_filter": 0,
 "texture_repeat": 0,
 "theme": null,
@@ -246,8 +250,11 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "z_as_relative": true,
 "z_index": 0
 })
+min_value = -50.0
+max_value = 50.0
+step = 0.0
 
-[node name="VOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_ahbk3")]
+[node name="VOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_qon7d")]
 option_name = "v_offset"
 target_node = NodePath("../../../../Path3D/PathFollow3D")
 _custom_property_list_values = Dictionary[String, Variant]({
@@ -281,8 +288,8 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "light_mask": 1,
 "localize_numeral_system": true,
 "material": null,
-"max_value": 100.0,
-"min_value": 0.0,
+"max_value": 50.0,
+"min_value": -50.0,
 "modulate": Color(1, 1, 1, 1),
 "mouse_behavior_recursive": 0,
 "mouse_default_cursor_shape": 0,
@@ -307,7 +314,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "size_flags_horizontal": 3,
 "size_flags_stretch_ratio": 1.0,
 "size_flags_vertical": 0,
-"step": 1.0,
+"step": 0.0,
 "texture_filter": 0,
 "texture_repeat": 0,
 "theme": null,
@@ -325,9 +332,12 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "z_as_relative": true,
 "z_index": 0
 })
+min_value = -50.0
+max_value = 50.0
+step = 0.0
 
 [node name="TrackCSGPolygon" type="CSGPolygon3D" parent="."]
-material_override = ExtResource("2_igxg6")
+material_override = ExtResource("3_lb6vi")
 use_collision = true
 polygon = PackedVector2Array(-50, 0, -50, 1, 0, 1, 50, 1, 50, 0, 0, 0)
 mode = 2
@@ -357,12 +367,12 @@ size = Vector3(3, 1, 8)
 [node name="Camera3D" type="Camera3D" parent="Path3D/PathFollow3D/CSGBox3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.03947e-13, 3.65888, 9.47645)
 far = 40000.0
-script = ExtResource("2_ibi5f")
+script = ExtResource("4_4ncjf")
 
 [node name="PoleGenerator" type="Node3D" parent="Path3D" node_paths=PackedStringArray("path")]
-script = ExtResource("1_uxff0")
+script = ExtResource("5_4e24t")
 path = NodePath("..")
-pole_scene = ExtResource("3_uxff0")
+pole_scene = ExtResource("6_p38i3")
 metadata/_custom_type_script = "uid://bqetsc5r7v7oo"
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

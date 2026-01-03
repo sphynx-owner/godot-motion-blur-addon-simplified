@@ -3,3 +3,7 @@ extends "res://addons/sphynx_motion_blur_toolkit/base_classes/mb_compositor_effe
 
 @export_group("Guerting Parameters")
 @export var tile_size : int = 40
+
+@export var jitter_tiles: bool = true
+
+@export var clamp_velocities_to_tile: bool = false
