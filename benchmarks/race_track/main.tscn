@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cq6foek2tewwe" path="res://benchmarks/race_track/main.gd" id="1_cfyq7"]
 [ext_resource type="Script" uid="uid://bqetsc5r7v7oo" path="res://benchmarks/race_track/poles_generator.gd" id="1_uxff0"]
-[ext_resource type="PackedScene" uid="uid://cufewixnl0wk7" path="res://benchmarks/race_track/option_slider.tscn" id="2_ahbk3"]
+[ext_resource type="PackedScene" uid="uid://cufewixnl0wk7" path="res://benchmarks/option_slider.tscn" id="2_ahbk3"]
 [ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="2_ibi5f"]
 [ext_resource type="Material" uid="uid://bddwtc61668pi" path="res://benchmarks/race_track/assets/track_1_material.tres" id="2_igxg6"]
 [ext_resource type="PackedScene" uid="uid://b4x4fpfr80baw" path="res://benchmarks/race_track/assets/pole.tscn" id="3_uxff0"]
@@ -123,7 +123,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "light_mask": 1,
 "localize_numeral_system": true,
 "material": null,
-"max_value": 1000.0,
+"max_value": 100.0,
 "min_value": 0.0,
 "modulate": Color(1, 1, 1, 1),
 "mouse_behavior_recursive": 0,
@@ -149,7 +149,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "size_flags_horizontal": 3,
 "size_flags_stretch_ratio": 1.0,
 "size_flags_vertical": 0,
-"step": 10.0,
+"step": 1.0,
 "texture_filter": 0,
 "texture_repeat": 0,
 "theme": null,
@@ -167,8 +167,6 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "z_as_relative": true,
 "z_index": 0
 })
-max_value = 1000.0
-step = 10.0
 
 [node name="HOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_ahbk3")]
 option_name = "h_offset"
@@ -204,8 +202,8 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "light_mask": 1,
 "localize_numeral_system": true,
 "material": null,
-"max_value": 20.0,
-"min_value": -20.0,
+"max_value": 100.0,
+"min_value": 0.0,
 "modulate": Color(1, 1, 1, 1),
 "mouse_behavior_recursive": 0,
 "mouse_default_cursor_shape": 0,
@@ -230,7 +228,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "size_flags_horizontal": 3,
 "size_flags_stretch_ratio": 1.0,
 "size_flags_vertical": 0,
-"step": 0.0,
+"step": 1.0,
 "texture_filter": 0,
 "texture_repeat": 0,
 "theme": null,
@@ -248,9 +246,6 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "z_as_relative": true,
 "z_index": 0
 })
-min_value = -20.0
-max_value = 20.0
-step = 0.0
 
 [node name="VOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_ahbk3")]
 option_name = "v_offset"
@@ -286,8 +281,8 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "light_mask": 1,
 "localize_numeral_system": true,
 "material": null,
-"max_value": 20.0,
-"min_value": -20.0,
+"max_value": 100.0,
+"min_value": 0.0,
 "modulate": Color(1, 1, 1, 1),
 "mouse_behavior_recursive": 0,
 "mouse_default_cursor_shape": 0,
@@ -312,7 +307,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "size_flags_horizontal": 3,
 "size_flags_stretch_ratio": 1.0,
 "size_flags_vertical": 0,
-"step": 0.0,
+"step": 1.0,
 "texture_filter": 0,
 "texture_repeat": 0,
 "theme": null,
@@ -330,9 +325,6 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "z_as_relative": true,
 "z_index": 0
 })
-min_value = -20.0
-max_value = 20.0
-step = 0.0
 
 [node name="TrackCSGPolygon" type="CSGPolygon3D" parent="."]
 material_override = ExtResource("2_igxg6")

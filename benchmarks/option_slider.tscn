@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cufewixnl0wk7"]
 
-[ext_resource type="Script" uid="uid://28e81s37oesg" path="res://benchmarks/race_track/option_slider.gd" id="1_xmoac"]
+[ext_resource type="Script" uid="uid://28e81s37oesg" path="res://benchmarks/option_slider.gd" id="1_xmoac"]
 
 [node name="OptionSlider" type="HBoxContainer"]
 layout_mode = 2
