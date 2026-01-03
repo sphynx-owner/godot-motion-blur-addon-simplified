@@ -23,10 +23,10 @@ func _input(event: InputEvent) -> void:
 		return
 	
 	if event is InputEventMouseMotion && Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		global_rotation_degrees = Vector3(
-			clamp(global_rotation_degrees.x - event.relative.y / 3, -89, 89), 
-			global_rotation_degrees.y - event.relative.x / 3, 
-			global_rotation_degrees.z
+		rotation_degrees = Vector3(
+			clamp(rotation_degrees.x - event.relative.y / 3, -89, 89), 
+			rotation_degrees.y - event.relative.x / 3, 
+			rotation_degrees.z
 		)
 	
 	if event is InputEventMouseButton && Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -44,4 +44,4 @@ func _input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	var movement : Vector2 = Input.get_vector("A", "D", "W", "S")
 	var elevation : float = Input.get_vector("Q", "E", "Q", "E").x
-	global_position += global_basis * Vector3(movement.x, elevation, movement.y) * delta * speed;
+	position += basis * Vector3(movement.x, elevation, movement.y) * delta * speed;

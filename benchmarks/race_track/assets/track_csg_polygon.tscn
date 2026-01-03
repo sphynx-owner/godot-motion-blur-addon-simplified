@@ -1,0 +1,42 @@
+[gd_scene load_steps=5 format=3 uid="uid://ds15g5g5seubt"]
+
+[ext_resource type="Texture2D" uid="uid://v6ek0ljx7vna" path="res://textures/tracks/Grating_04_clean.jpg" id="1_433pr"]
+[ext_resource type="Texture2D" uid="uid://biulpdh5lhj2y" path="res://textures/tracks/Grating_04_bump.jpg" id="2_x4a3w"]
+[ext_resource type="Texture2D" uid="uid://eevocey5qggb" path="res://textures/tracks/Grating_04_normal.png" id="3_hmid4"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nxrkd"]
+albedo_texture = ExtResource("1_433pr")
+metallic = 0.1
+roughness_texture = ExtResource("2_x4a3w")
+roughness_texture_channel = 4
+normal_enabled = true
+normal_texture = ExtResource("3_hmid4")
+rim = 0.0
+clearcoat_roughness = 0.43
+anisotropy = 1.0
+heightmap_enabled = true
+heightmap_scale = 1.0
+heightmap_deep_parallax = true
+heightmap_min_layers = 32
+heightmap_max_layers = 32
+heightmap_texture = ExtResource("2_x4a3w")
+uv1_scale = Vector3(0.17, 15.055, 1)
+uv1_offset = Vector3(0.037, 0.517, 0)
+texture_filter = 5
+distance_fade_min_distance = 10.0
+distance_fade_max_distance = 0.0
+
+[node name="TrackCSGPolygon" type="CSGPolygon3D"]
+material_override = SubResource("StandardMaterial3D_nxrkd")
+use_collision = true
+polygon = PackedVector2Array(-50, 0, -50, 1, 0, 1, 50, 1, 50, 0, 0, 0)
+mode = 2
+path_node = NodePath("")
+path_interval_type = 1
+path_interval = 0.01
+path_simplify_angle = 0.0
+path_rotation = 2
+path_local = false
+path_continuous_u = true
+path_u_distance = 10.0
+path_joined = true
