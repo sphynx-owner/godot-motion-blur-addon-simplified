@@ -8,11 +8,11 @@ func _ready() -> void:
 	pass # Replace with function body.
 
 
-func _set_speed(value: float) -> void:
+func set_speed(value: float) -> void:
 	speed = value
 
 
-func _get_speed() -> float:
+func get_speed() -> float:
 	return speed
 
 

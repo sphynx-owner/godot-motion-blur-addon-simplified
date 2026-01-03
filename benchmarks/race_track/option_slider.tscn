@@ -2,16 +2,102 @@
 
 [ext_resource type="Script" uid="uid://28e81s37oesg" path="res://benchmarks/race_track/option_slider.gd" id="1_xmoac"]
 
-[node name="HBoxContainer" type="HBoxContainer"]
+[node name="OptionSlider" type="HBoxContainer"]
 layout_mode = 2
-offset_left = 110.0
-offset_right = 118.0
+offset_left = 162.0
+offset_right = 170.0
 offset_bottom = 16.0
 size_flags_horizontal = 3
 size_flags_vertical = 0
 focus_mode = 2
 mouse_filter = 0
 script = ExtResource("1_xmoac")
+_custom_property_list_values = Dictionary[String, Variant]({
+"_import_path": NodePath(""),
+"accessibility_controls_nodes": Array[NodePath]([]),
+"accessibility_described_by_nodes": Array[NodePath]([]),
+"accessibility_description": "",
+"accessibility_flow_to_nodes": Array[NodePath]([]),
+"accessibility_labeled_by_nodes": Array[NodePath]([]),
+"accessibility_live": 0,
+"accessibility_name": "",
+"alignment": null,
+"allow_greater": false,
+"allow_lesser": false,
+"anchor_bottom": 0.0,
+"anchor_left": 0.0,
+"anchor_right": 0.0,
+"anchor_top": 0.0,
+"anchors_preset": 0,
+"auto_translate_mode": 0,
+"clip_children": 0,
+"clip_contents": false,
+"custom_minimum_size": Vector2(0, 0),
+"editor_description": "",
+"exp_edit": false,
+"focus_behavior_recursive": 0,
+"focus_mode": 2,
+"focus_neighbor_bottom": NodePath(""),
+"focus_neighbor_left": NodePath(""),
+"focus_neighbor_right": NodePath(""),
+"focus_neighbor_top": NodePath(""),
+"focus_next": NodePath(""),
+"focus_previous": NodePath(""),
+"grow_horizontal": 1,
+"grow_vertical": 1,
+"layout_direction": 0,
+"layout_mode": 2,
+"light_mask": 1,
+"localize_numeral_system": true,
+"material": null,
+"max_value": 100.0,
+"min_value": 0.0,
+"modulate": Color(1, 1, 1, 1),
+"mouse_behavior_recursive": 0,
+"mouse_default_cursor_shape": 0,
+"mouse_filter": 0,
+"mouse_force_pass_scroll_events": true,
+"offset_bottom": 16.0,
+"offset_left": 162.0,
+"offset_right": 170.0,
+"offset_top": 0.0,
+"page": 0.0,
+"physics_interpolation_mode": 2,
+"pivot_offset": Vector2(0, 0),
+"position": Vector2(122, 0),
+"process_mode": 0,
+"process_physics_priority": 0,
+"process_priority": 0,
+"process_thread_group": 0,
+"rotation": 0.0,
+"rounded": false,
+"scale": Vector2(1, 1),
+"script": null,
+"self_modulate": Color(1, 1, 1, 1),
+"shortcut_context": null,
+"show_behind_parent": false,
+"size": Vector2(8, 16),
+"size_flags_horizontal": 3,
+"size_flags_stretch_ratio": 1.0,
+"size_flags_vertical": 0,
+"step": 1.0,
+"texture_filter": 0,
+"texture_repeat": 0,
+"theme": null,
+"theme_override_constants/separation": null,
+"theme_type_variation": &"",
+"tooltip_auto_translate_mode": 0,
+"tooltip_text": "",
+"top_level": false,
+"unique_name_in_owner": false,
+"use_parent_material": false,
+"value": 0.0,
+"visibility_layer": 1,
+"visible": true,
+"y_sort_enabled": false,
+"z_as_relative": true,
+"z_index": 0
+})
 min_value = 0.0
 max_value = 100.0
 step = 1.0
@@ -21,6 +107,11 @@ exp_edit = false
 rounded = false
 allow_greater = false
 allow_lesser = false
+
+[node name="ResetButton" type="Button" parent="."]
+layout_mode = 2
+focus_mode = 0
+text = "reset"
 
 [node name="Label" type="Label" parent="."]
 layout_mode = 2

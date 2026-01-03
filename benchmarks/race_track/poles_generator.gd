@@ -73,7 +73,7 @@ func generate_poles() -> void:
 	for i in pole_amount:
 		var current_offset: float = i * distance_interval
 		
-		var new_pole_transform: Transform3D = curve.sample_baked_with_rotation(current_offset)
+		var new_pole_transform: Transform3D = curve.sample_baked_with_rotation(current_offset, false, true)
 		
 		var new_pole: Node = pole_scene.instantiate()
 		

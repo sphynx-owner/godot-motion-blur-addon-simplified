@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://cvrlvguy5hibg"]
+[gd_scene load_steps=23 format=3 uid="uid://cvrlvguy5hibg"]
 
 [ext_resource type="Script" uid="uid://cq6foek2tewwe" path="res://benchmarks/race_track/main.gd" id="1_cfyq7"]
 [ext_resource type="Script" uid="uid://bqetsc5r7v7oo" path="res://benchmarks/race_track/poles_generator.gd" id="1_uxff0"]
@@ -6,6 +6,15 @@
 [ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="2_ibi5f"]
 [ext_resource type="Material" uid="uid://bddwtc61668pi" path="res://benchmarks/race_track/assets/track_1_material.tres" id="2_igxg6"]
 [ext_resource type="PackedScene" uid="uid://b4x4fpfr80baw" path="res://benchmarks/race_track/assets/pole.tscn" id="3_uxff0"]
+[ext_resource type="Resource" uid="uid://ca45noqewsyvp" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="7_xbcge"]
+[ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="8_yeolg"]
+[ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="9_r02vc"]
+[ext_resource type="Resource" uid="uid://c8ulad7utgrg7" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres" id="10_x1if8"]
+[ext_resource type="Script" uid="uid://c5jewnyvlca7j" path="res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd" id="11_krusm"]
+[ext_resource type="Resource" uid="uid://dipvwksvqb3dm" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_x_stage.tres" id="12_0mmco"]
+[ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="13_ha0xw"]
+[ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="14_bi54y"]
+[ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="15_e8mb8"]
 
 [sub_resource type="Curve3D" id="Curve3D_7l2kl"]
 closed = true
@@ -26,6 +35,36 @@ background_mode = 2
 sky = SubResource("Sky_4x5hm")
 sdfgi_enabled = true
 
+[sub_resource type="CompositorEffect" id="CompositorEffect_av2lt"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = true
+needs_normal_roughness = false
+script = ExtResource("11_krusm")
+shader_stages/blur_stage = ExtResource("7_xbcge")
+shader_stages/overlay_stage = ExtResource("9_r02vc")
+shader_stages/tile_max_x_stage = ExtResource("12_0mmco")
+shader_stages/tile_max_y_stage = ExtResource("13_ha0xw")
+shader_stages/neighbor_max_stage = ExtResource("8_yeolg")
+shader_stages/pre_blur_processor_stage = ExtResource("10_x1if8")
+metadata/_custom_type_script = "uid://c5jewnyvlca7j"
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_nsrtd"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = false
+needs_normal_roughness = false
+script = ExtResource("15_e8mb8")
+shader_stages/overlay_stage = ExtResource("14_bi54y")
+metadata/_custom_type_script = "uid://bi6xhl7lpiu4n"
+
+[sub_resource type="Compositor" id="Compositor_3wliq"]
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_av2lt"), SubResource("CompositorEffect_nsrtd")])
+
 [node name="Main" type="Node3D"]
 script = ExtResource("1_cfyq7")
 
@@ -41,14 +80,18 @@ grow_vertical = 2
 focus_mode = 2
 
 [node name="FoldableContainer" type="FoldableContainer" parent="CanvasLayer"]
+custom_minimum_size = Vector2(1000, 0)
 offset_right = 24.0
 offset_bottom = 32.0
 folded = true
 
-[node name="HBoxContainer" parent="CanvasLayer/FoldableContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_ahbk3")]
-custom_minimum_size = Vector2(500, 0)
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/FoldableContainer"]
+visible = false
+layout_mode = 2
+
+[node name="SpeedOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_ahbk3")]
 option_name = "speed"
-target_node = NodePath("../../..")
+target_node = NodePath("../../../..")
 _custom_property_list_values = Dictionary[String, Variant]({
 "_import_path": NodePath(""),
 "accessibility_controls_nodes": Array[NodePath]([]),
@@ -64,7 +107,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "auto_translate_mode": 0,
 "clip_children": 0,
 "clip_contents": false,
-"custom_minimum_size": Vector2(500, 0),
+"custom_minimum_size": Vector2(0, 0),
 "editor_description": "",
 "exp_edit": false,
 "focus_behavior_recursive": 0,
@@ -81,7 +124,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "localize_numeral_system": true,
 "material": null,
 "max_value": 1000.0,
-"min_value": 200.0,
+"min_value": 0.0,
 "modulate": Color(1, 1, 1, 1),
 "mouse_behavior_recursive": 0,
 "mouse_default_cursor_shape": 0,
@@ -117,17 +160,179 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "top_level": false,
 "unique_name_in_owner": false,
 "use_parent_material": false,
-"value": 200.0,
+"value": 0.0,
 "visibility_layer": 1,
 "visible": true,
 "y_sort_enabled": false,
 "z_as_relative": true,
 "z_index": 0
 })
-min_value = 200.0
 max_value = 1000.0
 step = 10.0
-value = 200.0
+
+[node name="HOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_ahbk3")]
+option_name = "h_offset"
+target_node = NodePath("../../../../Path3D/PathFollow3D")
+_custom_property_list_values = Dictionary[String, Variant]({
+"_import_path": NodePath(""),
+"accessibility_controls_nodes": Array[NodePath]([]),
+"accessibility_described_by_nodes": Array[NodePath]([]),
+"accessibility_description": "",
+"accessibility_flow_to_nodes": Array[NodePath]([]),
+"accessibility_labeled_by_nodes": Array[NodePath]([]),
+"accessibility_live": 0,
+"accessibility_name": "",
+"alignment": null,
+"allow_greater": false,
+"allow_lesser": false,
+"auto_translate_mode": 0,
+"clip_children": 0,
+"clip_contents": false,
+"custom_minimum_size": Vector2(0, 0),
+"editor_description": "",
+"exp_edit": false,
+"focus_behavior_recursive": 0,
+"focus_mode": 2,
+"focus_neighbor_bottom": NodePath(""),
+"focus_neighbor_left": NodePath(""),
+"focus_neighbor_right": NodePath(""),
+"focus_neighbor_top": NodePath(""),
+"focus_next": NodePath(""),
+"focus_previous": NodePath(""),
+"layout_direction": 0,
+"layout_mode": 2,
+"light_mask": 1,
+"localize_numeral_system": true,
+"material": null,
+"max_value": 20.0,
+"min_value": -20.0,
+"modulate": Color(1, 1, 1, 1),
+"mouse_behavior_recursive": 0,
+"mouse_default_cursor_shape": 0,
+"mouse_filter": 0,
+"mouse_force_pass_scroll_events": true,
+"page": 0.0,
+"physics_interpolation_mode": 2,
+"pivot_offset": Vector2(0, 0),
+"position": Vector2(0, 0),
+"process_mode": 0,
+"process_physics_priority": 0,
+"process_priority": 0,
+"process_thread_group": 0,
+"rotation": 0.0,
+"rounded": false,
+"scale": Vector2(1, 1),
+"script": null,
+"self_modulate": Color(1, 1, 1, 1),
+"shortcut_context": null,
+"show_behind_parent": false,
+"size": Vector2(8, 16),
+"size_flags_horizontal": 3,
+"size_flags_stretch_ratio": 1.0,
+"size_flags_vertical": 0,
+"step": 0.0,
+"texture_filter": 0,
+"texture_repeat": 0,
+"theme": null,
+"theme_override_constants/separation": null,
+"theme_type_variation": &"",
+"tooltip_auto_translate_mode": 0,
+"tooltip_text": "",
+"top_level": false,
+"unique_name_in_owner": false,
+"use_parent_material": false,
+"value": 0.0,
+"visibility_layer": 1,
+"visible": true,
+"y_sort_enabled": false,
+"z_as_relative": true,
+"z_index": 0
+})
+min_value = -20.0
+max_value = 20.0
+step = 0.0
+
+[node name="VOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_ahbk3")]
+option_name = "v_offset"
+target_node = NodePath("../../../../Path3D/PathFollow3D")
+_custom_property_list_values = Dictionary[String, Variant]({
+"_import_path": NodePath(""),
+"accessibility_controls_nodes": Array[NodePath]([]),
+"accessibility_described_by_nodes": Array[NodePath]([]),
+"accessibility_description": "",
+"accessibility_flow_to_nodes": Array[NodePath]([]),
+"accessibility_labeled_by_nodes": Array[NodePath]([]),
+"accessibility_live": 0,
+"accessibility_name": "",
+"alignment": null,
+"allow_greater": false,
+"allow_lesser": false,
+"auto_translate_mode": 0,
+"clip_children": 0,
+"clip_contents": false,
+"custom_minimum_size": Vector2(0, 0),
+"editor_description": "",
+"exp_edit": false,
+"focus_behavior_recursive": 0,
+"focus_mode": 2,
+"focus_neighbor_bottom": NodePath(""),
+"focus_neighbor_left": NodePath(""),
+"focus_neighbor_right": NodePath(""),
+"focus_neighbor_top": NodePath(""),
+"focus_next": NodePath(""),
+"focus_previous": NodePath(""),
+"layout_direction": 0,
+"layout_mode": 2,
+"light_mask": 1,
+"localize_numeral_system": true,
+"material": null,
+"max_value": 20.0,
+"min_value": -20.0,
+"modulate": Color(1, 1, 1, 1),
+"mouse_behavior_recursive": 0,
+"mouse_default_cursor_shape": 0,
+"mouse_filter": 0,
+"mouse_force_pass_scroll_events": true,
+"page": 0.0,
+"physics_interpolation_mode": 2,
+"pivot_offset": Vector2(0, 0),
+"position": Vector2(0, 0),
+"process_mode": 0,
+"process_physics_priority": 0,
+"process_priority": 0,
+"process_thread_group": 0,
+"rotation": 0.0,
+"rounded": false,
+"scale": Vector2(1, 1),
+"script": null,
+"self_modulate": Color(1, 1, 1, 1),
+"shortcut_context": null,
+"show_behind_parent": false,
+"size": Vector2(8, 16),
+"size_flags_horizontal": 3,
+"size_flags_stretch_ratio": 1.0,
+"size_flags_vertical": 0,
+"step": 0.0,
+"texture_filter": 0,
+"texture_repeat": 0,
+"theme": null,
+"theme_override_constants/separation": null,
+"theme_type_variation": &"",
+"tooltip_auto_translate_mode": 0,
+"tooltip_text": "",
+"top_level": false,
+"unique_name_in_owner": false,
+"use_parent_material": false,
+"value": 0.0,
+"visibility_layer": 1,
+"visible": true,
+"y_sort_enabled": false,
+"z_as_relative": true,
+"z_index": 0
+})
+min_value = -20.0
+max_value = 20.0
+step = 0.0
 
 [node name="TrackCSGPolygon" type="CSGPolygon3D" parent="."]
 material_override = ExtResource("2_igxg6")
@@ -151,7 +356,7 @@ curve = SubResource("Curve3D_7l2kl")
 
 [node name="PathFollow3D" type="PathFollow3D" parent="Path3D"]
 unique_name_in_owner = true
-transform = Transform3D(-0.79999995, 0, -0.6000002, 0, 0.9999998, 0, 0.6000003, 0, -0.7999997, 8164.4497, 43.605583, 15716.652)
+transform = Transform3D(-0.79999936, 0, -0.5999997, 0, 0.9999989, 0, 0.5999999, 0, -0.7999991, 8164.4497, 43.605583, 15716.652)
 
 [node name="CSGBox3D" type="CSGBox3D" parent="Path3D/PathFollow3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
@@ -170,6 +375,7 @@ metadata/_custom_type_script = "uid://bqetsc5r7v7oo"
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_pxnv4")
+compositor = SubResource("Compositor_3wliq")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.363734, -0.53967, 0.759245, 0, 0.815076, 0.579355, -0.931503, -0.210731, 0.296471, 0, 0, 0)

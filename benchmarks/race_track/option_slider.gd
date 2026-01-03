@@ -10,6 +10,8 @@ signal value_changed(value: float)
 		
 		$Label.text = option_name
 		
+		name = option_name.capitalize().replace(" ", "") + "OptionSlider"
+		
 		update_configuration_warnings()
 
 @export var target_node: Node:
@@ -20,9 +22,11 @@ signal value_changed(value: float)
 
 @onready var h_slider: HSlider = $HSlider
 
+@export_storage var _custom_property_list_values: Dictionary[String, Variant]
+
 var _custom_property_list: Dictionary[String, Dictionary]
 
-@export_storage var _custom_property_list_values: Dictionary[String, Variant]
+var _reset_value: Variant
 
 
 func _init() -> void:
@@ -44,6 +48,9 @@ func _notification(what: int) -> void:
 func _ready() -> void:
 	h_slider.value_changed.connect(value_changed.emit)
 	h_slider.value_changed.connect(func(value: float): $ValueLabel.text = "%10.1f" % value)
+	h_slider.value_changed.connect(func(value: float): $ResetButton.disabled = value == _reset_value)
+	
+	$ResetButton.pressed.connect(func(): h_slider.value = _reset_value)
 	
 	if Engine.is_editor_hint():
 		return
@@ -52,8 +59,9 @@ func _ready() -> void:
 		h_slider.set(property, get(property))
 	
 	if target_node:
-		h_slider.value_changed.connect(Callable(target_node, "_set_" + option_name))
-		h_slider.value = target_node.call("_get_" + option_name)
+		h_slider.value_changed.connect(Callable(target_node, "set_" + option_name))
+		_reset_value = target_node.call("get_" + option_name)
+		h_slider.value = _reset_value
 		h_slider.value_changed.emit(h_slider.value)
 
 
@@ -65,11 +73,11 @@ func _get_configuration_warnings() -> PackedStringArray:
 		
 		return ret
 	
-	if !target_node.has_method("_set_" + option_name):
-		ret.append("target node missing " + "_set_" + option_name + " method")
+	if !target_node.has_method("set_" + option_name):
+		ret.append("target node missing " + "set_" + option_name + " method")
 	
-	if !target_node.has_method("_get_" + option_name):
-		ret.append("target node missing " + "_get_" + option_name + " method")
+	if !target_node.has_method("get_" + option_name):
+		ret.append("target node missing " + "get_" + option_name + " method")
 	
 	return ret
 
