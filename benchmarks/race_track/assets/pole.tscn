@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://b4x4fpfr80baw"]
+[gd_scene load_steps=3 format=3 uid="uid://b4x4fpfr80baw"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2p6wr"]
+albedo_color = Color(0, 1, 0, 1)
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_2p6wr"]
+material = SubResource("StandardMaterial3D_2p6wr")
 top_radius = 0.1
 bottom_radius = 1.0
 height = 50.0

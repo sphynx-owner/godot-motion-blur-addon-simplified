@@ -1,6 +1,6 @@
 extends Node3D
 
-@export var speed: float = 600.0
+@export var speed: float = 300.0
 
 
 # Called when the node enters the scene tree for the first time.
