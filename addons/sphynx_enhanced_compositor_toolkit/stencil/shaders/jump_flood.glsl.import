@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://c5suyijywgmvk"
+path="res://.godot/imported/jump_flood.glsl-afc3c4eb9503a73e1549723e5131aa38.res"
+
+[deps]
+
+source_file="res://addons/sphynx_enhanced_compositor_toolkit/stencil/shaders/jump_flood.glsl"
+dest_files=["res://.godot/imported/jump_flood.glsl-afc3c4eb9503a73e1549723e5131aa38.res"]
+
+[params]
+
