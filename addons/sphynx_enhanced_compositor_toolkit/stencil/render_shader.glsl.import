@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://bmhr0fmnhty1k"
+path="res://.godot/imported/render_shader.glsl-33ec477a6c2c31ecff31fcbbe58bef4c.res"
+
+[deps]
+
+source_file="res://addons/sphynx_enhanced_compositor_toolkit/stencil/render_shader.glsl"
+dest_files=["res://.godot/imported/render_shader.glsl-33ec477a6c2c31ecff31fcbbe58bef4c.res"]
+
+[params]
+

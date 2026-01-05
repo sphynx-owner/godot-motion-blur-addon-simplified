@@ -19,6 +19,8 @@ const TILE_VARIANCE_TEXTURE_NAME : StringName = "tile_variance"
 
 var _previous_time : float = 0
 
+var _stencil_texture: Texture2DRD
+
 func _render_callback_2(
 	render_size : Vector2i, 
 	render_scene_buffers : RenderSceneBuffersRD, 
@@ -130,7 +132,8 @@ func _render_callback_2(
 			get_sampler_uniform(depth_image, 0, false),
 			get_sampler_uniform(velocity_image, 1, false),
 			get_image_uniform(custom_velocity_image, 2),
-			get_buffer_uniform(scene_data_buffer, 3)
+			get_buffer_uniform(scene_data_buffer, 3),
+			get_sampler_uniform(_stencil_texture.texture_rd_rid, 4)
 		],
 		pre_blur_push_constants,
 		Vector3i(x_groups, y_groups, 1), 

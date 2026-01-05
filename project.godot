@@ -13,7 +13,6 @@ config_version=5
 config/name="Godot Motion Blur Addon Simplified"
 config/features=PackedStringArray("4.5", "Forward Plus")
 run/max_fps=60
-config/icon="res://demo/icon.svg"
 
 [display]
 
