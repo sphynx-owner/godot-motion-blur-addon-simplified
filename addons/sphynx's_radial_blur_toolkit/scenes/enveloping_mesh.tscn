@@ -13,7 +13,6 @@ shader_parameter/sample_count = 8
 shader_parameter/debug_color = Color(0, 0, 0, 0)
 shader_parameter/use_debug = 0.0
 shader_parameter/sampling_error_threshold = 0.2
-shader_parameter/rotation_speed_threshold = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mm65n"]
 resource_local_to_scene = true
@@ -26,7 +25,6 @@ shader_parameter/sample_count = 8
 shader_parameter/debug_color = Color(1, 0, 0, 0.05490196)
 shader_parameter/use_debug = 0.0
 shader_parameter/sampling_error_threshold = 0.2
-shader_parameter/rotation_speed_threshold = 1.0
 
 [node name="EnvelopingMesh" type="MeshInstance3D"]
 material_override = SubResource("ShaderMaterial_mm65n")
