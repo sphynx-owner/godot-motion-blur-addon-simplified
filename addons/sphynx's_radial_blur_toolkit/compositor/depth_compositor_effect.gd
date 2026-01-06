@@ -23,7 +23,7 @@ func _render_callback_2(render_size: Vector2i, render_scene_buffers: RenderScene
 	# Get godot's depth buffer
 	var depth_image := render_scene_buffers.get_depth_layer(0)
 	# Get the texture we created for depth data
-	var output_depth_image := render_scene_buffers.get_texture_slice(context, "depth", 0, 0, 1, 1)
+	var output_depth_image := get_texture("depth", render_scene_buffers)
 	
 	# Define invocation group size
 	@warning_ignore("integer_division")

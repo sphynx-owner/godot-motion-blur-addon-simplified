@@ -25,6 +25,8 @@ const ENVELOPING_MESH_SCENE: PackedScene = preload("res://addons/sphynx's_radial
 		
 		update_configuration_warnings()
 
+@export var override_rotation_speed := 0.0
+
 var _past_target_visible_cache: bool = false
 
 var _viewport: SubViewport
@@ -44,6 +46,8 @@ func _ready() -> void:
 	
 	_viewport.transparent_bg = true
 	
+	_viewport.debug_draw = Viewport.DEBUG_DRAW_UNSHADED
+	
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	
 	_viewport.use_hdr_2d = true
@@ -58,7 +62,9 @@ func _ready() -> void:
 	
 	_camera.compositor.compositor_effects = [DepthCompositorEffect.new()]
 	
-	_camera.compositor.compositor_effects[0].texture_generated.connect(_on_depth_texture_generated)
+	_camera.compositor.compositor_effects[0].texture_generated.connect(
+		_on_depth_texture_generated
+	)
 	
 	_viewport.add_child(_camera)
 	
@@ -79,12 +85,20 @@ func _process(delta: float) -> void:
 
 
 func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
-	_enveloping_node.material_override.set_shader_parameter("depth_texture", depth_texture)
-	_enveloping_node.material_override.set_shader_parameter("screen_texture", _viewport.get_texture())
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"depth_texture", 
+		depth_texture
+	)
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"screen_texture", 
+		_viewport.get_texture()
+	)
 
 
 func _update_viewport() -> void:
-	var reference_viewport: Viewport = get_viewport()
+	var reference_viewport: Viewport
 	
 	if Engine.is_editor_hint():
 		reference_viewport = EditorInterface.get_editor_viewport_3d()
@@ -114,10 +128,17 @@ func _update_clone() -> void:
 	
 	_clone.global_transform = target.global_transform
 	
+	if !target.mesh:
+		_clone.mesh = null
+		return
+	
 	_clone.mesh = target.mesh
 	
 	for i: int in range(target.get_surface_override_material_count()):
-		_clone.set_surface_override_material(i, target.get_surface_override_material(i))
+		_clone.set_surface_override_material(
+			i, 
+			target.get_surface_override_material(i)
+		)
 	
 	_clone.material_override = target.material_override
 	
@@ -135,6 +156,12 @@ func _update_enveloping_node() -> void:
 	var target_rotation_vector : Vector3 = \
 	target_transform.orthonormalized().basis * target_rotation_axis
 	
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"local_rotation_axis",
+		 target_rotation_axis
+	)
+	
 	var difference_quat : Quaternion = \
 	Quaternion(target_transform.basis.get_rotation_quaternion() \
 	* _past_global_transform.basis.get_rotation_quaternion().inverse())
@@ -144,15 +171,41 @@ func _update_enveloping_node() -> void:
 	var angle = (PI - abs(centered_angle)) \
 	* abs(target_rotation_vector.dot(difference_quat.get_axis()))
 	
-	_enveloping_node.material_override.set_shader_parameter(
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
 		"rotation_speed", 
-		clamp(angle, -TAU, TAU)
+		clamp(angle, -TAU, TAU) \
+		if override_rotation_speed == 0.0 \
+		else override_rotation_speed
 	)
 	
 	_past_global_transform = target_transform
 	
 	_enveloping_node.global_position = target_transform.origin
 	
-	var alignment_quaternion : Quaternion = Quaternion(_enveloping_node.global_basis.orthonormalized() * target_rotation_axis, target_rotation_vector)
+	var alignment_quaternion : Quaternion = \
+	Quaternion(_enveloping_node.global_basis.orthonormalized() \
+	* target_rotation_axis, target_rotation_vector)
 	
-	_enveloping_node.global_basis = Basis(alignment_quaternion) * _enveloping_node.global_basis;
+	_enveloping_node.global_basis = \
+	Basis(alignment_quaternion) * _enveloping_node.global_basis;
+	
+	_enveloping_node.global_basis.x = \
+	_enveloping_node.global_basis.x.normalized() * target_transform.basis.x.length()
+	
+	_enveloping_node.global_basis.y = \
+	_enveloping_node.global_basis.y.normalized() * target_transform.basis.y.length()
+	
+	_enveloping_node.global_basis.z = \
+	_enveloping_node.global_basis.z.normalized() * target_transform.basis.z.length()
+
+
+func set_shader_parameter_recursive(
+	material: ShaderMaterial, 
+	parameter: String, 
+	value: Variant
+) -> void:
+	material.set_shader_parameter(parameter, value)
+	
+	if material.next_pass and material.next_pass is ShaderMaterial:
+		set_shader_parameter_recursive(material, parameter, value)

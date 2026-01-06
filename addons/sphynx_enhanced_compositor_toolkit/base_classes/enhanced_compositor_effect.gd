@@ -183,7 +183,7 @@ func free_shader_stage(shader_stage : ShaderStageResource):
 	static_free_shader_stage(rd, shader_stage)
 
 
-func ensure_texture(texture_name : StringName, render_scene_buffers : RenderSceneBuffersRD, texture_format : RenderingDevice.DataFormat = RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, render_size_multiplier : Vector2 = Vector2(1, 1)):
+func ensure_texture(texture_name : StringName, render_scene_buffers : RenderSceneBuffersRD, texture_format : RenderingDevice.DataFormat = RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, render_size_multiplier : Vector2 = Vector2(1, 1)) -> bool:
 	var render_size : Vector2i = Vector2(render_scene_buffers.get_internal_size()) * render_size_multiplier
 	
 	if render_scene_buffers.has_texture(context, texture_name):
@@ -194,7 +194,9 @@ func ensure_texture(texture_name : StringName, render_scene_buffers : RenderScen
 	if !render_scene_buffers.has_texture(context, texture_name):
 		var usage_bits: int = RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT
 		render_scene_buffers.create_texture(context, texture_name, texture_format, usage_bits, RenderingDevice.TEXTURE_SAMPLES_1, render_size, 1, 1, true, false)
-
+		return true
+	
+	return false
 
 func get_texture(texture_name: StringName, render_scene_buffers : RenderSceneBuffersRD) -> RID:
 	return render_scene_buffers.get_texture_slice(context, texture_name, 0, 0, 1, 1)

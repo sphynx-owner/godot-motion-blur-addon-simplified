@@ -1,7 +1,3 @@
-shader_type spatial;
-
-render_mode unshaded, depth_draw_always, fog_disabled, blend_premul_alpha;
-
 const float EPSILON = 0.00001;
 
 uniform sampler2D screen_texture : filter_nearest;
@@ -41,7 +37,7 @@ void fragment() {
 	float depth = texture(depth_texture, screen_uv).x;
 
 	if(depth < EPSILON) {
-		depth = texture(screen_texture, screen_uv).z;
+		depth = FRAGCOORD.z;//texture(screen_texture, screen_uv).z;
 	}
 
 	vec3 ndc = vec3(screen_uv * 2.0 - 1.0, depth);
@@ -61,9 +57,9 @@ void fragment() {
 	vec4 col = vec4(0);
 
 	vec3 camera_relative_position_normalized = normalize(node_relative_position.xyz + camera_node_position);
-	
+
 	float squared_sampling_error_threshold = max(sampling_error_threshold * sampling_error_threshold, EPSILON);
-	
+
 	for(int i = 0; i < sample_count; i++)
 	{
 		float angle = (float(i) / float(sample_count) + noise_variation) * rotation_speed;
