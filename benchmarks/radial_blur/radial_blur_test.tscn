@@ -1,6 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://bpr2b81luq1g0"]
+[gd_scene load_steps=7 format=3 uid="uid://bpr2b81luq1g0"]
 
 [ext_resource type="ArrayMesh" uid="uid://btx823mebm20k" path="res://benchmarks/radial_blur/PropellerMeshCorrected.obj" id="1_yjuqw"]
+[ext_resource type="Script" uid="uid://djkmewposiph4" path="res://addons/sphynx's_radial_blur_toolkit/radial_blur.gd" id="2_gk5px"]
+[ext_resource type="ArrayMesh" uid="uid://cwb43qd42eukg" path="res://benchmarks/radial_blur/PropellerWithEncapsulatingMeshCorrected.obj" id="3_grbtf"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_yjuqw"]
 
@@ -15,6 +17,7 @@ sky = SubResource("Sky_gk5px")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0)
+visible = false
 mesh = ExtResource("1_yjuqw")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -22,3 +25,10 @@ environment = SubResource("Environment_grbtf")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.70710677, -0.18301274, 0.6830128, -0.7071067, -0.18301272, 0.6830127, 0, -0.9659258, -0.25881907, 0, 0, 0)
+
+[node name="RadialBlur" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("2_gk5px")
+target = NodePath("../MeshInstance3D")
+target_rotation_axis = Vector3(1, 0, 0)
+enveloping_mesh = ExtResource("3_grbtf")
+metadata/_custom_type_script = "uid://djkmewposiph4"

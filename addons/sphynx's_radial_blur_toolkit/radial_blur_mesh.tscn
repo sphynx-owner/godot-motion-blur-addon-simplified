@@ -23,7 +23,7 @@ shader_parameter/screen_texture = SubResource("ViewportTexture_qau8u")
 shader_parameter/local_rotation_axis = Vector3(0, 1, 0)
 shader_parameter/rotation_speed = 0.0
 shader_parameter/sample_count = 8
-shader_parameter/debug_color = Color(1, 0, 0, 0)
+shader_parameter/debug_color = Color(0, 0, 0, 0)
 shader_parameter/sampling_error_threshold = 0.2
 
 [sub_resource type="CompositorEffect" id="CompositorEffect_m1h7s"]
@@ -56,7 +56,7 @@ handle_input_locally = false
 use_hdr_2d = true
 anisotropic_filtering_level = 0
 canvas_cull_mask = 4
-size = Vector2i(1184, 605)
+size = Vector2i(2, 2)
 render_target_update_mode = 4
 script = ExtResource("3_oak1g")
 

@@ -2,6 +2,8 @@
 class_name RadialBlur
 extends Node3D
 
+const ENVELOPING_MESH_SCENE: PackedScene = preload("res://addons/sphynx's_radial_blur_toolkit/scenes/enveloping_mesh.tscn")
+
 @export var target: MeshInstance3D:
 	set(value):
 		if target:
@@ -14,6 +16,8 @@ extends Node3D
 			target.visible = false
 		
 		update_configuration_warnings()
+
+@export var target_rotation_axis: Vector3
 
 @export var enveloping_mesh: Mesh:
 	set(value):
@@ -35,11 +39,26 @@ var _past_global_transform: Transform3D
 
 func _ready() -> void:
 	_viewport = SubViewport.new()
+	
 	_viewport.own_world_3d = true
+	
+	_viewport.transparent_bg = true
+	
+	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	
+	_viewport.use_hdr_2d = true
+	
+	_viewport.anisotropic_filtering_level = Viewport.ANISOTROPY_DISABLED
 	
 	add_child(_viewport)
 	
 	_camera = Camera3D.new()
+	
+	_camera.compositor = Compositor.new()
+	
+	_camera.compositor.compositor_effects = [DepthCompositorEffect.new()]
+	
+	_camera.compositor.compositor_effects[0].texture_generated.connect(_on_depth_texture_generated)
 	
 	_viewport.add_child(_camera)
 	
@@ -47,7 +66,7 @@ func _ready() -> void:
 	
 	_viewport.add_child(_clone)
 	
-	_enveloping_node = MeshInstance3D.new()
+	_enveloping_node = ENVELOPING_MESH_SCENE.instantiate()
 	
 	add_child(_enveloping_node)
 
@@ -59,15 +78,30 @@ func _process(delta: float) -> void:
 	_update_enveloping_node()
 
 
+func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
+	_enveloping_node.material_override.set_shader_parameter("depth_texture", depth_texture)
+	_enveloping_node.material_override.set_shader_parameter("screen_texture", _viewport.get_texture())
+
+
 func _update_viewport() -> void:
 	var reference_viewport: Viewport = get_viewport()
+	
+	if Engine.is_editor_hint():
+		reference_viewport = EditorInterface.get_editor_viewport_3d()
+	else:
+		reference_viewport = get_viewport()
 	
 	if "size" in reference_viewport:
 		_viewport.size = reference_viewport.size
 
 
 func _update_camera() -> void:
-	var reference_camera: Camera3D = get_viewport().get_camera_3d()
+	var reference_camera: Camera3D
+	
+	if Engine.is_editor_hint():
+		reference_camera = EditorInterface.get_editor_viewport_3d().get_camera_3d()
+	else:
+		reference_camera = get_viewport().get_camera_3d()
 	
 	_camera.global_transform = reference_camera.global_transform
 	_camera.fov = reference_camera.fov
@@ -98,25 +132,27 @@ func _update_enveloping_node() -> void:
 	
 	var target_transform : Transform3D = target.global_transform
 	
-	var target_rotation_vector : Vector3 = target_transform.orthonormalized().basis * target_local_rotation_vector
+	var target_rotation_vector : Vector3 = \
+	target_transform.orthonormalized().basis * target_rotation_axis
 	
-	var current_mesh_basis : Basis = target_transform.basis
-	
-	var difference_quat : Quaternion = Quaternion(current_mesh_basis.get_rotation_quaternion() * previous_mesh_basis.get_rotation_quaternion().inverse())
+	var difference_quat : Quaternion = \
+	Quaternion(target_transform.basis.get_rotation_quaternion() \
+	* _past_global_transform.basis.get_rotation_quaternion().inverse())
 	
 	var centered_angle : float = difference_quat.get_angle() - PI
 	
-	var angle = (PI - abs(centered_angle)) * abs(target_rotation_vector.dot(difference_quat.get_axis()))
+	var angle = (PI - abs(centered_angle)) \
+	* abs(target_rotation_vector.dot(difference_quat.get_axis()))
 	
-	if mesh_has_rotation_signal:
-		angle = signal_rotation_velocity
+	_enveloping_node.material_override.set_shader_parameter(
+		"rotation_speed", 
+		clamp(angle, -TAU, TAU)
+	)
 	
-	get_surface_override_material(0).set_shader_parameter("rotation_speed", clamp(angle, -TAU, TAU))
+	_past_global_transform = target_transform
 	
-	previous_mesh_basis = current_mesh_basis
+	_enveloping_node.global_position = target_transform.origin
 	
-	global_position = target_transform.origin + target_rotation_vector * axis_offset
+	var alignment_quaternion : Quaternion = Quaternion(_enveloping_node.global_basis.orthonormalized() * target_rotation_axis, target_rotation_vector)
 	
-	var alignment_quaternion : Quaternion = Quaternion(global_basis.orthonormalized() * local_rotation_vector, target_rotation_vector)
-	
-	global_basis = Basis(alignment_quaternion) * global_basis;
+	_enveloping_node.global_basis = Basis(alignment_quaternion) * _enveloping_node.global_basis;

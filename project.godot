@@ -21,7 +21,7 @@ window/size/viewport_height=720
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/sphynx_enhanced_compositor_toolkit/plugin.cfg", "res://addons/sphynx_motion_blur_toolkit/plugin.cfg", "res://addons/sphynx_replay_tool/plugin.cfg")
+enabled=PackedStringArray("res://addons/sphynx\'s_radial_blur_toolkit/plugin.cfg", "res://addons/sphynx_enhanced_compositor_toolkit/plugin.cfg", "res://addons/sphynx_motion_blur_toolkit/plugin.cfg", "res://addons/sphynx_replay_tool/plugin.cfg")
 
 [input]
 

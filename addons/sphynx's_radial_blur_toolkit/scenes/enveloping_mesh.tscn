@@ -1,6 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://yfd4138whsfx"]
+[gd_scene load_steps=3 format=3 uid="uid://yfd4138whsfx"]
+
+[ext_resource type="Shader" uid="uid://c32jqjvg6uggw" path="res://addons/sphynx's_radial_blur_toolkit/radial_blur_mesh.gdshader" id="1_elsnv"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mm65n"]
+render_priority = 0
+shader = ExtResource("1_elsnv")
+shader_parameter/local_rotation_axis = Vector3(0, 1, 0)
+shader_parameter/rotation_speed = 0.0
+shader_parameter/sample_count = 8
+shader_parameter/debug_color = Color(0, 0, 0, 0)
+shader_parameter/sampling_error_threshold = 0.2
 
 [node name="EnvelopingMesh" type="MeshInstance3D"]
 material_override = SubResource("ShaderMaterial_mm65n")
