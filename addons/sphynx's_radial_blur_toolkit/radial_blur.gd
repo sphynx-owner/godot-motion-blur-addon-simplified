@@ -38,7 +38,19 @@ const ENVELOPING_MESH_SCENE: PackedScene = preload("res://addons/sphynx's_radial
 
 @export var target_rotation_axis: Vector3
 
-@export var activation_speed_threshold: float = 0.1
+@export var activation_speed_lower_threshold: float = 0.1:
+	set(value):
+		value = max(0, value)
+		activation_speed_lower_threshold = value
+		activation_speed_upper_threshold = \
+		max(activation_speed_lower_threshold, activation_speed_lower_threshold)
+
+@export var activation_speed_upper_threshold: float = 0.2:
+	set(value):
+		value = max(0, value)
+		activation_speed_upper_threshold = value
+		activation_speed_lower_threshold = \
+		min(activation_speed_lower_threshold, activation_speed_lower_threshold)
 
 @export var sample_count := 8
 
@@ -225,7 +237,7 @@ func _update_enveloping_node() -> void:
 		rotation_speed
 	)
 	
-	if abs(rotation_speed) > activation_speed_threshold:
+	if abs(rotation_speed) > activation_speed_upper_threshold:
 		visible = true
 		target.layers = 0
 	else:

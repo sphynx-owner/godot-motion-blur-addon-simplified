@@ -60,12 +60,12 @@ compositor = SubResource("Compositor_t71lr")
 transform = Transform3D(0.6174891, -0.20358177, 0.7597774, -0.7865795, -0.15981793, 0.59644866, -8.881784e-16, -0.9659258, -0.2588191, 0, 0, 0)
 
 [node name="RadialBlur" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+process_priority = 1
 visible = false
 script = ExtResource("3_grbtf")
 target = NodePath("../Node3D/MeshInstance3D")
 enveloping_mesh = ExtResource("4_vndbm")
 target_rotation_axis = Vector3(1, 0, 0)
-activation_speed_threshold = 0.0
 debug_color = Color(1, 1, 0, 0.30588236)
 metadata/_custom_type_script = "uid://djkmewposiph4"
 
