@@ -208,4 +208,4 @@ func set_shader_parameter_recursive(
 	material.set_shader_parameter(parameter, value)
 	
 	if material.next_pass and material.next_pass is ShaderMaterial:
-		set_shader_parameter_recursive(material, parameter, value)
+		set_shader_parameter_recursive(material.next_pass, parameter, value)

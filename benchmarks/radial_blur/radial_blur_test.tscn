@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bpr2b81luq1g0"]
+[gd_scene load_steps=15 format=3 uid="uid://bpr2b81luq1g0"]
 
 [ext_resource type="ArrayMesh" uid="uid://btx823mebm20k" path="res://benchmarks/radial_blur/PropellerMeshCorrected.obj" id="1_yjuqw"]
 [ext_resource type="Script" uid="uid://5lq2bswqupw8" path="res://benchmarks/radial_blur/mesh_instance_3d.gd" id="2_yd7ky"]
@@ -37,6 +37,8 @@ top_radius = 100.0
 bottom_radius = 100.0
 height = 100.0
 
+[sub_resource type="BoxMesh" id="BoxMesh_aae02"]
+
 [node name="RadialBlurTest" type="Node3D"]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -72,7 +74,7 @@ metadata/_custom_type_script = "uid://djkmewposiph4"
 script = ExtResource("6_rkscw")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D"]
-transform = Transform3D(0.01, 0, 0, 0, 0.004712494, -0.00882, 0, 0.00882, 0.004712494, 0, 0, 0)
+transform = Transform3D(0.01, 0, 0, 0, 0.0044164187, -0.008971914, 0, 0.008971914, 0.0044164187, 0, 0, 0)
 visible = false
 mesh = ExtResource("1_yjuqw")
 skeleton = NodePath("../..")
@@ -81,3 +83,7 @@ script = ExtResource("2_yd7ky")
 [node name="Camera3D" type="Camera3D" parent="Node3D"]
 transform = Transform3D(0.22552921, 0, 0.9742364, 0, 1, 0, -0.9742364, 0, 0.22552921, 1.9842758, 0, 0.2799958)
 script = ExtResource("4_8xabd")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0440221, 0, 0)
+mesh = SubResource("BoxMesh_aae02")

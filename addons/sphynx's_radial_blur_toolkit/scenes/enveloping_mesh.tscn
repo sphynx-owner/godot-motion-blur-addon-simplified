@@ -1,10 +1,22 @@
-[gd_scene load_steps=3 format=3 uid="uid://yfd4138whsfx"]
+[gd_scene load_steps=5 format=3 uid="uid://yfd4138whsfx"]
 
+[ext_resource type="Shader" uid="uid://c32jqjvg6uggw" path="res://addons/sphynx's_radial_blur_toolkit/radial_blur_mesh_front.gdshader" id="1_elsnv"]
 [ext_resource type="Shader" uid="uid://qh3x6wguokjb" path="res://addons/sphynx's_radial_blur_toolkit/radial_blur_mesh_back.gdshader" id="2_xfk5b"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xfk5b"]
+resource_local_to_scene = true
+render_priority = 1
+shader = ExtResource("1_elsnv")
+shader_parameter/local_rotation_axis = Vector3(0, 1, 0)
+shader_parameter/rotation_speed = 0.0
+shader_parameter/sample_count = 8
+shader_parameter/debug_color = Color(0, 0, 0, 0)
+shader_parameter/sampling_error_threshold = 0.2
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mm65n"]
 resource_local_to_scene = true
 render_priority = 0
+next_pass = SubResource("ShaderMaterial_xfk5b")
 shader = ExtResource("2_xfk5b")
 shader_parameter/local_rotation_axis = Vector3(0, 1, 0)
 shader_parameter/rotation_speed = 0.0
