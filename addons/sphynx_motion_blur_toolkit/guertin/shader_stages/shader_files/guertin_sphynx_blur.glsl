@@ -25,7 +25,7 @@ layout(push_constant, std430) uniform Params
 	int use_custom_curve;
 	int jitter_tiles;
 	int clamp_velocities_to_tile;
-	int nan4;
+	int velocity_depth_test;
 	int nan5;
 } params;
 
@@ -33,7 +33,7 @@ layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 // Guertin's functions https://research.nvidia.com/sites/default/files/pubs/2013-11_A-Fast-and/Guertin2013MotionBlur-small.pdf
 // ----------------------------------------------------------
-float z_compare(float a, float b, float sze)
+float soft_compare(float a, float b, float sze)
 {
 	return clamp(sze * (a - b), 0, 1);
 }
@@ -68,13 +68,69 @@ vec2 jitter_tile(vec2 uvi)
 }
 // ----------------------------------------------------------
 
+vec4 sample_velocity(sampler2D velocity_texture, vec2 uv)
+{
+	return textureLod(velocity_texture, uv, 0.0) * vec4(vec2(params.motion_blur_intensity), 1, 1);
+}
+
+vec4 sample_x_velocity(vec2 x, float t, vec2 vx, float z, float zx, ivec2 render_size)
+{
+	vec2 yx = x + t * vx / vec2(render_size);
+
+	vec4 vyzwx = sample_velocity(velocity_sampler, yx);
+
+	float zyx = vyzwx.w;
+
+	float overlapx = 1 - soft_compare(z + (params.velocity_depth_test == 1 ? zx * t : 0), zyx, -10);
+	
+	return vec4(textureLod(color_sampler, yx, 0.0).xyz, overlapx);
+}
+
+vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_size)
+{
+	vec2 yn = x + t * vn / vec2(render_size);
+		
+	vec4 vyzwn = sample_velocity(velocity_sampler, yn); 
+
+	vec2 vyn = vyzwn.xy;
+
+	float zyn = vyzwn.w;
+
+	float overlapn = 1 - soft_compare(zyn - (params.velocity_depth_test == 1 ? vyzwn.z * t : 0), z, -10);
+
+	vec2 wyn = safenorm(vyn);
+
+	float Tn = abs(t * length(vn));
+
+	float vyn_length = max(0.5, length(vyn));
+
+	if(params.clamp_velocities_to_tile == 1)
+	{
+		float clamp_ratio = max(vyn_length / params.tile_size, 1.0);
+		vyn /= clamp_ratio;
+		vyn_length /= clamp_ratio;
+	}
+
+	float projected = abs(dot(wyn, wn));
+
+	float current_weightn = step(Tn, vyn_length * projected) * overlapn;
+
+	return vec4(textureLod(color_sampler, yn, 0.0).xyz, current_weightn);
+}
+
+vec4 blend_blur(vec4 base_color, vec4 x_sample, vec4 neg_x_sample, vec4 y_sample)
+{
+	float current_weight_x = max(x_sample.w, neg_x_sample.w);
+
+	vec4 x_color_sample = mix(neg_x_sample, x_sample, clamp(x_sample.w / neg_x_sample.w, 0, 1));
+
+	return mix(mix(base_color, x_color_sample, current_weight_x), y_sample, y_sample.w);
+}
+
 void main() 
 {
 	// The size of the output texture
 	ivec2 render_size = ivec2(textureSize(color_sampler, 0));
-
-	// Resolution of neighbor max texture (max velocity tiles)
-	ivec2 tile_render_size = ivec2(textureSize(neighbor_max, 0));
 
 	// The pixel we are running the shader for.
 	ivec2 uvi = ivec2(gl_GlobalInvocationID.xy);
@@ -93,36 +149,36 @@ void main()
 
 	// We get the neighbor-max velocity for the tile we are in, with some jitter
 	// between tiles to hide seams between them.
-	// We then multiply the velocity by the render size to get its magnitude
-	// in pixels. We also mulitply it by the blur intensity factor.
-	// TODO @sphynx-owner: figure out whether adding half a tile size to x is 
-	// correct. 
-	vec4 vnzw = textureLod(neighbor_max, x + jitter_tile(uvi), 0.0) * vec4(render_size / 2., 1, 1) * params.motion_blur_intensity;
+	vec4 vnzw = sample_velocity(neighbor_max, x + (params.jitter_tiles == 1 ? jitter_tile(uvi) : vec2(0)));
 
-	// We get the xy components of the max tile velocity. Velocities can have a z
-	// component too (we generate it in the pre-blur processing stage for stationary
-	// elements), but it is used separately and does not express itself visually in the
-	// blur (it represents the movement of elements towards the camera, which means
-	// they don't visually move).
 	vec2 vn = vnzw.xy;
 
 	float vn_length = length(vn);
 
 	vec4 base_color = textureLod(color_sampler, x, 0.0);
 
-	// We get the true velocity at the current pixel, mulitplied by the motion blur intensity.
-	vec4 vxzw = textureLod(velocity_sampler, x, 0.0) * vec4(render_size / 2., 1, 1) * params.motion_blur_intensity;
+	// We get the true velocity at the current pixel
+	vec4 vxzw = sample_velocity(velocity_sampler, x);
 
-	// We get the xy components of the true velocity (see declaration of vn)
 	vec2 vx = vxzw.xy;
 
 	float vx_length = length(vx);
 
+	if(params.clamp_velocities_to_tile == 1)
+	{
+		float clamp_ratio = max(vn_length / params.tile_size, 1.0);
+		vn /= clamp_ratio;
+		vn_length /= clamp_ratio;
+
+		clamp_ratio = max(vx_length / params.tile_size, 1.0);
+		vx /= clamp_ratio;
+		vx_length /= clamp_ratio;
+	}
+
 	// We must account for cases where the dominant velocity is 0 even though 
 	// The current velocity is not. This is only the case for the skybox, which
 	// Will never overlap geometry so it can safely be ignored when calculating neighbor_max
-	// TODO @sphynx-owner: enable when considering ignoring skybox for dominant velocity
-	if(vn_length < 0.5)// && vx_length < 0.5)
+	if(vn_length < 0.5)
 	{
 		imageStore(output_color, uvi, base_color);
 #ifdef DEBUG
@@ -137,15 +193,13 @@ void main()
 	// We normalize neighbor-max velocity
 	vec2 wn = safenorm(vn);
 
-	vec2 wx = safenorm(vx);
+	// Get the depth at current pixel
+	float zx = vxzw.w;
 	
 	// We get some random value for the current pixel between 0 and 1. This will be used to
 	// jitter the blur sampling, and achieve smoother looking blur gradient
 	// with a fraction of the sample count.
 	float j = interleaved_gradient_noise(uvi);
-
-	// Get the depth at current pixel
-	float zx = vxzw.w;
 
 	float weight = 1e-6;
 
@@ -157,67 +211,35 @@ void main()
 		float ti = (i + j) / params.sample_count;
 
 		// A point in time along the blur interval, used to scale velocity vectors to sample for color.
-		float t = mix(-1.0, 1.0, ti);
+		float t = mix(-0.5, 0, ti);
+
+		float neg_t = -t;
 
 		float custom_curve_sample = params.use_custom_curve == 1 ? textureLod(custom_curve, vec2(ti, 0.5), 0.0).x : 1;
 		
-		// TODO @sphynx-owner: figure out the best blending scheme that would balance seamlessness with intelligent edge case handling.
-		// Right now you get underblurring against occluding geometry, and vectors that match the dominant velocity don't get picked
-		// up as much as they could.
 		float current_total_weight = custom_curve_sample;
-
-		// Background blending (blending of the background onto the current geometry to simulate transparency)
-		// ----------------------------------------------------------------------------------
-		vec2 yx = x + t * vx / vec2(render_size);
-
-		vec4 vyzwx = textureLod(velocity_sampler, yx, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity;
-
-		float zyx = vyzwx.w;
-
-		float overlapx = 1 - z_compare(zx + vxzw.z * t, zyx, -10);
-
-		float current_weightx = overlapx;
 		
-		vec4 color = mix(base_color, textureLod(color_sampler, yx, 0.0), current_weightx);
-		// ----------------------------------------------------------------------------------
+		vec4 x_sample = sample_x_velocity(x, t, vx, zx, vxzw.z, render_size);
 
-		// Foreground blending (blending of foreground geometry with dominant velocity onto current geometry)
-		// ----------------------------------------------------------------------------------
-		// TODO @sphynx-owner: enable when considering ignoring skybox for dominant velocity
-		//if (vn_length >= 0.5)
-		{
-			vec2 yn = x + t * vn / vec2(render_size);
+		vec4 neg_x_sample = sample_x_velocity(x, neg_t, vx, zx, vxzw.z, render_size);
 		
-			vec4 vyzwn = textureLod(velocity_sampler, yn, 0.0) * vec4(render_size / 2, 1, 1) * params.motion_blur_intensity; 
+		vec4 y_sample = sample_y_velocity(x, t, vn, wn, zx, render_size);
 
-			vec2 vyn = vyzwn.xy;
-
-			float zyn = vyzwn.w;
-
-			float overlapn = 1 - z_compare(zyn - vyzwn.z * t, zx, -10);
-
-			vec2 wyn = safenorm(vyn);
-
-			float Tn = abs(t * length(vn));
-
-			float vyn_length = max(0.5, length(vyn));
-
-			float projected = abs(dot(wyn, wn));
-
-			float current_weightn = step(Tn, vyn_length * projected) * overlapn;
-
-			color = mix(color, textureLod(color_sampler, yn, 0.0), current_weightn) * current_total_weight;
-		}
-		// ----------------------------------------------------------------------------------
+		vec4 neg_y_sample = sample_y_velocity(x, -t, vn, wn, zx, render_size);
 
 		weight += current_total_weight;
 
-		sum += color * current_total_weight;
+		sum += blend_blur(base_color, x_sample, neg_x_sample, y_sample) * current_total_weight;
+
+		weight += current_total_weight;
+
+		sum += blend_blur(base_color, neg_x_sample, x_sample, neg_y_sample) * current_total_weight;
 	}
 
 	sum /= weight;
 
 	imageStore(output_color, uvi, sum);
+
 #ifdef DEBUG
 	imageStore(debug_1_image, uvi, base_color);
 	imageStore(debug_2_image, uvi, vec4(vxzw.xy / render_size * 2, 0, 1));

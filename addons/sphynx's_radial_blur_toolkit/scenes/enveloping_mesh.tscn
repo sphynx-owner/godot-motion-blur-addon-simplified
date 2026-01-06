@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://yfd4138whsfx"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mm65n"]
+
+[node name="EnvelopingMesh" type="MeshInstance3D"]
+material_override = SubResource("ShaderMaterial_mm65n")

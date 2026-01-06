@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="ShaderStageResource" load_steps=3 format=3 uid="uid://bkudf8hl37ho2"]
-
-[ext_resource type="Script" uid="uid://defi5jlhkfhls" path="res://addons/sphynx_enhanced_compositor_toolkit/base_classes/shader_pass_resource.gd" id="1_r83bm"]
-[ext_resource type="RDShaderFile" uid="uid://dbt0noaywafgs" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/2_guertin_sphynx_blur.glsl" id="2_r83bm"]
-
-[resource]
-script = ExtResource("1_r83bm")
-shader_file = ExtResource("2_r83bm")

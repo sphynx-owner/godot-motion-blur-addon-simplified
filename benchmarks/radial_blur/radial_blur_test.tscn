@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://bpr2b81luq1g0"]
+
+[ext_resource type="ArrayMesh" uid="uid://btx823mebm20k" path="res://benchmarks/radial_blur/PropellerMeshCorrected.obj" id="1_yjuqw"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_yjuqw"]
+
+[sub_resource type="Sky" id="Sky_gk5px"]
+sky_material = SubResource("ProceduralSkyMaterial_yjuqw")
+
+[sub_resource type="Environment" id="Environment_grbtf"]
+background_mode = 2
+sky = SubResource("Sky_gk5px")
+
+[node name="RadialBlurTest" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0)
+mesh = ExtResource("1_yjuqw")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_grbtf")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.70710677, -0.18301274, 0.6830128, -0.7071067, -0.18301272, 0.6830127, 0, -0.9659258, -0.25881907, 0, 0, 0)
