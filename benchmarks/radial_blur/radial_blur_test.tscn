@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://bpr2b81luq1g0"]
+[gd_scene load_steps=16 format=3 uid="uid://bpr2b81luq1g0"]
 
 [ext_resource type="ArrayMesh" uid="uid://btx823mebm20k" path="res://benchmarks/radial_blur/PropellerMeshCorrected.obj" id="1_yjuqw"]
 [ext_resource type="Script" uid="uid://5lq2bswqupw8" path="res://benchmarks/radial_blur/mesh_instance_3d.gd" id="2_yd7ky"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://djkmewposiph4" path="res://addons/sphynx's_radial_blur_toolkit/radial_blur.gd" id="3_grbtf"]
 [ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="4_8xabd"]
 [ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="4_rkscw"]
+[ext_resource type="ArrayMesh" uid="uid://cwb43qd42eukg" path="res://benchmarks/radial_blur/PropellerWithEncapsulatingMeshCorrected.obj" id="4_vndbm"]
 [ext_resource type="Script" uid="uid://dc1ex857tylhi" path="res://benchmarks/radial_blur/node_3d.gd" id="6_rkscw"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_yjuqw"]
@@ -32,10 +33,8 @@ metadata/_custom_type_script = "uid://bi6xhl7lpiu4n"
 [sub_resource type="Compositor" id="Compositor_t71lr"]
 compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_vndbm")])
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_aae02"]
-top_radius = 100.0
-bottom_radius = 100.0
-height = 100.0
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aae02"]
+albedo_color = Color(0, 1, 1, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_aae02"]
 
@@ -60,24 +59,25 @@ compositor = SubResource("Compositor_t71lr")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.6174891, -0.20358177, 0.7597774, -0.7865795, -0.15981793, 0.59644866, -8.881784e-16, -0.9659258, -0.2588191, 0, 0, 0)
 
-[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.7073535, 0.18294877, -0.6827742, 0.70685995, -0.18307656, 0.683251, 6.6816632e-09, -0.9659257, -0.25881904, 0, 0, 0)
-
 [node name="RadialBlur" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+visible = false
 script = ExtResource("3_grbtf")
 target = NodePath("../Node3D/MeshInstance3D")
+enveloping_mesh = ExtResource("4_vndbm")
 target_rotation_axis = Vector3(1, 0, 0)
-enveloping_mesh = SubResource("CylinderMesh_aae02")
+activation_speed_threshold = 0.0
+debug_color = Color(1, 1, 0, 0.30588236)
 metadata/_custom_type_script = "uid://djkmewposiph4"
 
 [node name="Node3D" type="Node3D" parent="."]
 script = ExtResource("6_rkscw")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D"]
-transform = Transform3D(0.01, 0, 0, 0, 0.0044164187, -0.008971914, 0, 0.008971914, 0.0044164187, 0, 0, 0)
-visible = false
+transform = Transform3D(0.010000001, 0, 0, 0, 0.0018414464, -0.009828992, 0, 0.009828991, 0.0018414466, 0, 0, 0)
+layers = 2147483647
 mesh = ExtResource("1_yjuqw")
 skeleton = NodePath("../..")
+surface_material_override/0 = SubResource("StandardMaterial3D_aae02")
 script = ExtResource("2_yd7ky")
 
 [node name="Camera3D" type="Camera3D" parent="Node3D"]

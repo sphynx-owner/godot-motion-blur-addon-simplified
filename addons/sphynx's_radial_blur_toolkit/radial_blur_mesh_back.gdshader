@@ -1,5 +1,5 @@
 shader_type spatial;
 
-render_mode unshaded, depth_draw_always, fog_disabled, blend_premul_alpha, cull_front;
+render_mode depth_draw_always, fog_disabled, cull_front;
 
 #include "radial_blur_shader_include.gdshaderinc"

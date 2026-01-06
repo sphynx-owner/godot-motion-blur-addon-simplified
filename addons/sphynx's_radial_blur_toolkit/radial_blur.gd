@@ -4,20 +4,31 @@ extends Node3D
 
 const ENVELOPING_MESH_SCENE: PackedScene = preload("res://addons/sphynx's_radial_blur_toolkit/scenes/enveloping_mesh.tscn")
 
+@export var enabled := true:
+	set(value):
+		enabled = value
+		
+		if enabled:
+			if target:
+				_layer_mask_cache = target.layers
+			
+		else:
+			visible = false
+			
+			if target:
+				target.layers = _layer_mask_cache
+
 @export var target: MeshInstance3D:
 	set(value):
 		if target:
-			target.visible = _past_target_visible_cache
+			target.layers = _layer_mask_cache
 		
 		target = value
 		
 		if target:
-			_past_target_visible_cache = target.visible
-			target.visible = false
+			_layer_mask_cache = target.layers
 		
 		update_configuration_warnings()
-
-@export var target_rotation_axis: Vector3
 
 @export var enveloping_mesh: Mesh:
 	set(value):
@@ -25,9 +36,21 @@ const ENVELOPING_MESH_SCENE: PackedScene = preload("res://addons/sphynx's_radial
 		
 		update_configuration_warnings()
 
+@export var target_rotation_axis: Vector3
+
+@export var activation_speed_threshold: float = 0.1
+
+@export var sample_count := 8
+
+@export_group("debug")
+
 @export var override_rotation_speed := 0.0
 
-var _past_target_visible_cache: bool = false
+@export var debug_color: Color = Color.TRANSPARENT
+
+@export var draw_debug := false
+
+var _layer_mask_cache: int = false
 
 var _viewport: SubViewport
 
@@ -78,6 +101,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if !enabled:
+		return
+	
 	_update_viewport()
 	_update_camera()
 	_update_clone()
@@ -151,6 +177,24 @@ func _update_enveloping_node() -> void:
 	
 	_enveloping_node.mesh = enveloping_mesh
 	
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"debug_color", 
+		debug_color
+	)
+	
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"use_debug", 
+		1 if draw_debug else 0
+	)
+	
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"sample_count", 
+		sample_count
+	)
+	
 	var target_transform : Transform3D = target.global_transform
 	
 	var target_rotation_vector : Vector3 = \
@@ -171,13 +215,22 @@ func _update_enveloping_node() -> void:
 	var angle = (PI - abs(centered_angle)) \
 	* abs(target_rotation_vector.dot(difference_quat.get_axis()))
 	
+	var rotation_speed: float = clamp(angle, -TAU, TAU) \
+	if override_rotation_speed == 0.0 or !Engine.is_editor_hint() \
+	else override_rotation_speed
+	
 	set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"rotation_speed", 
-		clamp(angle, -TAU, TAU) \
-		if override_rotation_speed == 0.0 \
-		else override_rotation_speed
+		rotation_speed
 	)
+	
+	if abs(rotation_speed) > activation_speed_threshold:
+		visible = true
+		target.layers = 0
+	else:
+		visible = false
+		target.layers = _layer_mask_cache
 	
 	_past_global_transform = target_transform
 	

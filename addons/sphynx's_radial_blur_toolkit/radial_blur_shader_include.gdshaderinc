@@ -12,7 +12,14 @@ uniform int sample_count = 8;
 
 uniform vec4 debug_color : source_color = vec4(0);
 
+uniform float use_debug = 0;
+
 uniform float sampling_error_threshold = 0.2;
+
+float soft_compare(float a, float b, float sze)
+{
+	return clamp(sze * (a - b), 0, 1);
+}
 
 //https://www.shadertoy.com/view/fdtfWM
 vec3 rotate(float angle, vec3 axis, vec3 point) // NOTE: axis must be unit!
@@ -33,11 +40,11 @@ float interleaved_gradient_noise(vec2 uv, int FrameId){
 
 void fragment() {
 	vec2 screen_uv = SCREEN_UV;
-
+	
 	float depth = texture(depth_texture, screen_uv).x;
-
-	if(depth < EPSILON) {
-		depth = FRAGCOORD.z;//texture(screen_texture, screen_uv).z;
+	
+	if(depth == 0.0) {
+		depth = FRAGCOORD.z;
 	}
 
 	vec3 ndc = vec3(screen_uv * 2.0 - 1.0, depth);
@@ -50,21 +57,27 @@ void fragment() {
 
 	vec3 camera_node_position = NODE_POSITION_WORLD - CAMERA_POSITION_WORLD;
 
-	float noise_variation = interleaved_gradient_noise(SCREEN_UV * vec2(textureSize(screen_texture, 0)), int(TIME * 100.)) / float(sample_count);
+	float j = interleaved_gradient_noise(SCREEN_UV * vec2(textureSize(screen_texture, 0)), int(TIME * 195.121124));
 
-	float sum = 0.;
+	float weight = 0.;
+	
+	float alpha_weight = 0.;
 
-	vec4 col = vec4(0);
+	vec4 sum = vec4(0);
 
 	vec3 camera_relative_position_normalized = normalize(node_relative_position.xyz + camera_node_position);
 
 	float squared_sampling_error_threshold = max(sampling_error_threshold * sampling_error_threshold, EPSILON);
-
+	
 	for(int i = 0; i < sample_count; i++)
 	{
-		float angle = (float(i) / float(sample_count) + noise_variation) * rotation_speed;
+		float ti = (float(i) + j) / float(sample_count);
+		
+		float t = mix(-0.5, 0.5, ti);
+		
+		float angle = t * rotation_speed;
 
-		vec3 node_rotated_sample = rotate(-angle, world_rotation_axis.xyz, node_relative_position.xyz);
+		vec3 node_rotated_sample = rotate(angle, world_rotation_axis.xyz, node_relative_position.xyz);
 
 		vec4 current_ndc = (PROJECTION_MATRIX * VIEW_MATRIX * (vec4(node_rotated_sample, 1) + vec4(NODE_POSITION_WORLD, 0)));
 
@@ -74,14 +87,14 @@ void fragment() {
 
 		if (current_uv_sample.x < 0. || current_uv_sample.x > 1. || current_uv_sample.y < 0. || current_uv_sample.y > 1.)
 		{
-			sum += 1.0;
+			alpha_weight += 1.0;
 			continue;
 		}
 
 		float current_depth = texture(depth_texture, current_uv_sample).x;
 
-		if(current_depth < EPSILON) {
-			sum += 1.0;
+		if(current_depth == 0.0) {
+			alpha_weight += 1.0;
 			continue;
 		}
 
@@ -89,21 +102,23 @@ void fragment() {
 
 		current_world_position.xyz /= current_world_position.w;
 
-		vec3 current_camera_unrotated_position = rotate(angle, world_rotation_axis.xyz, current_world_position.xyz - NODE_POSITION_WORLD) + camera_node_position;
+		vec3 current_camera_unrotated_position = rotate(-angle, world_rotation_axis.xyz, current_world_position.xyz - NODE_POSITION_WORLD) + camera_node_position;
 
 		vec3 current_unrotated_perpendicular_component = current_camera_unrotated_position - camera_relative_position_normalized * dot(current_camera_unrotated_position, camera_relative_position_normalized);
 
 		if(dot(current_unrotated_perpendicular_component, current_unrotated_perpendicular_component) >= squared_sampling_error_threshold) {
-			sum += 1.;
+			alpha_weight += 1.;
 			continue;
 		}
 
-		sum += 1.;
-		col += texture(screen_texture, current_uv_sample);
+		weight += 1.;
+		alpha_weight += 1.;
+		sum += texture(screen_texture, current_uv_sample);
 	}
+	
+	sum.xyz /= weight;
+	sum.a /= alpha_weight;
 
-	col /= sum;
-
-	ALBEDO = col.xyz + debug_color.xyz;
-	ALPHA = col.a + debug_color.a;
+	ALBEDO = mix(mix(sum.xyz, debug_color.xyz, use_debug * debug_color.a), sum.xyz, sum.a);
+	ALPHA = max(debug_color.a * use_debug, sum.a);
 }
