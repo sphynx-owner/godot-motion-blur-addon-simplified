@@ -6,7 +6,7 @@ class_name DepthCompositorEffect
 signal texture_generated(depth_texture: Texture2DRD)
 
 # This contains our depth texture compute shader stage
-@export var depth_texture_stage: ShaderStageResource = preload("res://addons/sphynx's_radial_blur_toolkit/compositor/depth_texture_stage.tres")
+@export var depth_texture_stage: ShaderStageResource = preload("res://addons/sphynx's_spin_blur_toolkit/compositor/depth_texture_stage.tres")
 
 var texture: RID
 var texture_format := RDTextureFormat.new()

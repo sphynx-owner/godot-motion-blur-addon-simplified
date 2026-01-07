@@ -1,10 +1,10 @@
 @tool
-class_name RadialBlur
+class_name SpinBlur
 extends Node3D
 
-const ENVELOPING_MESH_FRONT_SHADER: Shader = preload("res://addons/sphynx's_radial_blur_toolkit/radial_blur_mesh_front.gdshader")
+const ENVELOPING_MESH_FRONT_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/spin_blur_mesh_front.gdshader")
 
-const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_radial_blur_toolkit/radial_blur_mesh_back.gdshader")
+const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/spin_blur_mesh_back.gdshader")
 
 @export var enabled := true:
 	set(value):
@@ -291,7 +291,7 @@ func _update_enveloping_node() -> void:
 		visible = false
 	
 	var fade_in_coef: float = clamp(
-		(rotation_speed - activation_speed_lower_threshold) \
+		(abs(rotation_speed) - activation_speed_lower_threshold) \
 		/ (activation_speed_upper_threshold - activation_speed_lower_threshold), 
 		0, 
 		1
