@@ -238,11 +238,27 @@ func _update_enveloping_node() -> void:
 	)
 	
 	if abs(rotation_speed) > activation_speed_upper_threshold:
-		visible = true
 		target.layers = 0
 	else:
-		visible = false
 		target.layers = _layer_mask_cache
+	
+	if abs(rotation_speed) > activation_speed_lower_threshold:
+		visible = true
+	else:
+		visible = false
+	
+	var fade_in_coef: float = clamp(
+		(rotation_speed - activation_speed_lower_threshold) \
+		/ (activation_speed_upper_threshold - activation_speed_lower_threshold), 
+		0, 
+		1
+	)
+	
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"fade_in", 
+		fade_in_coef
+	)
 	
 	_past_global_transform = target_transform
 	

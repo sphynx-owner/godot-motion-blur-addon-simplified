@@ -16,6 +16,8 @@ uniform float use_debug = 0;
 
 uniform float sampling_error_threshold = 0.2;
 
+uniform float fade_in = 1;
+
 float soft_compare(float a, float b, float sze)
 {
 	return clamp(sze * (a - b), 0, 1);
@@ -120,5 +122,5 @@ void fragment() {
 	sum.a /= alpha_weight;
 
 	ALBEDO = mix(mix(sum.xyz, debug_color.xyz, use_debug * debug_color.a), sum.xyz, sum.a);
-	ALPHA = max(debug_color.a * use_debug, sum.a);
+	ALPHA = max(debug_color.a * use_debug, sum.a) * fade_in;
 }
