@@ -42,15 +42,31 @@ const ENVELOPING_MESH_SCENE: PackedScene = preload("res://addons/sphynx's_radial
 	set(value):
 		value = max(0, value)
 		activation_speed_lower_threshold = value
+		
+		if _activation_threshold_setter_gate:
+			return
+		
+		_activation_threshold_setter_gate = true
+		
 		activation_speed_upper_threshold = \
 		max(activation_speed_lower_threshold, activation_speed_lower_threshold)
+		
+		_activation_threshold_setter_gate = false
 
 @export var activation_speed_upper_threshold: float = 0.2:
 	set(value):
 		value = max(0, value)
+		
+		if _activation_threshold_setter_gate:
+			return
+		
+		_activation_threshold_setter_gate = true
+		
 		activation_speed_upper_threshold = value
 		activation_speed_lower_threshold = \
 		min(activation_speed_lower_threshold, activation_speed_lower_threshold)
+		
+		_activation_threshold_setter_gate = false
 
 @export var sample_count := 8
 
@@ -61,6 +77,8 @@ const ENVELOPING_MESH_SCENE: PackedScene = preload("res://addons/sphynx's_radial
 @export var debug_color: Color = Color.TRANSPARENT
 
 @export var draw_debug := false
+
+var _activation_threshold_setter_gate := false
 
 var _layer_mask_cache: int = false
 
@@ -110,6 +128,9 @@ func _ready() -> void:
 	_enveloping_node = ENVELOPING_MESH_SCENE.instantiate()
 	
 	add_child(_enveloping_node)
+	
+	# So that the viewport's view does not lag a frame behind the reference camera
+	process_priority = 1
 
 
 func _process(delta: float) -> void:

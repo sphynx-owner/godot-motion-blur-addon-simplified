@@ -69,6 +69,14 @@ target_rotation_axis = Vector3(1, 0, 0)
 debug_color = Color(1, 1, 0, 0.30588236)
 metadata/_custom_type_script = "uid://djkmewposiph4"
 
+[node name="RadialBlur2" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+visible = false
+script = ExtResource("3_grbtf")
+target = NodePath("../Node3D2/MeshInstance3D")
+enveloping_mesh = ExtResource("4_vndbm")
+target_rotation_axis = Vector3(1, 0, 0)
+metadata/_custom_type_script = "uid://djkmewposiph4"
+
 [node name="Node3D" type="Node3D" parent="."]
 script = ExtResource("6_rkscw")
 
@@ -84,6 +92,22 @@ script = ExtResource("2_yd7ky")
 transform = Transform3D(0.22552921, 0, 0.9742364, 0, 1, 0, -0.9742364, 0, 0.22552921, 1.9842758, 0, 0.2799958)
 script = ExtResource("4_8xabd")
 
+[node name="Node3D2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.017157197, 0, 0.78116107)
+script = ExtResource("6_rkscw")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D2"]
+transform = Transform3D(0.010000001, 0, 0, 0, 0.0018414464, -0.009828992, 0, 0.009828991, 0.0018414466, 0, 0, 0)
+layers = 2147483647
+mesh = ExtResource("1_yjuqw")
+skeleton = NodePath("../..")
+surface_material_override/0 = SubResource("StandardMaterial3D_aae02")
+script = ExtResource("2_yd7ky")
+
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0440221, 0, 0)
+transform = Transform3D(0.59, 0, 0, 0, 0.59, 0, 0, 0, 0.59, -1.0440221, 0, 0)
+mesh = SubResource("BoxMesh_aae02")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.59, 0, 0, 0, 0.59, 0, 0, 0, 0.59, 0.75986195, 0, 1.4761702)
 mesh = SubResource("BoxMesh_aae02")
