@@ -2,7 +2,9 @@
 class_name RadialBlur
 extends Node3D
 
-const ENVELOPING_MESH_SCENE: PackedScene = preload("res://addons/sphynx's_radial_blur_toolkit/scenes/enveloping_mesh.tscn")
+const ENVELOPING_MESH_FRONT_SHADER: Shader = preload("res://addons/sphynx's_radial_blur_toolkit/radial_blur_mesh_front.gdshader")
+
+const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_radial_blur_toolkit/radial_blur_mesh_back.gdshader")
 
 @export var enabled := true:
 	set(value):
@@ -92,6 +94,12 @@ var _enveloping_node: MeshInstance3D
 
 var _past_global_transform: Transform3D
 
+
+func _exit_tree() -> void:
+	if target:
+		target.layers = _layer_mask_cache
+
+
 func _ready() -> void:
 	_viewport = SubViewport.new()
 	
@@ -125,7 +133,21 @@ func _ready() -> void:
 	
 	_viewport.add_child(_clone)
 	
-	_enveloping_node = ENVELOPING_MESH_SCENE.instantiate()
+	_enveloping_node = MeshInstance3D.new()
+	
+	var front_material := ShaderMaterial.new()
+	
+	front_material.shader = ENVELOPING_MESH_FRONT_SHADER
+	
+	var back_material := ShaderMaterial.new()
+	
+	back_material.shader = ENVELOPING_MESH_BACK_SHADER
+	
+	back_material.render_priority = 1
+	
+	front_material.next_pass = back_material
+	
+	_enveloping_node.material_override = front_material
 	
 	add_child(_enveloping_node)
 	
