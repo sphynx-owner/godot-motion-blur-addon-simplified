@@ -1,6 +1,6 @@
 const float EPSILON = 0.00001;
 
-uniform sampler2D screen_texture : filter_nearest;
+uniform sampler2D screen_texture : filter_nearest, source_color;
 
 uniform sampler2D depth_texture : filter_nearest, source_color;
 
@@ -42,9 +42,9 @@ float interleaved_gradient_noise(vec2 uv, int FrameId){
 
 void fragment() {
 	vec2 screen_uv = SCREEN_UV;
-	
+
 	float depth = texture(depth_texture, screen_uv).x;
-	
+
 	if(depth == 0.0) {
 		depth = FRAGCOORD.z;
 	}
@@ -62,7 +62,7 @@ void fragment() {
 	float j = interleaved_gradient_noise(SCREEN_UV * vec2(textureSize(screen_texture, 0)), int(TIME * 195.121124));
 
 	float weight = 0.;
-	
+
 	float alpha_weight = 0.;
 
 	vec4 sum = vec4(0);
@@ -70,13 +70,13 @@ void fragment() {
 	vec3 camera_relative_position_normalized = normalize(node_relative_position.xyz + camera_node_position);
 
 	float squared_sampling_error_threshold = max(sampling_error_threshold * sampling_error_threshold, EPSILON);
-	
+
 	for(int i = 0; i < sample_count; i++)
 	{
 		float ti = (float(i) + j) / float(sample_count);
-		
+
 		float t = mix(-0.5, 0.5, ti);
-		
+
 		float angle = t * rotation_speed;
 
 		vec3 node_rotated_sample = rotate(angle, world_rotation_axis.xyz, node_relative_position.xyz);
@@ -117,7 +117,7 @@ void fragment() {
 		alpha_weight += 1.;
 		sum += texture(screen_texture, current_uv_sample);
 	}
-	
+
 	sum.xyz /= weight;
 	sum.a /= alpha_weight;
 

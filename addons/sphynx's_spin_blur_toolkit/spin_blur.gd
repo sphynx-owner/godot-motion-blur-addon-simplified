@@ -51,22 +51,22 @@ const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_spin_
 		_activation_threshold_setter_gate = true
 		
 		activation_speed_upper_threshold = \
-		max(activation_speed_lower_threshold, activation_speed_lower_threshold)
+		max(activation_speed_upper_threshold, activation_speed_lower_threshold)
 		
 		_activation_threshold_setter_gate = false
 
 @export var activation_speed_upper_threshold: float = 0.2:
 	set(value):
 		value = max(0, value)
+		activation_speed_upper_threshold = value
 		
 		if _activation_threshold_setter_gate:
 			return
 		
 		_activation_threshold_setter_gate = true
 		
-		activation_speed_upper_threshold = value
 		activation_speed_lower_threshold = \
-		min(activation_speed_lower_threshold, activation_speed_lower_threshold)
+		min(activation_speed_upper_threshold, activation_speed_lower_threshold)
 		
 		_activation_threshold_setter_gate = false
 
@@ -80,6 +80,7 @@ const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_spin_
 
 @export var draw_debug := false
 
+@export_tool_button("refresh environment") var refresh_environment = _update_environment
 var _activation_threshold_setter_gate := false
 
 var _layer_mask_cache: int = false
@@ -91,6 +92,10 @@ var _camera: Camera3D
 var _clone: MeshInstance3D
 
 var _enveloping_node: MeshInstance3D
+
+var _environment: WorldEnvironment
+
+var _lights: Array[Node]
 
 var _past_global_transform: Transform3D
 
@@ -106,8 +111,6 @@ func _ready() -> void:
 	_viewport.own_world_3d = true
 	
 	_viewport.transparent_bg = true
-	
-	_viewport.debug_draw = Viewport.DEBUG_DRAW_UNSHADED
 	
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	
@@ -153,6 +156,13 @@ func _ready() -> void:
 	
 	# So that the viewport's view does not lag a frame behind the reference camera
 	process_priority = 1
+	
+	_environment = WorldEnvironment.new()
+	
+	_viewport.add_child(_environment)
+	
+	_update_environment.call_deferred()
+	
 
 
 func _process(delta: float) -> void:
@@ -163,6 +173,17 @@ func _process(delta: float) -> void:
 	_update_camera()
 	_update_clone()
 	_update_enveloping_node()
+
+
+func _scan_for_lighting(node: Node, result: Array[Node]) -> void:
+	if node is SubViewport:
+		return
+	
+	if node is Light3D:
+		result.append(node)
+	
+	for child in node.get_children():
+		_scan_for_lighting(child, result)
 
 
 func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
@@ -180,11 +201,15 @@ func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
 
 func _update_viewport() -> void:
 	var reference_viewport: Viewport
+func _update_environment() -> void:
+	_environment.environment = get_world_3d().environment
 	
 	if Engine.is_editor_hint():
 		reference_viewport = EditorInterface.get_editor_viewport_3d()
 	else:
 		reference_viewport = get_viewport()
+	for light in _lights:
+		light.queue_free()
 	
 	if "size" in reference_viewport:
 		_viewport.size = reference_viewport.size
@@ -192,15 +217,27 @@ func _update_viewport() -> void:
 
 func _update_camera() -> void:
 	var reference_camera: Camera3D
+	_lights.clear()
 	
 	if Engine.is_editor_hint():
 		reference_camera = EditorInterface.get_editor_viewport_3d().get_camera_3d()
 	else:
 		reference_camera = get_viewport().get_camera_3d()
+	var lights: Array[Node]
+	
+	_scan_for_lighting(get_tree().root, lights)
 	
 	_camera.global_transform = reference_camera.global_transform
 	_camera.fov = reference_camera.fov
 	_camera.projection = reference_camera.projection
+	for light: Node in lights:
+		var light_duplicate: Light3D = light.duplicate()
+		
+		_viewport.add_child(light_duplicate)
+		
+		light_duplicate.global_transform = light.global_transform
+		
+		_lights.append(light_duplicate)
 
 
 func _update_clone() -> void:
