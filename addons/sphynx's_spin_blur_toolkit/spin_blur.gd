@@ -162,7 +162,6 @@ func _ready() -> void:
 	_viewport.add_child(_environment)
 	
 	_update_environment.call_deferred()
-	
 
 
 func _process(delta: float) -> void:
@@ -201,15 +200,11 @@ func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
 
 func _update_viewport() -> void:
 	var reference_viewport: Viewport
-func _update_environment() -> void:
-	_environment.environment = get_world_3d().environment
 	
 	if Engine.is_editor_hint():
 		reference_viewport = EditorInterface.get_editor_viewport_3d()
 	else:
 		reference_viewport = get_viewport()
-	for light in _lights:
-		light.queue_free()
 	
 	if "size" in reference_viewport:
 		_viewport.size = reference_viewport.size
@@ -217,19 +212,27 @@ func _update_environment() -> void:
 
 func _update_camera() -> void:
 	var reference_camera: Camera3D
-	_lights.clear()
 	
 	if Engine.is_editor_hint():
 		reference_camera = EditorInterface.get_editor_viewport_3d().get_camera_3d()
 	else:
 		reference_camera = get_viewport().get_camera_3d()
-	var lights: Array[Node]
-	
-	_scan_for_lighting(get_tree().root, lights)
 	
 	_camera.global_transform = reference_camera.global_transform
 	_camera.fov = reference_camera.fov
 	_camera.projection = reference_camera.projection
+
+
+func _update_environment() -> void:
+	for light in _lights:
+		light.queue_free()
+	
+	_lights.clear()
+	
+	_environment.environment = get_world_3d().environment
+	var lights: Array[Node]
+	
+	_scan_for_lighting(get_tree().root, lights)
 	for light: Node in lights:
 		var light_duplicate: Light3D = light.duplicate()
 		
