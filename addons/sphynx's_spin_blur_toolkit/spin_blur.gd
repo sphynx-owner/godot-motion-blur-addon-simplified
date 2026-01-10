@@ -6,29 +6,18 @@ const ENVELOPING_MESH_FRONT_SHADER: Shader = preload("res://addons/sphynx's_spin
 
 const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/spin_blur_mesh_back.gdshader")
 
+const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/debug_spin_mesh.gdshader")
+
 @export var enabled := true:
 	set(value):
 		enabled = value
 		
-		if enabled:
-			if target:
-				_layer_mask_cache = target.layers
-			
-		else:
-			visible = false
-			
-			if target:
-				target.layers = _layer_mask_cache
+		if !enabled:
+			visible = true
 
 @export var target: MeshInstance3D:
 	set(value):
-		if target:
-			target.layers = _layer_mask_cache
-		
 		target = value
-		
-		if target:
-			_layer_mask_cache = target.layers
 		
 		update_configuration_warnings()
 
@@ -37,6 +26,8 @@ const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_spin_
 		enveloping_mesh = value
 		
 		update_configuration_warnings()
+
+@export_tool_button("generate enveloping mesh") var generate_enveloping_mesh = _generate_enveloping_mesh
 
 @export var target_rotation_axis: Vector3 = Vector3(1, 0, 0)
 
@@ -76,14 +67,12 @@ const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_spin_
 
 @export var override_rotation_speed := 0.0
 
-@export var debug_color: Color = Color.TRANSPARENT
+@export var debug_color: Color = Color("ffffff0a")
 
 @export var draw_debug := false
 
 @export_tool_button("refresh environment") var refresh_environment = _update_environment
 var _activation_threshold_setter_gate := false
-
-var _layer_mask_cache: int = false
 
 var _viewport: SubViewport
 
@@ -99,10 +88,12 @@ var _lights: Array[Node]
 
 var _past_global_transform: Transform3D
 
+var _debug_material: ShaderMaterial
+
 
 func _exit_tree() -> void:
 	if target:
-		target.layers = _layer_mask_cache
+		target.visible = true
 
 
 func _ready() -> void:
@@ -151,6 +142,13 @@ func _ready() -> void:
 	back_material.render_priority = 2
 	
 	front_material.next_pass = back_material
+	
+	if Engine.is_editor_hint():
+		_debug_material = ShaderMaterial.new()
+		_debug_material.shader = DEBUG_SHADER
+		_debug_material.render_priority = 3
+		
+		back_material.next_pass = _debug_material
 	
 	_enveloping_node.material_override = front_material
 	
@@ -273,18 +271,16 @@ func _update_enveloping_node() -> void:
 		return
 	
 	_enveloping_node.mesh = enveloping_mesh
-	
-	set_shader_parameter_recursive(
-		_enveloping_node.material_override,
-		"debug_color", 
-		debug_color
-	)
-	
-	set_shader_parameter_recursive(
-		_enveloping_node.material_override,
-		"use_debug", 
-		1 if draw_debug else 0
-	)
+	if Engine.is_editor_hint():
+		_debug_material.set_shader_parameter(
+			"color", 
+			debug_color
+		)
+		
+		_debug_material.set_shader_parameter(
+			"enabled", 
+			1 if draw_debug else 0
+		)
 	
 	set_shader_parameter_recursive(
 		_enveloping_node.material_override,
@@ -323,11 +319,11 @@ func _update_enveloping_node() -> void:
 	)
 	
 	if abs(rotation_speed) > activation_speed_upper_threshold:
-		target.layers = 0
+		target.visible = false
 	else:
-		target.layers = _layer_mask_cache
+		target.visible = true
 	
-	if abs(rotation_speed) > activation_speed_lower_threshold:
+	if abs(rotation_speed) > activation_speed_lower_threshold or draw_debug:
 		visible = true
 	else:
 		visible = false
@@ -375,3 +371,10 @@ func set_shader_parameter_recursive(
 	
 	if material.next_pass and material.next_pass is ShaderMaterial:
 		set_shader_parameter_recursive(material.next_pass, parameter, value)
+
+
+func _generate_enveloping_mesh() -> void:
+	if !target or !target.mesh:
+		push_error("invalid target or target mesh")
+	
+	enveloping_mesh = SpinMesh.generate(target.mesh, target_rotation_axis)

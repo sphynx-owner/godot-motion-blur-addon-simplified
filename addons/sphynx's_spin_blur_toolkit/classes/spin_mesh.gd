@@ -109,7 +109,7 @@ static func generate(
 	var cross_vector: Vector3 = Vector3(1, 0, 0) \
 	if !normalized_rotation_axis.is_equal_approx(Vector3(1, 0, 0)) else Vector3(0, 1, 0)
 	
-	var perpendicular: Vector3 = rotation_axis.cross(cross_vector).normalized()
+	var perpendicular: Vector3 = normalized_rotation_axis.cross(cross_vector).normalized()
 	
 	var profile_vertices: PackedVector3Array
 	
@@ -119,22 +119,40 @@ static func generate(
 	
 	for i in range(neighbor_max_radial_chunks.size() - 1, -1, -1):
 		var chunk: Vector2 = neighbor_max_radial_chunks[i]
-		var chunk_radius: float = (i + 1.0) / rings * max_radius
+		var chunk_radius: float = float(i + 0.5) / rings * max_radius
 		
 		if chunk.x > -INF:
 			latest_chunk_cache = chunk
 		
 		profile_vertices[i] = _axis_local_to_vertex(
 			Vector2(chunk_radius + radial_padding, (chunk.x if chunk.x > -INF else latest_chunk_cache.x) + depth_padding), 
-			rotation_axis, 
+			normalized_rotation_axis, 
 			perpendicular
 		)
 		
 		profile_vertices[profile_vertices.size() - 1 - i] = _axis_local_to_vertex(
 			Vector2(chunk_radius + radial_padding, (chunk.y if chunk.y < INF else latest_chunk_cache.y) - depth_padding), 
-			rotation_axis, 
+			normalized_rotation_axis, 
 			perpendicular
 		)
+	
+	# Add vertices to seal the hole in the center
+	profile_vertices.insert(
+		0,
+		_axis_local_to_vertex(
+			Vector2(0, latest_chunk_cache.x + depth_padding), 
+			normalized_rotation_axis, 
+			perpendicular
+		)
+	)
+	
+	profile_vertices.append(
+		_axis_local_to_vertex(
+			Vector2(0, latest_chunk_cache.y - depth_padding), 
+			normalized_rotation_axis, 
+			perpendicular
+		)
+	)
 	
 	var profile_stride: int = profile_vertices.size()
 	

@@ -10,10 +10,6 @@ uniform float rotation_speed = 0;
 
 uniform int sample_count = 8;
 
-uniform vec4 debug_color : source_color = vec4(0);
-
-uniform float use_debug = 0;
-
 uniform float sampling_error_threshold = 0.2;
 
 uniform float fade_in = 1;
@@ -121,6 +117,6 @@ void fragment() {
 	sum.xyz /= weight;
 	sum.a /= alpha_weight;
 
-	ALBEDO = mix(mix(sum.xyz, debug_color.xyz, use_debug * debug_color.a), sum.xyz, sum.a);
-	ALPHA = max(debug_color.a * use_debug, sum.a) * fade_in;
+	ALBEDO = sum.xyz;
+	ALPHA = sum.a * fade_in;
 }
