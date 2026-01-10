@@ -168,7 +168,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if !enabled:
+	if !enabled or !target:
 		return
 	
 	_update_viewport()
@@ -177,15 +177,15 @@ func _process(delta: float) -> void:
 	_update_enveloping_node()
 
 
-func _scan_for_lighting(node: Node, result: Array[Node]) -> void:
-	if node is SubViewport:
+func _scan_for_lighting(node: Node, viewport_to_ignore: Viewport, result: Array[Node]) -> void:
+	if node is Viewport and node != viewport_to_ignore:
 		return
 	
 	if node is Light3D:
 		result.append(node)
 	
 	for child in node.get_children():
-		_scan_for_lighting(child, result)
+		_scan_for_lighting(child, viewport_to_ignore, result)
 
 
 func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
@@ -232,11 +232,14 @@ func _update_environment() -> void:
 	
 	_lights.clear()
 	
-	_environment.environment = get_world_3d().environment
-	var lights: Array[Node]
+	_environment.environment = target.get_world_3d().environment
 	
-	_scan_for_lighting(get_tree().root, lights)
-	for light: Node in lights:
+	var lights_to_copy: Array[Node]
+	
+	_scan_for_lighting(target.get_viewport(), target.get_viewport(), lights_to_copy)
+	
+	for light: Node in lights_to_copy:
+		print("addin a light")
 		var light_duplicate: Light3D = light.duplicate()
 		
 		_viewport.add_child(light_duplicate)
