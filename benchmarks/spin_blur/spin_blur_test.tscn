@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://bpr2b81luq1g0"]
+[gd_scene load_steps=17 format=3 uid="uid://bpr2b81luq1g0"]
 
 [ext_resource type="ArrayMesh" uid="uid://btx823mebm20k" path="res://benchmarks/spin_blur/PropellerMeshCorrected.obj" id="1_yjuqw"]
 [ext_resource type="Script" uid="uid://5lq2bswqupw8" path="res://benchmarks/spin_blur/mesh_instance_3d.gd" id="2_yd7ky"]
@@ -40,6 +40,11 @@ roughness = 0.46
 
 [sub_resource type="BoxMesh" id="BoxMesh_aae02"]
 
+[sub_resource type="CylinderMesh" id="CylinderMesh_vubds"]
+top_radius = 2.0
+bottom_radius = 2.0
+height = 1.0
+
 [node name="SpinBlurTest" type="Node3D"]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -68,7 +73,6 @@ script = ExtResource("3_grbtf")
 target = NodePath("../Node3D/MeshInstance3D")
 enveloping_mesh = ExtResource("4_vndbm")
 target_rotation_axis = Vector3(1, 0, 0)
-debug_color = Color(1, 1, 0, 0.30588236)
 metadata/_custom_type_script = "uid://djkmewposiph4"
 
 [node name="SpinBlur2" type="Node3D" parent="." node_paths=PackedStringArray("target")]
@@ -116,3 +120,12 @@ mesh = SubResource("BoxMesh_aae02")
 [node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.59, 0, 0, 0, 0.59, 0, 0, 0, 0.59, 0.75986195, 0, 1.4761702)
 mesh = SubResource("BoxMesh_aae02")
+
+[node name="SpinBlur3" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+process_priority = 1
+visible = false
+script = ExtResource("3_grbtf")
+target = NodePath("../MeshInstance3D2")
+enveloping_mesh = SubResource("CylinderMesh_vubds")
+target_rotation_axis = Vector3(0, 1, 0)
+metadata/_custom_type_script = "uid://djkmewposiph4"

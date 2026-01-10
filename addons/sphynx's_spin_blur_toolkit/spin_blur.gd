@@ -142,11 +142,13 @@ func _ready() -> void:
 	
 	front_material.shader = ENVELOPING_MESH_FRONT_SHADER
 	
+	front_material.render_priority = 1
+	
 	var back_material := ShaderMaterial.new()
 	
 	back_material.shader = ENVELOPING_MESH_BACK_SHADER
 	
-	back_material.render_priority = 1
+	back_material.render_priority = 2
 	
 	front_material.next_pass = back_material
 	
