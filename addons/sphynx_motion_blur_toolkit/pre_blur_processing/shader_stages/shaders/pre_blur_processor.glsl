@@ -7,7 +7,7 @@
 layout(set = 0, binding = 0) uniform sampler2D depth_sampler;
 layout(set = 0, binding = 1) uniform sampler2D vector_sampler;
 layout(rgba32f, set = 0, binding = 2) uniform writeonly image2D vector_output;
-layout(set = 0, binding = 4) uniform sampler2D stencil_texture;
+//layout(set = 0, binding = 4) uniform sampler2D stencil_texture;
 
 struct SceneData {
 	mat4 projection_matrix;
@@ -206,7 +206,7 @@ void main()
 	float total_velocity_length = max(FLT_MIN, length(total_velocity.xy));
 	total_velocity.xy /= max(total_velocity_length, 1);
 
-	float enable_velocity = step(textureLod(stencil_texture, uvn, 0.0).x, 0.5);
+	float enable_velocity = 1;//step(textureLod(stencil_texture, uvn, 0.0).x, 0.5);
 
 	// If the previous position is happening behind the camera, the w component of the projected vector would be negative, 
 	// and the velocity vector would be flipped. (I am not 100% sure this is the whole story but this handles velocities

@@ -75,6 +75,7 @@ metadata/_custom_type_script = "uid://djkmewposiph4"
 process_priority = 1
 visible = false
 script = ExtResource("3_grbtf")
+enabled = false
 target = NodePath("../Node3D2/MeshInstance3D")
 enveloping_mesh = ExtResource("4_vndbm")
 target_rotation_axis = Vector3(1, 0, 0)
@@ -107,7 +108,6 @@ mesh = ExtResource("1_yjuqw")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_aae02")
 script = ExtResource("2_yd7ky")
-speed = -50.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.59, 0, 0, 0, 0.59, 0, 0, 0, 0.59, -1.0440221, 0, 0)

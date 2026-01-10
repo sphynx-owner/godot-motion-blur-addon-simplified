@@ -28,7 +28,7 @@ func _render_callback_2(
 ):
 	var time : float = float(Time.get_ticks_msec()) / 1000.0
 	
-	var delta_time : float = time - _previous_time
+	var delta_time : float = max(time - _previous_time, 0.0000001)
 	
 	_previous_time = time
 	
@@ -133,7 +133,7 @@ func _render_callback_2(
 			get_sampler_uniform(velocity_image, 1, false),
 			get_image_uniform(custom_velocity_image, 2),
 			get_buffer_uniform(scene_data_buffer, 3),
-			get_sampler_uniform(_stencil_texture.texture_rd_rid, 4)
+			#get_sampler_uniform(_stencil_texture.texture_rd_rid, 4)
 		],
 		pre_blur_push_constants,
 		Vector3i(x_groups, y_groups, 1), 
