@@ -174,6 +174,10 @@ func _process(delta: float) -> void:
 	_update_viewport()
 	_update_camera()
 	_update_clone()
+	
+	if target_rotation_axis.is_zero_approx():
+		return
+	
 	_update_enveloping_node()
 
 
@@ -232,11 +236,11 @@ func _update_environment() -> void:
 	
 	_lights.clear()
 	
-	_environment.environment = target.get_world_3d().environment
+	_environment.environment = get_world_3d().environment
 	
 	var lights_to_copy: Array[Node]
 	
-	_scan_for_lighting(target.get_viewport(), target.get_viewport(), lights_to_copy)
+	_scan_for_lighting(get_viewport(), get_viewport(), lights_to_copy)
 	
 	for light: Node in lights_to_copy:
 		print("addin a light")
@@ -382,5 +386,10 @@ func set_shader_parameter_recursive(
 func _generate_enveloping_mesh() -> void:
 	if !target or !target.mesh:
 		push_error("invalid target or target mesh")
+		return
+	
+	if target_rotation_axis.is_zero_approx():
+		push_error("invalid rotation axis")
+		return
 	
 	enveloping_mesh = SpinMesh.generate(target.mesh, target_rotation_axis)
