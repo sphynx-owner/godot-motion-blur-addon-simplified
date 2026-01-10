@@ -38,7 +38,7 @@ const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_spin_
 		
 		update_configuration_warnings()
 
-@export var target_rotation_axis: Vector3
+@export var target_rotation_axis: Vector3 = Vector3(1, 0, 0)
 
 @export var activation_speed_lower_threshold: float = 0.1:
 	set(value):
