@@ -13,7 +13,8 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 		enabled = value
 		
 		if !enabled:
-			visible = true
+			if target:
+				target.layers = layers_to_set
 
 @export var target: MeshInstance3D:
 	set(value):
@@ -63,13 +64,15 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 
 @export var sample_count := 8
 
+@export_flags_3d_render var layers_to_set = 1
+
 @export_group("debug")
 
 @export var override_rotation_speed := 0.0
 
 @export var debug_color: Color = Color("ffffff0a")
 
-@export var draw_debug := false
+@export var draw_debug := true
 
 @export_tool_button("refresh environment") var refresh_environment = _update_environment
 var _activation_threshold_setter_gate := false
@@ -93,7 +96,7 @@ var _debug_material: ShaderMaterial
 
 func _exit_tree() -> void:
 	if target:
-		target.visible = true
+		target.layers = layers_to_set
 
 
 func _ready() -> void:
@@ -319,11 +322,11 @@ func _update_enveloping_node() -> void:
 	)
 	
 	if abs(rotation_speed) > activation_speed_upper_threshold:
-		target.visible = false
+		target.layers = 0
 	else:
-		target.visible = true
+		target.layers = layers_to_set
 	
-	if abs(rotation_speed) > activation_speed_lower_threshold or draw_debug:
+	if abs(rotation_speed) > activation_speed_lower_threshold or (draw_debug and Engine.is_editor_hint()):
 		visible = true
 	else:
 		visible = false
