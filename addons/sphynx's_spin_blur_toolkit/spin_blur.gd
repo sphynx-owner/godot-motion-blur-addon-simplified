@@ -77,6 +77,18 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 @export_tool_button("refresh environment") var refresh_environment = _update_environment
 var _activation_threshold_setter_gate := false
 
+@export_group("enveloping mesh generation")
+
+@export var rings: int = 16
+
+@export var radial_segments: int = 32
+
+@export var radial_padding: float = 0
+
+@export var depth_padding: float = 0
+
+@export var neighbor_max: bool = false
+
 var _viewport: SubViewport
 
 var _camera: Camera3D
@@ -392,4 +404,12 @@ func _generate_enveloping_mesh() -> void:
 		push_error("invalid rotation axis")
 		return
 	
-	enveloping_mesh = SpinMesh.generate(target.mesh, target_rotation_axis)
+	enveloping_mesh = SpinMesh.generate(
+		target.mesh, 
+		target_rotation_axis, 
+		rings, 
+		radial_segments, 
+		radial_padding, 
+		depth_padding, 
+		neighbor_max
+	)
