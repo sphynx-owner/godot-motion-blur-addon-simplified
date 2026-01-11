@@ -73,7 +73,7 @@ vec4 sample_velocity(sampler2D velocity_texture, vec2 uv)
 	return textureLod(velocity_texture, uv, 0.0) * vec4(vec2(params.motion_blur_intensity), 1, 1);
 }
 
-vec4 sample_x_velocity(vec2 x, float t, vec2 vx, float z, float zx, ivec2 render_size)
+vec4 sample_x_velocity(vec2 x, float t, vec2 vx, float z, float zx, ivec2 render_size, out float x_weight)
 {
 	vec2 yx = x + t * vx / vec2(render_size);
 
@@ -81,9 +81,9 @@ vec4 sample_x_velocity(vec2 x, float t, vec2 vx, float z, float zx, ivec2 render
 
 	float zyx = vyzwx.w;
 
-	float overlapx = 1 - soft_compare(z + (params.velocity_depth_test == 1 ? zx * t : 0), zyx, -10);
-	
-	return vec4(textureLod(color_sampler, yx, 0.0).xyz, overlapx);
+	x_weight = 1 - soft_compare(z + (params.velocity_depth_test == 1 ? zx * t : 0), zyx, -10);
+
+	return textureLod(color_sampler, yx, 0.0);
 }
 
 vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_size)
@@ -118,13 +118,13 @@ vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_
 	return vec4(textureLod(color_sampler, yn, 0.0).xyz, current_weightn);
 }
 
-vec4 blend_blur(vec4 base_color, vec4 x_sample, vec4 neg_x_sample, vec4 y_sample)
+vec4 blend_blur(vec4 base_color, vec4 x_sample, float x_weight, vec4 neg_x_sample, float neg_x_weight, vec4 y_sample)
 {
-	float current_weight_x = max(x_sample.w, neg_x_sample.w);
+	float current_weight_x = max(x_weight, neg_x_weight);
 
-	vec4 x_color_sample = mix(neg_x_sample, x_sample, clamp(x_sample.w / neg_x_sample.w, 0, 1));
+	vec4 x_color_sample = mix(neg_x_sample, x_sample, clamp(x_weight / neg_x_weight, 0, 1));
 
-	return mix(mix(base_color, x_color_sample, current_weight_x), y_sample, y_sample.w);
+	return mix(mix(base_color, x_color_sample, current_weight_x), vec4(y_sample.xyz, 1.0), y_sample.w);
 }
 
 void main() 
@@ -219,9 +219,13 @@ void main()
 		
 		float current_total_weight = custom_curve_sample;
 		
-		vec4 x_sample = sample_x_velocity(x, t, vx, zx, vxzw.z, render_size);
+		float x_weight;
 
-		vec4 neg_x_sample = sample_x_velocity(x, neg_t, vx, zx, vxzw.z, render_size);
+		vec4 x_sample = sample_x_velocity(x, t, vx, zx, vxzw.z, render_size, x_weight);
+
+		float neg_x_weight;
+
+		vec4 neg_x_sample = sample_x_velocity(x, neg_t, vx, zx, vxzw.z, render_size, neg_x_weight);
 		
 		vec4 y_sample = sample_y_velocity(x, t, vn, wn, zx, render_size);
 
@@ -229,11 +233,11 @@ void main()
 
 		weight += current_total_weight;
 
-		sum += blend_blur(base_color, x_sample, neg_x_sample, y_sample) * current_total_weight;
+		sum += blend_blur(base_color, x_sample, x_weight, neg_x_sample, neg_x_weight, y_sample) * current_total_weight;
 
 		weight += current_total_weight;
 
-		sum += blend_blur(base_color, neg_x_sample, x_sample, neg_y_sample) * current_total_weight;
+		sum += blend_blur(base_color, neg_x_sample, neg_x_weight, x_sample, x_weight, neg_y_sample) * current_total_weight;
 	}
 
 	sum /= weight;
