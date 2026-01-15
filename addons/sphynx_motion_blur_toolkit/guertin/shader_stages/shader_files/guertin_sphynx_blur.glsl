@@ -86,7 +86,7 @@ vec4 sample_x_velocity(vec2 x, float t, vec2 vx, float z, float zx, ivec2 render
 	return textureLod(color_sampler, yx, 0.0);
 }
 
-vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_size)
+vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_size, out float y_weight)
 {
 	vec2 yn = x + t * vn / vec2(render_size);
 		
@@ -113,18 +113,40 @@ vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_
 
 	float projected = abs(dot(wyn, wn));
 
-	float current_weightn = step(Tn, vyn_length * projected) * overlapn;
+	y_weight = step(Tn, vyn_length * projected) * overlapn;
 
-	return vec4(textureLod(color_sampler, yn, 0.0).xyz, current_weightn);
+	return textureLod(color_sampler, yn, 0.0);
 }
 
-vec4 blend_blur(vec4 base_color, vec4 x_sample, float x_weight, vec4 neg_x_sample, float neg_x_weight, vec4 y_sample)
+void blend_blur(
+	vec4 base_color, 
+	vec4 x_sample, 
+	float x_weight, 
+	vec4 neg_x_sample, 
+	float neg_x_weight, 
+	vec4 y_sample, 
+	float y_weight, 
+	float weight_modifier, 
+	inout vec4 color_sum, 
+	inout float color_weight, 
+	inout float alpha_weight
+)
 {
 	float current_weight_x = max(x_weight, neg_x_weight);
 
 	vec4 x_color_sample = mix(neg_x_sample, x_sample, clamp(x_weight / neg_x_weight, 0, 1));
 
-	return mix(mix(base_color, x_color_sample, current_weight_x), vec4(y_sample.xyz, 1.0), y_sample.w);
+	vec4 current_color = mix(mix(base_color, x_color_sample, current_weight_x), y_sample, y_weight);
+
+	float current_color_weight = current_color.a * weight_modifier;
+
+	float current_alpha_weight = weight_modifier;
+
+	color_sum += vec4(current_color.xyz * current_color_weight, current_color.a * current_alpha_weight);
+
+	color_weight += current_color_weight;
+
+	alpha_weight += current_alpha_weight;
 }
 
 void main() 
@@ -201,10 +223,12 @@ void main()
 	// with a fraction of the sample count.
 	float j = interleaved_gradient_noise(uvi);
 
-	float weight = 1e-6;
+	float color_weight = 1e-8;
+
+	float alpha_weight = 1e-8;
 
 	// Create an initial color sum
-	vec4 sum = base_color * weight;
+	vec4 sum = vec4(base_color.xyx * base_color.a * color_weight, base_color.a * alpha_weight);
 
 	for(int i = 0; i < params.sample_count; i++)
 	{
@@ -227,20 +251,21 @@ void main()
 
 		vec4 neg_x_sample = sample_x_velocity(x, neg_t, vx, zx, vxzw.z, render_size, neg_x_weight);
 		
-		vec4 y_sample = sample_y_velocity(x, t, vn, wn, zx, render_size);
+		float y_weight;
 
-		vec4 neg_y_sample = sample_y_velocity(x, -t, vn, wn, zx, render_size);
+		vec4 y_sample = sample_y_velocity(x, t, vn, wn, zx, render_size, y_weight);
+		
+		float neg_y_weight;
 
-		weight += current_total_weight;
+		vec4 neg_y_sample = sample_y_velocity(x, -t, vn, wn, zx, render_size, neg_y_weight);
 
-		sum += blend_blur(base_color, x_sample, x_weight, neg_x_sample, neg_x_weight, y_sample) * current_total_weight;
+		blend_blur(base_color, x_sample, x_weight, neg_x_sample, neg_x_weight, y_sample, y_weight, current_total_weight, sum, color_weight, alpha_weight);
 
-		weight += current_total_weight;
-
-		sum += blend_blur(base_color, neg_x_sample, neg_x_weight, x_sample, x_weight, neg_y_sample) * current_total_weight;
+		blend_blur(base_color, neg_x_sample, neg_x_weight, x_sample, x_weight, neg_y_sample, neg_y_weight, current_total_weight, sum, color_weight, alpha_weight);
 	}
 
-	sum /= weight;
+	sum.xyz /= color_weight;
+	sum.a /= alpha_weight;
 
 	imageStore(output_color, uvi, sum);
 

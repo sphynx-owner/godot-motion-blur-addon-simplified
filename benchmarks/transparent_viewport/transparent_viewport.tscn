@@ -1,0 +1,100 @@
+[gd_scene load_steps=19 format=3 uid="uid://dxyim88mdadc3"]
+
+[ext_resource type="Resource" uid="uid://bkudf8hl37ho2" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="1_r0gw4"]
+[ext_resource type="Script" uid="uid://ddik5h63ltdh1" path="res://benchmarks/transparent_viewport/mesh_instance_3d.gd" id="1_v3o04"]
+[ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="2_v3o04"]
+[ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="3_lcrpx"]
+[ext_resource type="Resource" uid="uid://oekvkjd75764" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres" id="4_173a8"]
+[ext_resource type="Script" uid="uid://c5jewnyvlca7j" path="res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd" id="5_3vsu6"]
+[ext_resource type="Resource" uid="uid://dipvwksvqb3dm" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_x_stage.tres" id="6_bvnev"]
+[ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="7_u3pl3"]
+[ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="8_yxtuw"]
+[ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="9_ho5uk"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fuwcj"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_fuwcj"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_fuwcj"]
+
+[sub_resource type="Sky" id="Sky_dulq0"]
+sky_material = SubResource("ProceduralSkyMaterial_fuwcj")
+
+[sub_resource type="Environment" id="Environment_cjq7w"]
+background_mode = 2
+sky = SubResource("Sky_dulq0")
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_1dfva"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = true
+needs_normal_roughness = false
+script = ExtResource("5_3vsu6")
+shader_stages/blur_stage = ExtResource("1_r0gw4")
+shader_stages/overlay_stage = ExtResource("3_lcrpx")
+shader_stages/tile_max_x_stage = ExtResource("6_bvnev")
+shader_stages/tile_max_y_stage = ExtResource("7_u3pl3")
+shader_stages/neighbor_max_stage = ExtResource("2_v3o04")
+shader_stages/pre_blur_processor_stage = ExtResource("4_173a8")
+metadata/_custom_type_script = "uid://c5jewnyvlca7j"
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_ahm7h"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = false
+needs_normal_roughness = false
+script = ExtResource("9_ho5uk")
+debug = true
+shader_stages/overlay_stage = ExtResource("8_yxtuw")
+metadata/_custom_type_script = "uid://bi6xhl7lpiu4n"
+
+[sub_resource type="Compositor" id="Compositor_a8ppm"]
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_1dfva"), SubResource("CompositorEffect_ahm7h")])
+
+[node name="TransparentViewport" type="Node3D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="CanvasLayer/Control/SubViewportContainer"]
+own_world_3d = true
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(1280, 720)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="CanvasLayer/Control/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 7.2254043)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CanvasLayer/Control/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.567625, 0, 0)
+material_override = SubResource("StandardMaterial3D_fuwcj")
+mesh = SubResource("BoxMesh_fuwcj")
+script = ExtResource("1_v3o04")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="CanvasLayer/Control/SubViewportContainer/SubViewport"]
+environment = SubResource("Environment_cjq7w")
+compositor = SubResource("Compositor_a8ppm")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="CanvasLayer/Control/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, -0.24151538, -0.970397, 0, 0.970397, -0.24151538, 0, 0, 0)
