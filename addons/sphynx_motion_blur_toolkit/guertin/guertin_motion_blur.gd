@@ -106,6 +106,7 @@ func _render_callback_2(
 			1 if jitter_tiles else 0,
 			1 if clamp_velocities_to_tile else 0,
 			1 if velocity_depth_test else 0,
+			1 if transparent_bg else 0,
 		]
 	)
 	

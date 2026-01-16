@@ -26,7 +26,7 @@ layout(push_constant, std430) uniform Params
 	int jitter_tiles;
 	int clamp_velocities_to_tile;
 	int velocity_depth_test;
-	int nan5;
+	int transparent_bg;
 } params;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
@@ -138,7 +138,7 @@ void blend_blur(
 
 	vec4 current_color = mix(mix(base_color, x_color_sample, current_weight_x), y_sample, y_weight);
 
-	float current_color_weight = current_color.a * weight_modifier;
+	float current_color_weight = weight_modifier * max(current_color.a, 1 - params.transparent_bg);
 
 	float current_alpha_weight = weight_modifier;
 
@@ -223,9 +223,9 @@ void main()
 	// with a fraction of the sample count.
 	float j = interleaved_gradient_noise(uvi);
 
-	float color_weight = 1e-8;
+	float color_weight = 1e-6;
 
-	float alpha_weight = 1e-8;
+	float alpha_weight = 1e-6;
 
 	// Create an initial color sum
 	vec4 sum = vec4(base_color.xyx * base_color.a * color_weight, base_color.a * alpha_weight);

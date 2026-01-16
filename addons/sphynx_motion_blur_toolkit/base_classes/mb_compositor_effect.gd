@@ -44,6 +44,8 @@ const COLOR_OUTPUT_TEXTURE_NAME : StringName = "color_output"
 
 @export var use_custom_curve: bool
 
+@export var transparent_bg: bool = false
+
 @export var support_fsr2 := true
 
 @export_storage var pre_blur_processor_stage : ShaderStageResource = preload("res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres")
