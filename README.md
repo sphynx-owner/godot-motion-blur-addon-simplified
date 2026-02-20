@@ -1,6 +1,11 @@
 Sphynx's Simplified Motion Blur Toolkit
 =====================================
 
+This addon has been updated to support Godot 4.6+
+
+=====================================
+
+
 In This Project
 ---------------
 
