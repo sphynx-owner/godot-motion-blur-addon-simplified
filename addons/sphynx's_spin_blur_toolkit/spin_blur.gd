@@ -8,65 +8,37 @@ const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_spin_
 
 const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/debug_spin_mesh.gdshader")
 
-@export var enabled := true:
-	set(value):
-		enabled = value
-		
-		if !enabled:
-			if target:
-				target.layers = layers_to_set
-
-@export var layer: int = 3:
-	set(value):
-		layer = value
-		
-		_layer_mask = 1 << (layer - 1)
 
 @export var target: MeshInstance3D:
-	set(value):
-		target = value
-		
-		update_configuration_warnings()
+	set = _set_target
 
-@export var enveloping_mesh: Mesh:
-	set(value):
-		enveloping_mesh = value
-		
-		update_configuration_warnings()
+@export var enabled := true:
+	set = _set_enabled
 
-@export_tool_button("generate enveloping mesh") var generate_enveloping_mesh = _generate_enveloping_mesh
+## A render layer reserved for the spin blur to do its thing. Multiple spin
+## blurs can use the same render layer, with a slight caveat that if their targets
+## overlap it can results in some artifacts.
+@export var reserved_render_layer: int = 3:
+	set = _set_layer
 
+@export_flags_3d_render var layers_to_revert = 1
+
+## A rotation axis local to [member target] along which spin blur will occur
 @export var target_rotation_axis: Vector3 = Vector3(1, 0, 0)
 
-@export var activation_speed_lower_threshold: float = 0.1:
-	set(value):
-		value = max(0, value)
-		activation_speed_lower_threshold = value
-		
-		if _activation_threshold_setter_gate:
-			return
-		
-		_activation_threshold_setter_gate = true
-		
-		activation_speed_upper_threshold = \
-		max(activation_speed_upper_threshold, activation_speed_lower_threshold)
-		
-		_activation_threshold_setter_gate = false
+@export_subgroup("activation speed thresholds", "activation_speed_threshold")
 
-@export var activation_speed_upper_threshold: float = 0.2:
-	set(value):
-		value = max(0, value)
-		activation_speed_upper_threshold = value
-		
-		if _activation_threshold_setter_gate:
-			return
-		
-		_activation_threshold_setter_gate = true
-		
-		activation_speed_lower_threshold = \
-		min(activation_speed_upper_threshold, activation_speed_lower_threshold)
-		
-		_activation_threshold_setter_gate = false
+## Above this rotation speed (in radians per frame), the spin blur will start
+## fading in.
+@export var activation_speed_threshold_lower: float = 0.1:
+	set = _set_activation_speed_threshold_lower
+
+## Above this rotation speed (in radians per frame), the spin blur will be fully
+## faded in, and the target mesh will be turned invisible.
+@export var activation_speed_threshold_upper: float = 0.2:
+	set = _set_activation_speed_threshold_upper
+
+var _activation_threshold_setter_gate := false
 
 @export var sample_count := 8
 
@@ -74,18 +46,10 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 
 @export var rolling_shutter_amount: float = 0.0
 
-@export_flags_3d_render var layers_to_set = 1
-
-@export_group("debug")
-
-@export var override_rotation_speed := 0.0
-
-@export var debug_color: Color = Color("ffffff0a")
-
-@export var draw_debug := true
-
 @export_tool_button("refresh environment") var refresh_environment = _update_environment
-var _activation_threshold_setter_gate := false
+
+@export var enveloping_mesh: Mesh:
+	set = _set_enveloping_mesh
 
 @export_group("enveloping mesh generation")
 
@@ -99,7 +63,17 @@ var _activation_threshold_setter_gate := false
 
 @export var neighbor_max: bool = false
 
-var _layer_mask: int = 1 << (layer - 1)
+@export_tool_button("generate enveloping mesh") var generate_enveloping_mesh = _generate_enveloping_mesh
+
+@export_group("debug")
+
+@export var override_rotation_speed := 0.0
+
+@export var debug_color: Color = Color("ffffff0a")
+
+@export var draw_debug := true
+
+var _layer_mask: int = 1 << (reserved_render_layer - 1)
 
 var _viewport: SubViewport
 
@@ -114,7 +88,7 @@ var _debug_material: ShaderMaterial
 
 func _exit_tree() -> void:
 	if target:
-		target.layers = layers_to_set
+		target.layers = layers_to_revert
 
 
 func _ready() -> void:
@@ -319,21 +293,21 @@ func _update_enveloping_node() -> void:
 		blur_intensity,
 	)
 	
-	if abs(rotation_speed) > activation_speed_upper_threshold:
+	if abs(rotation_speed) > activation_speed_threshold_upper:
 		target.layers = _layer_mask
 		
 	else:
-		target.layers = layers_to_set | _layer_mask
+		target.layers = layers_to_revert | _layer_mask
 	
-	if abs(rotation_speed) > activation_speed_lower_threshold or (draw_debug and Engine.is_editor_hint()):
+	if abs(rotation_speed) > activation_speed_threshold_lower or (draw_debug and Engine.is_editor_hint()):
 		visible = true
 		
 	else:
 		visible = false
 	
 	var fade_in_coef: float = clamp(
-		(abs(rotation_speed) - activation_speed_lower_threshold) / \
-		(activation_speed_upper_threshold - activation_speed_lower_threshold), 
+		(abs(rotation_speed) - activation_speed_threshold_lower) / \
+		(activation_speed_threshold_upper - activation_speed_threshold_lower), 
 		0, 
 		1
 	)
@@ -394,3 +368,59 @@ func _generate_enveloping_mesh() -> void:
 		depth_padding, 
 		neighbor_max
 	)
+
+
+func _set_enabled(value: bool) -> void:
+	enabled = value
+	
+	if !enabled:
+		if target:
+			target.layers = layers_to_revert
+
+
+func _set_layer(value: int) -> void:
+	reserved_render_layer = value
+	
+	_layer_mask = 1 << (reserved_render_layer - 1)
+
+
+func _set_target(value: MeshInstance3D) -> void:
+	target = value
+	
+	update_configuration_warnings()
+
+
+func _set_enveloping_mesh(value: Mesh) -> void:
+	enveloping_mesh = value
+	
+	update_configuration_warnings()
+
+
+func _set_activation_speed_threshold_lower(value: float) -> void:
+	value = max(0, value)
+	activation_speed_threshold_lower = value
+	
+	if _activation_threshold_setter_gate:
+		return
+	
+	_activation_threshold_setter_gate = true
+	
+	activation_speed_threshold_upper = \
+	max(activation_speed_threshold_upper, activation_speed_threshold_lower)
+	
+	_activation_threshold_setter_gate = false
+
+
+func _set_activation_speed_threshold_upper(value: float) -> void:
+	value = max(0, value)
+	activation_speed_threshold_upper = value
+	
+	if _activation_threshold_setter_gate:
+		return
+	
+	_activation_threshold_setter_gate = true
+	
+	activation_speed_threshold_lower = \
+	min(activation_speed_threshold_upper, activation_speed_threshold_lower)
+	
+	_activation_threshold_setter_gate = false

@@ -151,24 +151,6 @@ static func generate(
 			perpendicular
 		)
 	
-	## Add vertices to seal the hole in the center
-	#profile_vertices.insert(
-		#0,
-		#_axis_local_to_vertex(
-			#Vector2(0, latest_chunk_cache.x + depth_padding), 
-			#normalized_rotation_axis, 
-			#perpendicular
-		#)
-	#)
-	#
-	#profile_vertices.append(
-		#_axis_local_to_vertex(
-			#Vector2(0, latest_chunk_cache.y - depth_padding), 
-			#normalized_rotation_axis, 
-			#perpendicular
-		#)
-	#)
-	
 	var profile_stride: int = profile_vertices.size()
 	
 	var all_unique_vertices: PackedVector3Array
@@ -230,6 +212,8 @@ static func _axis_local_to_vertex(axis_local: Vector2, axis: Vector3, perpendicu
 ## This function takes an edge (two vertices), and projects it onto the discrete chunk intervals
 ## it crosses to give them new min-max values. In addition the vertices also expand the chunks they
 ## are in.
+## See screenshots/edge_rasterization_scheme.png for a slightly better idea of how an edge
+## is rasterized onto chunks
 # NOTE: a and b must be normalized vertexes
 static func _rasterize_vertices_onto_chunks(
 	a: Vector2, 
@@ -287,11 +271,10 @@ static func _rasterize_vertices_onto_chunks(
 		temp_chunks[end_adjacent] = \
 		Vector2(max(temp_chunks[end_adjacent].x, min(a.y, end_adjacent_intersect)), b.y)
 	
-	if start_adjacent < end_adjacent:
-		# Loop through all middle chunks if there are any
-		for i in range(start_adjacent + 1, end_adjacent):
-			var chunk_intersect: float = y_intersect + (float(i + starting_chunk) / float(resolution)) * slope
-			temp_chunks[i] = Vector2(chunk_intersect, chunk_intersect)
+	# Loop through all middle chunks if there are any
+	for i in range(start_adjacent + 1, end_adjacent):
+		var chunk_intersect: float = y_intersect + (float(i + starting_chunk) / float(resolution)) * slope
+		temp_chunks[i] = Vector2(chunk_intersect, chunk_intersect)
 	
 	for i in range(chunk_count):
 		var output_chunk: int = i + starting_chunk
