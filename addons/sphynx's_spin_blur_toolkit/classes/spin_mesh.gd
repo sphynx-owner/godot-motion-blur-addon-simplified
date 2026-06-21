@@ -17,6 +17,9 @@ static func generate(
 	
 	var face_vertices: PackedVector3Array = source_mesh.get_faces()
 	
+	# These will be axis local vertices, meaning their orientation around the axis is lost,
+	# and instead only their profile relatively to the axis is maintained, i.e. their distand
+	# from the axis, and offset along that axis' direction.
 	var local_vertices: PackedVector2Array
 	
 	local_vertices.resize(face_vertices.size())
@@ -33,21 +36,33 @@ static func generate(
 		if local_vertex.x > max_radius:
 			max_radius = local_vertex.x
 	
+	# These will not be normalized in the traditional sense. Instead, we normalize
+	# the radius of all local vertices to a mapping between 0 and 1, for easier 
+	# rasterization onto chunks.
 	var normalized_vertices: PackedVector2Array
 	
 	normalized_vertices.resize(local_vertices.size())
 	
-	var normalization_factor: float = 1.0 / max(max_radius, 0.0001)
+	# We add a small epsilon so that all vertices are guaranteed to fall within the
+	# unit radius
+	var normalization_factor: float = 1.0 / (max(max_radius, 0) + 0.001)
 	
 	for i in range(local_vertices.size()):
 		normalized_vertices[i] = local_vertices[i] * Vector2(normalization_factor, 1)
 	
+	# Radial chunks define the rings of vertices that would make out the final spin mesh.
+	# They contain the maximum and minimum depth of the mesh at every given ring, which is also
+	# the offsets of the front and back offsets of the generated vertex rings, respectively.
 	var radial_chunks: PackedVector2Array
 	
 	radial_chunks.resize(rings)
 	
 	radial_chunks.fill(Vector2(-INF, INF))
 	
+	# When using source_mesh.get_faces(), we get an array of vertex triplets, for each
+	# triangle that makes out the mesh. We now loop on each one of those triplets, which
+	# is basically looping through each face of the mesh, which allows us to rasterize
+	# while accounting for the edges of faces to be included in the min-max depth.
 	for i in range(normalized_vertices.size() / 3):
 		var vertex1: Vector2 = normalized_vertices[i * 3]
 		var vertex2: Vector2 = normalized_vertices[i * 3 + 1]
@@ -162,7 +177,8 @@ static func generate(
 	
 	for i in range(radial_segments):
 		for j in range(profile_stride):
-			all_unique_vertices[profile_stride * i + j] = profile_vertices[j].rotated(normalized_rotation_axis, angle_interval * i)
+			all_unique_vertices[profile_stride * i + j] = \
+			profile_vertices[j].rotated(normalized_rotation_axis, angle_interval * i)
 	
 	var vertices: PackedVector3Array
 	vertices.resize((profile_stride - 1) * 6 * radial_segments)
@@ -209,6 +225,9 @@ static func _axis_local_to_vertex(axis_local: Vector2, axis: Vector3, perpendicu
 	return perpendicular * axis_local.x + axis * axis_local.y
 
 
+## This function takes an edge (two vertices), and projects it onto the discrete chunk intervals
+## it crosses to give them new min-max values. In addition the vertices also expand the chunks they
+## are in.
 # NOTE: a and b must be normalized vertexes
 static func _rasterize_vertices_onto_chunks(
 	a: Vector2, 
@@ -223,35 +242,46 @@ static func _rasterize_vertices_onto_chunks(
 	
 	var slope: float = (b.y - a.y) / (b.x - a.x)
 	
-	var positive_slope: bool = slope >= 0
-	
+	# The intersection of the slope with the y axis.
 	var y_intersect: float = a.y - slope * a.x
 	
-	var starting_chunk: int = floor(a.x * resolution)
+	var starting_chunk: int = floori(a.x * resolution)
 	
-	var ending_chunk: int = floor(b.x * resolution)
+	var ending_chunk: int = floori(b.x * resolution) + 1
 	
-	var chunk_count: int = ending_chunk + 1 - starting_chunk
+	var chunk_count: int = ending_chunk - starting_chunk + 1
 	
 	var temp_chunks: PackedVector2Array
 	
 	temp_chunks.resize(chunk_count)
 	
-	var min_x_offset: int = (0 if positive_slope else 1)
-	var max_x_offset: int = (1 if positive_slope else 0)
+	temp_chunks.fill(Vector2(-INF, INF))
 	
-	for i in range(chunk_count):
-		var min_x: float = float(i + starting_chunk + min_x_offset) / float(resolution)
-		var max_x: float = float(i + starting_chunk + max_x_offset) / float(resolution)
+	var is_positive_slope: bool = slope >= 0
+	
+	temp_chunks[starting_chunk] = Vector2(a.y, a.y)
+	temp_chunks[ending_chunk] = Vector2(b.y, b.y) 
+	
+	var start_adjacent: int = starting_chunk + 1
+	var end_adjacent: int = ending_chunk - 1
+	
+	var start_adjacent_intersect: float = y_intersect + (float(start_adjacent) / float(resolution)) * slope
+	var end_adjacent_intersect: float = y_intersect + (float(end_adjacent) / float(resolution)) * slope
+	
+	if is_positive_slope:
+		temp_chunks[start_adjacent] = Vector2(min(b.y, start_adjacent_intersect), a.y)
 		
-		temp_chunks[i] = Vector2(y_intersect + max_x * slope, y_intersect + min_x * slope)
-	
-	if positive_slope:
-		temp_chunks[0].y = a.y
-		temp_chunks[chunk_count - 1].x = b.y
+		temp_chunks[end_adjacent] = Vector2(b.y, min(temp_chunks[end_adjacent].y, max(a.y, end_adjacent_intersect)))
+		
 	else:
-		temp_chunks[0].x = a.y
-		temp_chunks[chunk_count - 1].y = b.y
+		temp_chunks[start_adjacent] = Vector2(a.y, max(b.y, start_adjacent_intersect))
+		
+		temp_chunks[end_adjacent] = Vector2(max(temp_chunks[end_adjacent].x, min(a.y, end_adjacent_intersect)), b.y)
+	
+	# Loop through all middle chunks if there are any
+	for i in range(start_adjacent + 1, end_adjacent):
+		var chunk_intersect: float = y_intersect + (float(i) / float(resolution)) * slope
+		temp_chunks[i] = Vector2(chunk_intersect, chunk_intersect)
 	
 	for i in range(chunk_count):
 		var output_chunk: int = i + starting_chunk
