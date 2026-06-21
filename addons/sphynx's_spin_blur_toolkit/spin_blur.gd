@@ -54,33 +54,47 @@ var _activation_threshold_setter_gate := false
 ## Applied in terms of rotation_speed * screen_height_fraction_offset * rolling_shutter_amount.
 @export var rolling_shutter_amount: float = 0.0
 
-## Detect lighting-related nodes and ensure they are visible under
+## A tool button to detect lighting-related nodes and ensure they are visible under
 ## [member reserved_render_layer] render layer.
 @export_tool_button("Capture Lighting") var _capture_lighting = capture_lighting
 
+## The enveloping mesh is what makes the spin blur possible. It is a mesh that tightly
+## encapsulates the space the target mesh sweeps through as it rotates. You can generate
+## it automatically after setting [member target_rotation_axis] by pressing [member generate_enveloping_mesh]
+## tool button.
 @export var enveloping_mesh: Mesh:
 	set = _set_enveloping_mesh
 
 @export_group("enveloping mesh generation")
 
+## When generating the enveloping mesh, defines how many rings of vertices
+## to use. Higher values mean higher details
 @export var rings: int = 16
 
+## How many radial segments to generate the mesh with. Higher value means
+## more circular mesh.
 @export var radial_segments: int = 32
 
+## Add padding to the generated mesh in perpendicular to the rotation axis (make it wider)
 @export var radial_padding: float = 0
 
+## Add padding to the generated mesh along the rotation axis 
 @export var depth_padding: float = 0
 
-@export var neighbor_max: bool = false
-
+## When pressed, generates an enveloping mesh for the target mesh based on it and the
+## axis set in [member target_rotation_axis].
 @export_tool_button("generate enveloping mesh") var generate_enveloping_mesh = _generate_enveloping_mesh
 
 @export_group("debug")
 
+## Allows you to simulate the behavior of the blur in the editor at different rotation speeds.
+## This would not actually rotate the mesh, just show you what the blur would look like if it did.
 @export var override_rotation_speed := 0.0
 
+## A color to display the enveloping mesh wireframe with.
 @export var debug_color: Color = Color("ffffff0a")
 
+## Whether to show the enveloping mesh in the editor.
 @export var draw_debug := true
 
 var _layer_mask: int = 1 << (reserved_render_layer - 1)
@@ -232,6 +246,8 @@ func _update_camera() -> void:
 	_camera.projection = reference_camera.projection
 
 
+## Detects lighting-related nodes and ensure they are visible under
+## [member reserved_render_layer] render layer.
 func capture_lighting() -> void:
 	var lights_to_copy: Array[Node]
 	
@@ -375,8 +391,7 @@ func _generate_enveloping_mesh() -> void:
 		rings, 
 		radial_segments, 
 		radial_padding, 
-		depth_padding, 
-		neighbor_max
+		depth_padding,
 	)
 
 
