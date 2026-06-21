@@ -130,9 +130,11 @@ static func generate(
 	
 	var latest_chunk_cache: Vector2
 	
+	# We loop from the end, or from the outside chunks inward, so we are guaranteed
+	# a first valid chunk range, and thus a valid latest_chunk_cache.
 	for i in range(neighbor_max_radial_chunks.size() - 1, -1, -1):
 		var chunk: Vector2 = neighbor_max_radial_chunks[i]
-		var chunk_radius: float = float(i + 0.5) / rings * max_radius
+		var chunk_radius: float = float(i) / (rings - 1) * max_radius
 		
 		if chunk.x > -INF:
 			latest_chunk_cache = chunk
@@ -149,23 +151,23 @@ static func generate(
 			perpendicular
 		)
 	
-	# Add vertices to seal the hole in the center
-	profile_vertices.insert(
-		0,
-		_axis_local_to_vertex(
-			Vector2(0, latest_chunk_cache.x + depth_padding), 
-			normalized_rotation_axis, 
-			perpendicular
-		)
-	)
-	
-	profile_vertices.append(
-		_axis_local_to_vertex(
-			Vector2(0, latest_chunk_cache.y - depth_padding), 
-			normalized_rotation_axis, 
-			perpendicular
-		)
-	)
+	## Add vertices to seal the hole in the center
+	#profile_vertices.insert(
+		#0,
+		#_axis_local_to_vertex(
+			#Vector2(0, latest_chunk_cache.x + depth_padding), 
+			#normalized_rotation_axis, 
+			#perpendicular
+		#)
+	#)
+	#
+	#profile_vertices.append(
+		#_axis_local_to_vertex(
+			#Vector2(0, latest_chunk_cache.y - depth_padding), 
+			#normalized_rotation_axis, 
+			#perpendicular
+		#)
+	#)
 	
 	var profile_stride: int = profile_vertices.size()
 	
@@ -232,7 +234,7 @@ static func _axis_local_to_vertex(axis_local: Vector2, axis: Vector3, perpendicu
 static func _rasterize_vertices_onto_chunks(
 	a: Vector2, 
 	b: Vector2, 
-	resolution: int, 
+	rings: int, 
 	chunks: PackedVector2Array
 ) -> void:
 	if a.x > b.x:
@@ -244,6 +246,8 @@ static func _rasterize_vertices_onto_chunks(
 	
 	# The intersection of the slope with the y axis.
 	var y_intersect: float = a.y - slope * a.x
+	
+	var resolution: int = rings - 1
 	
 	var starting_chunk: int = floori(a.x * resolution)
 	
@@ -259,35 +263,39 @@ static func _rasterize_vertices_onto_chunks(
 	
 	var is_positive_slope: bool = slope >= 0
 	
-	temp_chunks[starting_chunk] = Vector2(a.y, a.y)
-	temp_chunks[ending_chunk] = Vector2(b.y, b.y) 
+	var start: int = 0
+	var end: int = chunk_count - 1
 	
-	var start_adjacent: int = starting_chunk + 1
-	var end_adjacent: int = ending_chunk - 1
+	temp_chunks[start] = Vector2(a.y, a.y)
+	temp_chunks[end] = Vector2(b.y, b.y) 
 	
-	var start_adjacent_intersect: float = y_intersect + (float(start_adjacent) / float(resolution)) * slope
-	var end_adjacent_intersect: float = y_intersect + (float(end_adjacent) / float(resolution)) * slope
+	var start_adjacent: int = start + 1
+	var end_adjacent: int = end - 1
+	
+	var start_adjacent_intersect: float = y_intersect + (float(start_adjacent + starting_chunk) / float(resolution)) * slope
+	var end_adjacent_intersect: float = y_intersect + (float(end_adjacent + starting_chunk) / float(resolution)) * slope
 	
 	if is_positive_slope:
 		temp_chunks[start_adjacent] = Vector2(min(b.y, start_adjacent_intersect), a.y)
 		
-		temp_chunks[end_adjacent] = Vector2(b.y, min(temp_chunks[end_adjacent].y, max(a.y, end_adjacent_intersect)))
+		temp_chunks[end_adjacent] = \
+		Vector2(b.y, min(temp_chunks[end_adjacent].y, max(a.y, end_adjacent_intersect)))
 		
 	else:
 		temp_chunks[start_adjacent] = Vector2(a.y, max(b.y, start_adjacent_intersect))
 		
-		temp_chunks[end_adjacent] = Vector2(max(temp_chunks[end_adjacent].x, min(a.y, end_adjacent_intersect)), b.y)
+		temp_chunks[end_adjacent] = \
+		Vector2(max(temp_chunks[end_adjacent].x, min(a.y, end_adjacent_intersect)), b.y)
 	
-	# Loop through all middle chunks if there are any
-	for i in range(start_adjacent + 1, end_adjacent):
-		var chunk_intersect: float = y_intersect + (float(i) / float(resolution)) * slope
-		temp_chunks[i] = Vector2(chunk_intersect, chunk_intersect)
+	if start_adjacent < end_adjacent:
+		# Loop through all middle chunks if there are any
+		for i in range(start_adjacent + 1, end_adjacent):
+			var chunk_intersect: float = y_intersect + (float(i + starting_chunk) / float(resolution)) * slope
+			temp_chunks[i] = Vector2(chunk_intersect, chunk_intersect)
 	
 	for i in range(chunk_count):
 		var output_chunk: int = i + starting_chunk
 		
-		if temp_chunks[i].x > chunks[output_chunk].x:
-			chunks[output_chunk].x = temp_chunks[i].x
+		chunks[output_chunk].x = max(temp_chunks[i].x, chunks[output_chunk].x)
 		
-		if temp_chunks[i].y < chunks[output_chunk].y:
-			chunks[output_chunk].y = temp_chunks[i].y
+		chunks[output_chunk].y = min(temp_chunks[i].y, chunks[output_chunk].y)
