@@ -1,8 +1,6 @@
 [gd_scene format=3 uid="uid://bpr2b81luq1g0"]
 
-[ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="3_aae02"]
 [ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="4_8xabd"]
-[ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="4_rkscw"]
 [ext_resource type="PackedScene" uid="uid://bub2bkwcsnlv5" path="res://benchmarks/spin_blur/propeller_mesh_corrected.tscn" id="6_wwfdt"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_yjuqw"]
@@ -13,20 +11,6 @@ sky_material = SubResource("ProceduralSkyMaterial_yjuqw")
 [sub_resource type="Environment" id="Environment_grbtf"]
 background_mode = 2
 sky = SubResource("Sky_gk5px")
-
-[sub_resource type="CompositorEffect" id="CompositorEffect_vndbm"]
-resource_local_to_scene = false
-resource_name = ""
-enabled = true
-effect_callback_type = 4
-needs_motion_vectors = false
-needs_normal_roughness = false
-script = ExtResource("4_rkscw")
-debug = true
-metadata/_custom_type_script = "uid://bi6xhl7lpiu4n"
-
-[sub_resource type="Compositor" id="Compositor_t71lr"]
-compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_vndbm")])
 
 [node name="SpinBlurTest" type="Node3D" unique_id=1659955950]
 
@@ -44,10 +28,10 @@ metadata/_edit_use_anchors_ = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1605718421]
 environment = SubResource("Environment_grbtf")
-compositor = SubResource("Compositor_t71lr")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1741689020]
-transform = Transform3D(0.6173216, -0.1810284, 0.76559967, -0.78657955, -0.15981795, 0.59644866, 0.014382526, -0.97040564, -0.24105233, 0, 0, 0)
+transform = Transform3D(0.42749503, 0.55606824, 0.71276647, -0.78657943, -0.15981801, 0.5964486, 0.44557902, -0.81562626, 0.36907047, 0, 0, 0)
+layers = 3
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1694021990]
 transform = Transform3D(0.22552921, 0, 0.9742364, 0, 1, 0, -0.9742364, 0, 0.22552921, 1.9842758, 0, 0.2799958)
@@ -59,8 +43,6 @@ transform = Transform3D(0.009999999, 0, 0, 0, 0.008851482, 0.004653093, 0, -0.00
 layers = 2
 
 [node name="SpinBlur" parent="PropellerMeshCorrected" index="0"]
-transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0)
-blur_intensity = 1.685
-rolling_shutter_amount = 0.0
+blur_intensity = 1.04
 
 [editable path="PropellerMeshCorrected"]

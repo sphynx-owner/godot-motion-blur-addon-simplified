@@ -105,13 +105,7 @@ var _viewport: SubViewport
 
 var _camera: Camera3D
 
-#var _clone: MeshInstance3D
-
 var _enveloping_node: MeshInstance3D
-
-#var _environment: WorldEnvironment
-
-#var _lights: Array[Node]
 
 var _past_global_transform: Transform3D
 
@@ -124,11 +118,13 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
-	#get_viewport().get_camera_3d().cull_mask = 1
+	if Engine.is_editor_hint():
+		EditorInterface.get_editor_viewport_3d().get_camera_3d().cull_mask = 1
+		
+	else:
+		get_tree().root.get_viewport().get_camera_3d().cull_mask = 1
 	
 	_viewport = SubViewport.new()
-	
-	#_viewport.own_world_3d = true
 	
 	_viewport.transparent_bg = true
 	
@@ -153,10 +149,6 @@ func _ready() -> void:
 	)
 	
 	_viewport.add_child(_camera)
-	
-	#_clone = MeshInstance3D.new()
-	#
-	#_viewport.add_child(_clone)
 	
 	_enveloping_node = MeshInstance3D.new()
 	
@@ -188,10 +180,6 @@ func _ready() -> void:
 	# So that the viewport's view does not lag a frame behind the reference camera
 	process_priority = 1
 	
-	#_environment = WorldEnvironment.new()
-	#
-	#_viewport.add_child(_environment)
-	
 	_update_environment.call_deferred()
 	
 	target.layers |= _layer_mask
@@ -203,7 +191,6 @@ func _process(delta: float) -> void:
 	
 	_update_viewport()
 	_update_camera()
-	#_update_clone()
 	
 	if target_rotation_axis.is_zero_approx():
 		return
@@ -223,15 +210,6 @@ func _scan_for_lighting(node: Node, viewport_to_ignore: Viewport, result: Array[
 
 
 func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
-	#set_shader_parameter_recursive(
-		#_enveloping_node.material_override,
-		#"depth_texture", 
-		#null,
-	#)
-	#await RenderingServer.frame_post_draw
-	#await RenderingServer.frame_post_draw
-	#await RenderingServer.frame_post_draw
-	
 	set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"depth_texture", 
@@ -261,6 +239,7 @@ func _update_camera() -> void:
 	
 	if Engine.is_editor_hint():
 		reference_camera = EditorInterface.get_editor_viewport_3d().get_camera_3d()
+		
 	else:
 		reference_camera = get_viewport().get_camera_3d()
 	
@@ -270,50 +249,12 @@ func _update_camera() -> void:
 
 
 func _update_environment() -> void:
-	#for light in _lights:
-		#light.queue_free()
-	#
-	#_lights.clear()
-	
-	#_environment.environment = get_world_3d().environment
-	
 	var lights_to_copy: Array[Node]
 	
 	_scan_for_lighting(get_viewport(), get_viewport(), lights_to_copy)
 	
 	for light: Node in lights_to_copy:
-		light.layer |= _layer_mask
-		#print("addin a light")
-		#var light_duplicate: Light3D = light.duplicate()
-		#
-		#_viewport.add_child(light_duplicate)
-		#
-		#light_duplicate.global_transform = light.global_transform
-		#
-		#_lights.append(light_duplicate)
-
-
-#func _update_clone() -> void:
-	#if !target:
-		#return
-	#
-	#_clone.global_transform = target.global_transform
-	#
-	#if !target.mesh:
-		#_clone.mesh = null
-		#return
-	#
-	#_clone.mesh = target.mesh
-	#
-	#for i: int in range(target.get_surface_override_material_count()):
-		#_clone.set_surface_override_material(
-			#i, 
-			#target.get_surface_override_material(i)
-		#)
-	#
-	#_clone.material_override = target.material_override
-	#
-	#_clone.material_overlay = target.material_overlay
+		light.layers |= _layer_mask
 
 
 func _update_enveloping_node() -> void:
@@ -321,6 +262,7 @@ func _update_enveloping_node() -> void:
 		return
 	
 	_enveloping_node.mesh = enveloping_mesh
+	
 	if Engine.is_editor_hint():
 		_debug_material.set_shader_parameter(
 			"color", 
@@ -346,8 +288,7 @@ func _update_enveloping_node() -> void:
 	
 	var target_transform : Transform3D = target.global_transform
 	
-	var target_rotation_vector : Vector3 = \
-	target_transform.orthonormalized().basis * target_rotation_axis
+	var target_rotation_vector : Vector3 = target_transform.orthonormalized().basis * target_rotation_axis
 	
 	set_shader_parameter_recursive(
 		_enveloping_node.material_override,
@@ -355,14 +296,12 @@ func _update_enveloping_node() -> void:
 		 target_rotation_axis
 	)
 	
-	var difference_quat : Quaternion = \
-	Quaternion(target_transform.basis.get_rotation_quaternion() \
+	var difference_quat: Quaternion = Quaternion(target_transform.basis.get_rotation_quaternion() \
 	* _past_global_transform.basis.get_rotation_quaternion().inverse())
 	
-	var centered_angle : float = difference_quat.get_angle() - PI
+	var centered_angle: float = difference_quat.get_angle() - PI
 	
-	var angle = (PI - abs(centered_angle)) \
-	* abs(target_rotation_vector.dot(difference_quat.get_axis()))
+	var angle: float = (PI - abs(centered_angle)) * abs(target_rotation_vector.dot(difference_quat.get_axis()))
 	
 	var rotation_speed: float = clamp(angle, -TAU, TAU) \
 	if override_rotation_speed == 0.0 or !Engine.is_editor_hint() \
@@ -382,17 +321,19 @@ func _update_enveloping_node() -> void:
 	
 	if abs(rotation_speed) > activation_speed_upper_threshold:
 		target.layers = _layer_mask
+		
 	else:
 		target.layers = layers_to_set | _layer_mask
 	
 	if abs(rotation_speed) > activation_speed_lower_threshold or (draw_debug and Engine.is_editor_hint()):
 		visible = true
+		
 	else:
 		visible = false
 	
 	var fade_in_coef: float = clamp(
-		(abs(rotation_speed) - activation_speed_lower_threshold) \
-		/ (activation_speed_upper_threshold - activation_speed_lower_threshold), 
+		(abs(rotation_speed) - activation_speed_lower_threshold) / \
+		(activation_speed_upper_threshold - activation_speed_lower_threshold), 
 		0, 
 		1
 	)
