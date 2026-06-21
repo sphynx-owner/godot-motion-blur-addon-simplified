@@ -11,9 +11,9 @@ var pipeline: RID
 
 var nearest_sampler: RID
 
-var texture: RID
 var texture_format := RDTextureFormat.new()
-var texture_changed := false
+var texture: RID
+var texture_2d_rd := Texture2DRD.new()
 
 
 func _init():
@@ -70,25 +70,12 @@ func _render_callback(p_effect_callback_type: EffectCallbackType, p_render_data:
 	
 	# Get our render size, this is the 3D render resolution!
 	var size: Vector2i = render_scene_buffers.get_internal_size()
+	
 	if size.x == 0 and size.y == 0:
 		return
 	
-	
 	if not texture.is_valid() or texture_format.width != size.x or texture_format.height != size.y:
 		_build_texture(size.x, size.y)
-		texture_changed = true
-	
-	# Will be true if the texture was just generated (could already exist)
-	if texture_changed:
-		texture_changed = false
-		
-		# We create a new Texture2DRD wrapper that we can feed to surface materials
-		var generated_texture: Texture2DRD = Texture2DRD.new()
-		
-		# And feed it the low-level depth texture's RID
-		generated_texture.texture_rd_rid = texture
-		
-		texture_generated.emit(generated_texture)
 	
 	# Define invocation group size
 	@warning_ignore("integer_division")
@@ -142,10 +129,21 @@ func _build_texture(width: int, height: int):
 	
 	assert(new_texture.is_valid())
 	
-	# free the old texture if there was one
-	if texture.is_valid():
-		rd.free_rid(texture)
-		texture = RID()
+	var old_texture: RID = texture
+	
+	texture = RID()
 	
 	# save the new texture rid
 	texture = new_texture
+	
+	await RenderingServer.frame_post_draw
+	
+	# free the old texture if there was one
+	if old_texture.is_valid():
+		rd.free_rid(old_texture)
+	
+	texture_2d_rd.texture_rd_rid = RID()
+	
+	texture_2d_rd.texture_rd_rid = texture
+	
+	texture_generated.emit(texture_2d_rd)

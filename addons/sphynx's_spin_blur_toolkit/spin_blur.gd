@@ -157,6 +157,8 @@ func _ready() -> void:
 	_update_environment.call_deferred()
 	
 	target.layers |= _layer_mask
+	
+	_on_depth_texture_generated(_camera.compositor.compositor_effects[0].texture_2d_rd)
 
 
 func _process(delta: float) -> void:
@@ -184,6 +186,12 @@ func _scan_for_lighting(node: Node, viewport_to_ignore: Viewport, result: Array[
 
 
 func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"depth_texture", 
+		null
+	)
+	await RenderingServer.frame_post_draw
 	set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"depth_texture", 
