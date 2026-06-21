@@ -1,17 +1,7 @@
-[gd_scene load_steps=28 format=3 uid="uid://bngg0hdt3buas"]
+[gd_scene format=3 uid="uid://bngg0hdt3buas"]
 
 [ext_resource type="Script" uid="uid://bkjpm2dp8knf3" path="res://benchmarks/falling_cubes/cube_spawner.gd" id="1_aa0ni"]
 [ext_resource type="PackedScene" uid="uid://b4t1vbd82lvn5" path="res://addons/sphynx_replay_tool/ui/relpay_menu.tscn" id="1_dgpyu"]
-[ext_resource type="Script" uid="uid://dcsghe6o2vmcw" path="res://addons/sphynx_enhanced_compositor_toolkit/stencil/render_pipeline_compositor_effect.gd" id="2_74s67"]
-[ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="2_e2kve"]
-[ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="3_dgpyu"]
-[ext_resource type="Resource" uid="uid://bkudf8hl37ho2" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="3_hsw1i"]
-[ext_resource type="Script" uid="uid://c5jewnyvlca7j" path="res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd" id="5_xoery"]
-[ext_resource type="Resource" uid="uid://oekvkjd75764" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres" id="6_7edp2"]
-[ext_resource type="Resource" uid="uid://dipvwksvqb3dm" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_x_stage.tres" id="6_hsw1i"]
-[ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="7_7edp2"]
-[ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="8_8or0i"]
-[ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="9_f44yt"]
 [ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="11_e2kve"]
 [ext_resource type="Script" uid="uid://b8300t378op2r" path="res://benchmarks/falling_cubes/world_environment.gd" id="12_hsw1i"]
 [ext_resource type="Script" uid="uid://b0ipdvkcmd7vx" path="res://benchmarks/falling_cubes/mesh_instance_3d.gd" id="14_xoery"]
@@ -26,50 +16,8 @@ sky_material = SubResource("ProceduralSkyMaterial_w8xxa")
 background_mode = 2
 sky = SubResource("Sky_aa0ni")
 
-[sub_resource type="CompositorEffect" id="CompositorEffect_xoery"]
-resource_local_to_scene = false
-resource_name = ""
-enabled = true
-effect_callback_type = 4
-needs_motion_vectors = false
-needs_normal_roughness = false
-script = ExtResource("2_74s67")
-glsl_shader_file = "uid://bmhr0fmnhty1k"
-metadata/_custom_type_script = "uid://dcsghe6o2vmcw"
-
-[sub_resource type="CompositorEffect" id="CompositorEffect_74457"]
-resource_local_to_scene = false
-resource_name = ""
-enabled = true
-effect_callback_type = 4
-needs_motion_vectors = true
-needs_normal_roughness = false
-script = ExtResource("5_xoery")
-blur_stage = ExtResource("3_hsw1i")
-pre_blur_processor_stage = ExtResource("6_7edp2")
-debug = true
-shader_stages/blur_stage = ExtResource("3_hsw1i")
-shader_stages/overlay_stage = ExtResource("3_dgpyu")
-shader_stages/tile_max_x_stage = ExtResource("6_hsw1i")
-shader_stages/tile_max_y_stage = ExtResource("7_7edp2")
-shader_stages/neighbor_max_stage = ExtResource("2_e2kve")
-shader_stages/pre_blur_processor_stage = ExtResource("6_7edp2")
-metadata/_custom_type_script = "uid://c5jewnyvlca7j"
-
-[sub_resource type="CompositorEffect" id="CompositorEffect_xmhx4"]
-resource_local_to_scene = false
-resource_name = ""
-enabled = true
-effect_callback_type = 4
-needs_motion_vectors = false
-needs_normal_roughness = false
-script = ExtResource("9_f44yt")
-debug = true
-shader_stages/overlay_stage = ExtResource("8_8or0i")
-metadata/_custom_type_script = "uid://bi6xhl7lpiu4n"
-
-[sub_resource type="Compositor" id="Compositor_j3jap"]
-compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_xoery"), SubResource("CompositorEffect_74457"), SubResource("CompositorEffect_xmhx4")])
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_mckeo"]
+motion_blur_enabled = true
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_w8xxa"]
 
@@ -84,11 +32,11 @@ size = Vector2(3.46, 4.24)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xoery"]
 
-[node name="FallingCubes" type="Node3D"]
+[node name="FallingCubes" type="Node3D" unique_id=1662821353]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1188850348]
 
-[node name="FocusControl" type="Control" parent="CanvasLayer"]
+[node name="FocusControl" type="Control" parent="CanvasLayer" unique_id=835918495]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -97,9 +45,9 @@ grow_horizontal = 2
 grow_vertical = 2
 focus_mode = 2
 
-[node name="RelpayMenu" parent="CanvasLayer" instance=ExtResource("1_dgpyu")]
+[node name="RelpayMenu" parent="CanvasLayer" unique_id=57315067 instance=ExtResource("1_dgpyu")]
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer" unique_id=1432914064]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -111,44 +59,44 @@ offset_right = 54.5
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="SpawnButton" type="Button" parent="CanvasLayer/HBoxContainer"]
+[node name="SpawnButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=2097653394]
 layout_mode = 2
 text = "spawn"
 
-[node name="ClearButton" type="Button" parent="CanvasLayer/HBoxContainer"]
+[node name="ClearButton" type="Button" parent="CanvasLayer/HBoxContainer" unique_id=9997706]
 layout_mode = 2
 text = "clear"
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=229132950]
 environment = SubResource("Environment_r6scx")
-compositor = SubResource("Compositor_j3jap")
+camera_attributes = SubResource("CameraAttributesPractical_mckeo")
 script = ExtResource("12_hsw1i")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1757729023]
 transform = Transform3D(1, 0, 0, 0, 0.35059968, 0.9365254, 0, -0.9365254, 0.35059968, 0, 0, 0)
 
-[node name="RigidBody3D" type="StaticBody3D" parent="."]
+[node name="RigidBody3D" type="StaticBody3D" parent="." unique_id=1961197869]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D" unique_id=1919021371]
 transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
 shape = SubResource("SphereShape3D_w8xxa")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D/CollisionShape3D"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D/CollisionShape3D" unique_id=1991908533]
 mesh = SubResource("SphereMesh_aa0ni")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_dgpyu")
 
-[node name="CubeSpawner" type="Node3D" parent="."]
+[node name="CubeSpawner" type="Node3D" parent="." unique_id=1096213360]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18.770802, 0)
 script = ExtResource("1_aa0ni")
 spawn_at_start = false
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=345321432]
 transform = Transform3D(-0.76206297, -0.4217897, 0.4912774, 0, 0.7587261, 0.6514098, -0.6475029, 0.49641526, -0.5781971, 11.660009, 16.856941, -13.644352)
 script = ExtResource("11_e2kve")
 initial_mouse_mode = 0
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1891666167]
 transform = Transform3D(-0.4757305, -0.28827983, 0.8310086, 0.05848995, 0.93230784, 0.35690486, -0.8776444, 0.2183962, -0.4266658, 4.7730637, 8.587922, -9.7421)
 mesh = SubResource("QuadMesh_74s67")
 surface_material_override/0 = SubResource("StandardMaterial3D_xoery")

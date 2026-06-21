@@ -14,6 +14,10 @@ uniform float sampling_error_threshold = 0.1;
 
 uniform float fade_in = 1;
 
+uniform float blur_intensity;
+
+uniform float rolling_shutter_amount = 1.0;
+
 
 //https://www.shadertoy.com/view/fdtfWM
 vec3 rotate(float angle, vec3 axis, vec3 point) // NOTE: axis must be unit!
@@ -55,11 +59,13 @@ void fragment() {
 	
 	float weight = 0.;
 	
-	float alpha_weight = 0.;
+	float alpha_weight = 1e-8;
 	
 	vec4 sum = vec4(0);
 	
 	float squared_sampling_error_threshold = max(sampling_error_threshold * sampling_error_threshold, EPSILON);
+	
+	float rolling_shutter_uv_amount = SCREEN_UV.y * rolling_shutter_amount;
 	
 	for(int i = 0; i < sample_count; i++)
 	{
@@ -67,7 +73,7 @@ void fragment() {
 		
 		float t = mix(-0.5, 0.5, ti);
 		
-		float angle = t * rotation_speed;
+		float angle = (t * blur_intensity + rolling_shutter_uv_amount) * rotation_speed;
 		
 		vec3 node_rotated_sample = rotate(angle, view_rotation_axis, node_relative_position);
 		

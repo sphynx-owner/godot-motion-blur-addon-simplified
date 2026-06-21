@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://cvrlvguy5hibg"]
+[gd_scene format=3 uid="uid://cvrlvguy5hibg"]
 
 [ext_resource type="Script" uid="uid://cq6foek2tewwe" path="res://benchmarks/race_track/race_track.gd" id="1_yxadb"]
 [ext_resource type="PackedScene" uid="uid://cufewixnl0wk7" path="res://benchmarks/option_slider.tscn" id="2_qon7d"]
@@ -6,17 +6,6 @@
 [ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="4_4ncjf"]
 [ext_resource type="Script" uid="uid://bqetsc5r7v7oo" path="res://benchmarks/race_track/poles_generator.gd" id="5_4e24t"]
 [ext_resource type="PackedScene" uid="uid://b4x4fpfr80baw" path="res://benchmarks/race_track/assets/pole.tscn" id="6_p38i3"]
-[ext_resource type="Resource" uid="uid://bkudf8hl37ho2" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_blur_stage.tres" id="7_yxadb"]
-[ext_resource type="Resource" uid="uid://cvb65hfs2lrxo" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_neighbor_max_stage.tres" id="8_ov04b"]
-[ext_resource type="Resource" uid="uid://bidsfymvdyhek" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_overlay_stage.tres" id="9_8c728"]
-[ext_resource type="Resource" uid="uid://oekvkjd75764" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/pre_blur_processing_stage.tres" id="10_yxadb"]
-[ext_resource type="Script" uid="uid://c5jewnyvlca7j" path="res://addons/sphynx_motion_blur_toolkit/guertin/guertin_motion_blur.gd" id="11_5kn4v"]
-[ext_resource type="Resource" uid="uid://dipvwksvqb3dm" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_x_stage.tres" id="12_n3j62"]
-[ext_resource type="Resource" uid="uid://bxfg45ubc2pv7" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/guertin_tile_max_y_stage.tres" id="13_jhsix"]
-[ext_resource type="Resource" uid="uid://dw0r1gbmf1hrb" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/shader_stages/debug_overlay_shader_stage.tres" id="14_d4thr"]
-[ext_resource type="Resource" uid="uid://ca45noqewsyvp" path="res://addons/sphynx_motion_blur_toolkit/guertin/shader_stages/old_guertin_blur_stage.tres" id="14_lb6vi"]
-[ext_resource type="Resource" uid="uid://c8ulad7utgrg7" path="res://addons/sphynx_motion_blur_toolkit/pre_blur_processing/shader_stages/old_pre_blur_processing_stage.tres" id="15_4ncjf"]
-[ext_resource type="Script" uid="uid://bi6xhl7lpiu4n" path="res://addons/sphynx_enhanced_compositor_toolkit/debug/post_process_debug.gd" id="15_jv5im"]
 
 [sub_resource type="Curve3D" id="Curve3D_7l2kl"]
 closed = true
@@ -37,64 +26,15 @@ background_mode = 2
 sky = SubResource("Sky_4x5hm")
 sdfgi_enabled = true
 
-[sub_resource type="CompositorEffect" id="CompositorEffect_lb6vi"]
-resource_local_to_scene = false
-resource_name = ""
-enabled = true
-effect_callback_type = 4
-needs_motion_vectors = true
-needs_normal_roughness = false
-script = ExtResource("11_5kn4v")
-samples = 4
-debug = true
-shader_stages/blur_stage = ExtResource("7_yxadb")
-shader_stages/overlay_stage = ExtResource("9_8c728")
-shader_stages/tile_max_x_stage = ExtResource("12_n3j62")
-shader_stages/tile_max_y_stage = ExtResource("13_jhsix")
-shader_stages/neighbor_max_stage = ExtResource("8_ov04b")
-shader_stages/pre_blur_processor_stage = ExtResource("10_yxadb")
-metadata/_custom_type_script = "uid://c5jewnyvlca7j"
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_0dk4y"]
+motion_blur_enabled = true
 
-[sub_resource type="CompositorEffect" id="CompositorEffect_4e24t"]
-resource_local_to_scene = false
-resource_name = ""
-enabled = false
-effect_callback_type = 4
-needs_motion_vectors = true
-needs_normal_roughness = false
-script = ExtResource("11_5kn4v")
-blur_stage = ExtResource("14_lb6vi")
-pre_blur_processor_stage = ExtResource("15_4ncjf")
-debug = true
-shader_stages/blur_stage = ExtResource("14_lb6vi")
-shader_stages/overlay_stage = ExtResource("9_8c728")
-shader_stages/tile_max_x_stage = ExtResource("12_n3j62")
-shader_stages/tile_max_y_stage = ExtResource("13_jhsix")
-shader_stages/neighbor_max_stage = ExtResource("8_ov04b")
-shader_stages/pre_blur_processor_stage = ExtResource("15_4ncjf")
-metadata/_custom_type_script = "uid://c5jewnyvlca7j"
-
-[sub_resource type="CompositorEffect" id="CompositorEffect_nsrtd"]
-resource_local_to_scene = false
-resource_name = ""
-enabled = true
-effect_callback_type = 4
-needs_motion_vectors = false
-needs_normal_roughness = false
-script = ExtResource("15_jv5im")
-debug = true
-shader_stages/overlay_stage = ExtResource("14_d4thr")
-metadata/_custom_type_script = "uid://bi6xhl7lpiu4n"
-
-[sub_resource type="Compositor" id="Compositor_3wliq"]
-compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_lb6vi"), SubResource("CompositorEffect_4e24t"), SubResource("CompositorEffect_nsrtd")])
-
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" unique_id=1063267377]
 script = ExtResource("1_yxadb")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=653192912]
 
-[node name="FocusControl" type="Control" parent="CanvasLayer"]
+[node name="FocusControl" type="Control" parent="CanvasLayer" unique_id=1704744795]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -103,17 +43,17 @@ grow_horizontal = 2
 grow_vertical = 2
 focus_mode = 2
 
-[node name="FoldableContainer" type="FoldableContainer" parent="CanvasLayer"]
+[node name="FoldableContainer" type="FoldableContainer" parent="CanvasLayer" unique_id=1034956004]
 custom_minimum_size = Vector2(1000, 0)
 offset_right = 24.0
 offset_bottom = 32.0
 folded = true
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/FoldableContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/FoldableContainer" unique_id=66466714]
 visible = false
 layout_mode = 2
 
-[node name="SpeedOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_qon7d")]
+[node name="SpeedOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" unique_id=1117091391 node_paths=PackedStringArray("target_node") instance=ExtResource("2_qon7d")]
 option_name = "speed"
 target_node = NodePath("../../../..")
 _custom_property_list_values = Dictionary[String, Variant]({
@@ -147,7 +87,7 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "light_mask": 1,
 "localize_numeral_system": true,
 "material": null,
-"max_value": 1000.0,
+"max_value": 10000.0,
 "min_value": 0.0,
 "modulate": Color(1, 1, 1, 1),
 "mouse_behavior_recursive": 0,
@@ -191,10 +131,10 @@ _custom_property_list_values = Dictionary[String, Variant]({
 "z_as_relative": true,
 "z_index": 0
 })
-max_value = 1000.0
+max_value = 10000.0
 step = 10.0
 
-[node name="HOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_qon7d")]
+[node name="HOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" unique_id=844951549 node_paths=PackedStringArray("target_node") instance=ExtResource("2_qon7d")]
 option_name = "h_offset"
 target_node = NodePath("../../../../Path3D/PathFollow3D")
 _custom_property_list_values = Dictionary[String, Variant]({
@@ -276,7 +216,7 @@ min_value = -50.0
 max_value = 50.0
 step = 0.0
 
-[node name="VOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" node_paths=PackedStringArray("target_node") instance=ExtResource("2_qon7d")]
+[node name="VOffsetOptionSlider" parent="CanvasLayer/FoldableContainer/VBoxContainer" unique_id=1383246897 node_paths=PackedStringArray("target_node") instance=ExtResource("2_qon7d")]
 option_name = "v_offset"
 target_node = NodePath("../../../../Path3D/PathFollow3D")
 _custom_property_list_values = Dictionary[String, Variant]({
@@ -358,7 +298,7 @@ min_value = -50.0
 max_value = 50.0
 step = 0.0
 
-[node name="TrackCSGPolygon" type="CSGPolygon3D" parent="."]
+[node name="TrackCSGPolygon" type="CSGPolygon3D" parent="." unique_id=455095919]
 material_override = ExtResource("3_lb6vi")
 use_collision = true
 polygon = PackedVector2Array(-50, 0, -50, 1, 0, 1, 50, 1, 50, 0, 0, 0)
@@ -374,34 +314,34 @@ path_continuous_u = true
 path_u_distance = 10.0
 path_joined = true
 
-[node name="Path3D" type="Path3D" parent="."]
+[node name="Path3D" type="Path3D" parent="." unique_id=1177632641]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10000, 0, -10000)
 curve = SubResource("Curve3D_7l2kl")
 
-[node name="PathFollow3D" type="PathFollow3D" parent="Path3D"]
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D" unique_id=623021659]
 unique_name_in_owner = true
 transform = Transform3D(-0.79999936, 0, -0.5999997, 0, 0.9999989, 0, 0.5999999, 0, -0.7999991, 8164.4497, 43.605583, 15716.652)
 
-[node name="CSGBox3D" type="CSGBox3D" parent="Path3D/PathFollow3D"]
+[node name="CSGBox3D" type="CSGBox3D" parent="Path3D/PathFollow3D" unique_id=418759384]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 size = Vector3(3, 1, 8)
 
-[node name="Camera3D" type="Camera3D" parent="Path3D/PathFollow3D/CSGBox3D"]
+[node name="Camera3D" type="Camera3D" parent="Path3D/PathFollow3D/CSGBox3D" unique_id=884405847]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.03947e-13, 3.65888, 9.47645)
 far = 40000.0
 script = ExtResource("4_4ncjf")
 
-[node name="PoleGenerator" type="Node3D" parent="Path3D" node_paths=PackedStringArray("path")]
+[node name="PoleGenerator" type="Node3D" parent="Path3D" unique_id=246945892 node_paths=PackedStringArray("path")]
 script = ExtResource("5_4e24t")
 path = NodePath("..")
 pole_scene = ExtResource("6_p38i3")
 metadata/_custom_type_script = "uid://bqetsc5r7v7oo"
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=90400409]
 environment = SubResource("Environment_pxnv4")
-compositor = SubResource("Compositor_3wliq")
+camera_attributes = SubResource("CameraAttributesPractical_0dk4y")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1766517879]
 transform = Transform3D(0.363734, -0.53967, 0.759245, 0, 0.815076, 0.579355, -0.931503, -0.210731, 0.296471, 0, 0, 0)
 shadow_enabled = true
 directional_shadow_max_distance = 1500.0

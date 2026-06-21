@@ -32,7 +32,7 @@ var nearest_sampler : RID
 
 var context: StringName = "PostProcess"
 
-var _all_shader_stages : Dictionary
+var _all_shader_stages : Dictionary[ShaderStageResource, int]
 
 var debug_1 : String = "debug_1"
 var debug_2 : String = "debug_2"
@@ -48,14 +48,6 @@ var all_debug_images : Array[RID]
 var _set_gate: bool = true
 
 #region static functions
-
-static func static_free_shader_stage(in_rd: RenderingDevice, shader_stage_resource: ShaderStageResource):
-	if in_rd.compute_pipeline_is_valid(shader_stage_resource.pipeline):
-		in_rd.free_rid(shader_stage_resource.pipeline)
-		shader_stage_resource.pipeline = RID()
-	if shader_stage_resource.shader.is_valid():
-		in_rd.free_rid(shader_stage_resource.shader)
-		shader_stage_resource.shader = RID()
 
 #endregion
 
@@ -74,51 +66,7 @@ func _notification(what):
 		if nearest_sampler.is_valid():
 			rd.free_rid(nearest_sampler)
 		for shader_stage in _all_shader_stages:
-			static_free_shader_stage(rd, shader_stage)
-
-
-func _get_property_list() -> Array[Dictionary]:
-	var property_list: Array[Dictionary] = _get_shader_stage_properties()
-	property_list.push_front(
-		{
-			name = shader_stages_category,
-			type = TYPE_NIL,
-			hint_string = shader_stages_category_prefix,
-			usage = PROPERTY_USAGE_GROUP
-		}
-	)
-	return property_list
-
-
-func _set(property: StringName, value: Variant) -> bool:
-	if property.begins_with(shader_stages_category_prefix):
-		var trimmed_property_name: String = property.trim_prefix(shader_stages_category_prefix)
-		var current_shader_stage: ShaderStageResource = get(trimmed_property_name)
-		
-		free_shader_stage(current_shader_stage)
-		
-		if current_shader_stage and current_shader_stage.changed.is_connected(_generate_shader_stage):
-			current_shader_stage.changed.disconnect(_generate_shader_stage)
-		
-		set(trimmed_property_name, value)
-		
-		current_shader_stage = value
-		
-		_generate_shader_stage(weakref(current_shader_stage))
-		
-		if current_shader_stage and !current_shader_stage.changed.is_connected(_generate_shader_stage):
-			current_shader_stage.changed.connect(_generate_shader_stage.bind(weakref(current_shader_stage)))
-		
-		return true
-	
-	return false
-
-
-func _get(property: StringName) -> Variant:
-	if property.begins_with(shader_stages_category_prefix):
-		return get(property.trim_prefix(shader_stages_category_prefix))
-	
-	return null
+			shader_stage.free_rids()
 
 
 func _render_callback(p_effect_callback_type, p_render_data):
@@ -171,16 +119,6 @@ func _render_callback_2(render_size : Vector2i, render_scene_buffers : RenderSce
 #endregion
 
 #region public functions
-
-func setup_shader_stage(shader_stage : ShaderStageResource):
-	_generate_shader_stage(weakref(shader_stage))
-
-
-func free_shader_stage(shader_stage : ShaderStageResource):
-	if !rd:
-		return
-	
-	static_free_shader_stage(rd, shader_stage)
 
 
 func ensure_texture(texture_name : StringName, render_scene_buffers : RenderSceneBuffersRD, texture_format : RenderingDevice.DataFormat = RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT, render_size_multiplier : Vector2 = Vector2(1, 1)) -> bool:
@@ -253,6 +191,9 @@ func get_push_constants(
 
 
 func dispatch_stage(stage : ShaderStageResource, uniforms : Array[RDUniform], push_constants : PackedByteArray, dispatch_size : Vector3i, label : String = "DefaultLabel", view : int = 0, color : Color = Color(1, 1, 1, 1)):
+	if !stage.is_generated():
+		_generate_shader_stage(stage)
+	
 	rd.draw_command_begin_label(label + " " + str(view), color)
 	
 	var debug_uniforms : Array[RDUniform]
@@ -314,39 +255,20 @@ func _initialize_compute():
 	_generate_all_shader_stages()
 
 
-func _get_shader_stage_properties() -> Array[Dictionary]:
-	var new_property_list: Array[Dictionary]
-	for property: Dictionary in (get_script() as GDScript).get_script_property_list():
-		if property.class_name == &"ShaderStageResource":
-			new_property_list.append(
-				{
-					name = shader_stages_category_prefix + property.name,
-					type = TYPE_OBJECT,
-					hint =  PROPERTY_HINT_RESOURCE_TYPE,
-					hint_string = "ShaderStageResource",
-				}
-			)
-	
-	return new_property_list
-
-
 func _update_all_shader_stages():
+	for shader_stage: ShaderStageResource in _all_shader_stages.keys():
+		shader_stage.free_rids()
+	
 	_all_shader_stages.clear()
-	var all_shader_stage_properties: Array[Dictionary] = _get_shader_stage_properties()
-	for shader_stage_property: Dictionary in all_shader_stage_properties:
-		var shader_stage: ShaderStageResource = get(shader_stage_property.name)
-		shader_stage.changed.connect(_generate_shader_stage.bind(weakref(shader_stage)))
-		_all_shader_stages[shader_stage] = 0
 
 
 func _generate_all_shader_stages():
 	for shader_stage: ShaderStageResource in _all_shader_stages.keys():
-		_generate_shader_stage(weakref(shader_stage))
+		_generate_shader_stage(shader_stage)
 
 
-func _generate_shader_stage(shader_stage_weak_ref : WeakRef):
-	var shader_stage: ShaderStageResource = shader_stage_weak_ref.get_ref()
-	free_shader_stage(shader_stage)
+func _generate_shader_stage(shader_stage : ShaderStageResource):
+	shader_stage.free_rids()
 	
 	var shader_spirv : RDShaderSPIRV
 	if debug and !Engine.is_editor_hint():

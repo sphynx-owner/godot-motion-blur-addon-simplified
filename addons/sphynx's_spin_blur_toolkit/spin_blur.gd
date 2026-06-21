@@ -16,6 +16,12 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 			if target:
 				target.layers = layers_to_set
 
+@export var layer: int = 2:
+	set(value):
+		layer = value
+		
+		_layer_mask = 1 << (layer - 1)
+
 @export var target: MeshInstance3D:
 	set(value):
 		target = value
@@ -64,6 +70,10 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 
 @export var sample_count := 8
 
+@export var blur_intensity: float = 1.0
+
+@export var rolling_shutter_amount: float = 0.0
+
 @export_flags_3d_render var layers_to_set = 1
 
 @export_group("debug")
@@ -89,17 +99,19 @@ var _activation_threshold_setter_gate := false
 
 @export var neighbor_max: bool = false
 
+var _layer_mask: int = 1 << (layer - 1)
+
 var _viewport: SubViewport
 
 var _camera: Camera3D
 
-var _clone: MeshInstance3D
+#var _clone: MeshInstance3D
 
 var _enveloping_node: MeshInstance3D
 
-var _environment: WorldEnvironment
+#var _environment: WorldEnvironment
 
-var _lights: Array[Node]
+#var _lights: Array[Node]
 
 var _past_global_transform: Transform3D
 
@@ -112,9 +124,11 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
+	#get_viewport().get_camera_3d().cull_mask = 1
+	
 	_viewport = SubViewport.new()
 	
-	_viewport.own_world_3d = true
+	#_viewport.own_world_3d = true
 	
 	_viewport.transparent_bg = true
 	
@@ -128,6 +142,8 @@ func _ready() -> void:
 	
 	_camera = Camera3D.new()
 	
+	_camera.cull_mask = _layer_mask
+	
 	_camera.compositor = Compositor.new()
 	
 	_camera.compositor.compositor_effects = [DepthCompositorEffect.new()]
@@ -138,9 +154,9 @@ func _ready() -> void:
 	
 	_viewport.add_child(_camera)
 	
-	_clone = MeshInstance3D.new()
-	
-	_viewport.add_child(_clone)
+	#_clone = MeshInstance3D.new()
+	#
+	#_viewport.add_child(_clone)
 	
 	_enveloping_node = MeshInstance3D.new()
 	
@@ -172,11 +188,13 @@ func _ready() -> void:
 	# So that the viewport's view does not lag a frame behind the reference camera
 	process_priority = 1
 	
-	_environment = WorldEnvironment.new()
-	
-	_viewport.add_child(_environment)
+	#_environment = WorldEnvironment.new()
+	#
+	#_viewport.add_child(_environment)
 	
 	_update_environment.call_deferred()
+	
+	target.layers |= _layer_mask
 
 
 func _process(delta: float) -> void:
@@ -185,7 +203,7 @@ func _process(delta: float) -> void:
 	
 	_update_viewport()
 	_update_camera()
-	_update_clone()
+	#_update_clone()
 	
 	if target_rotation_axis.is_zero_approx():
 		return
@@ -205,6 +223,15 @@ func _scan_for_lighting(node: Node, viewport_to_ignore: Viewport, result: Array[
 
 
 func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
+	#set_shader_parameter_recursive(
+		#_enveloping_node.material_override,
+		#"depth_texture", 
+		#null,
+	#)
+	#await RenderingServer.frame_post_draw
+	#await RenderingServer.frame_post_draw
+	#await RenderingServer.frame_post_draw
+	
 	set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"depth_texture", 
@@ -243,49 +270,50 @@ func _update_camera() -> void:
 
 
 func _update_environment() -> void:
-	for light in _lights:
-		light.queue_free()
+	#for light in _lights:
+		#light.queue_free()
+	#
+	#_lights.clear()
 	
-	_lights.clear()
-	
-	_environment.environment = get_world_3d().environment
+	#_environment.environment = get_world_3d().environment
 	
 	var lights_to_copy: Array[Node]
 	
 	_scan_for_lighting(get_viewport(), get_viewport(), lights_to_copy)
 	
 	for light: Node in lights_to_copy:
-		print("addin a light")
-		var light_duplicate: Light3D = light.duplicate()
-		
-		_viewport.add_child(light_duplicate)
-		
-		light_duplicate.global_transform = light.global_transform
-		
-		_lights.append(light_duplicate)
+		light.layer |= _layer_mask
+		#print("addin a light")
+		#var light_duplicate: Light3D = light.duplicate()
+		#
+		#_viewport.add_child(light_duplicate)
+		#
+		#light_duplicate.global_transform = light.global_transform
+		#
+		#_lights.append(light_duplicate)
 
 
-func _update_clone() -> void:
-	if !target:
-		return
-	
-	_clone.global_transform = target.global_transform
-	
-	if !target.mesh:
-		_clone.mesh = null
-		return
-	
-	_clone.mesh = target.mesh
-	
-	for i: int in range(target.get_surface_override_material_count()):
-		_clone.set_surface_override_material(
-			i, 
-			target.get_surface_override_material(i)
-		)
-	
-	_clone.material_override = target.material_override
-	
-	_clone.material_overlay = target.material_overlay
+#func _update_clone() -> void:
+	#if !target:
+		#return
+	#
+	#_clone.global_transform = target.global_transform
+	#
+	#if !target.mesh:
+		#_clone.mesh = null
+		#return
+	#
+	#_clone.mesh = target.mesh
+	#
+	#for i: int in range(target.get_surface_override_material_count()):
+		#_clone.set_surface_override_material(
+			#i, 
+			#target.get_surface_override_material(i)
+		#)
+	#
+	#_clone.material_override = target.material_override
+	#
+	#_clone.material_overlay = target.material_overlay
 
 
 func _update_enveloping_node() -> void:
@@ -303,6 +331,12 @@ func _update_enveloping_node() -> void:
 			"enabled", 
 			1 if draw_debug else 0
 		)
+	
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"rolling_shutter_amount", 
+		rolling_shutter_amount
+	)
 	
 	set_shader_parameter_recursive(
 		_enveloping_node.material_override,
@@ -340,10 +374,16 @@ func _update_enveloping_node() -> void:
 		rotation_speed
 	)
 	
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"blur_intensity", 
+		blur_intensity,
+	)
+	
 	if abs(rotation_speed) > activation_speed_upper_threshold:
-		target.layers = 0
+		target.layers = _layer_mask
 	else:
-		target.layers = layers_to_set
+		target.layers = layers_to_set | _layer_mask
 	
 	if abs(rotation_speed) > activation_speed_lower_threshold or (draw_debug and Engine.is_editor_hint()):
 		visible = true
@@ -389,10 +429,10 @@ func set_shader_parameter_recursive(
 	parameter: String, 
 	value: Variant
 ) -> void:
-	material.set_shader_parameter(parameter, value)
-	
 	if material.next_pass and material.next_pass is ShaderMaterial:
 		set_shader_parameter_recursive(material.next_pass, parameter, value)
+	
+	material.set_shader_parameter(parameter, value)
 
 
 func _generate_enveloping_mesh() -> void:

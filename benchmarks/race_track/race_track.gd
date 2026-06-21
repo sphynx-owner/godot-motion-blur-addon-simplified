@@ -6,6 +6,8 @@ extends Node3D
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	pass # Replace with function body.
+	
+	Engine.time_scale = 0.02
 
 
 func set_speed(value: float) -> void:

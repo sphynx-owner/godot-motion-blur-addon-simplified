@@ -6,11 +6,17 @@ class_name DepthCompositorEffect
 signal texture_generated(depth_texture: Texture2DRD)
 
 # This contains our depth texture compute shader stage
-@export var depth_texture_stage: ShaderStageResource = preload("res://addons/sphynx's_spin_blur_toolkit/compositor/depth_texture_stage.tres")
+var depth_texture_stage: ShaderStageResource 
 
+var past_texture: RID
 var texture: RID
 var texture_format := RDTextureFormat.new()
 var texture_changed := false
+
+
+func _init():
+	super()
+	depth_texture_stage = ShaderStageResource.new(load("res://addons/sphynx's_spin_blur_toolkit/compositor/depth_compositor_compute.glsl"))
 
 
 # Wrapper to _render_callback introduced by the addon 
@@ -73,13 +79,15 @@ func _build_texture(width: int, height: int):
 	texture_format.height = height
 	texture_format.format = RenderingDevice.DATA_FORMAT_R32_SFLOAT
 	texture_format.usage_bits = RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT
+	
 	var new_texture = rd.texture_create(texture_format, RDTextureView.new())
 	assert(new_texture.is_valid())
-
+	
 	# free the old texture if there was one
 	if texture.is_valid():
-		rd.free_rid(texture)
+		rd.free_rid(past_texture)
+		past_texture = texture
 		texture = RID()
-
+	
 	# save the new texture rid
 	texture = new_texture
