@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=4 uid="uid://bub2bkwcsnlv5"]
+[gd_scene format=4 uid="uid://bub2bkwcsnlv5"]
 
 [ext_resource type="ArrayMesh" uid="uid://btx823mebm20k" path="res://benchmarks/spin_blur/PropellerMeshCorrected.obj" id="1_tbxl8"]
 [ext_resource type="Script" uid="uid://djkmewposiph4" path="res://addons/sphynx's_spin_blur_toolkit/spin_blur.gd" id="2_lwe6v"]
@@ -21,13 +21,13 @@ _surfaces = [{
 }]
 script = ExtResource("3_4dflr")
 
-[node name="PropellerMeshCorrected" type="MeshInstance3D"]
+[node name="PropellerMeshCorrected" type="MeshInstance3D" unique_id=239604944]
 transform = Transform3D(0.01, 0, 0, 0, -0.0086193, 0.0050702686, 0, -0.0050702686, -0.0086193, 0, 0, 0)
-layers = 0
+layers = 2
 mesh = ExtResource("1_tbxl8")
 surface_material_override/0 = SubResource("StandardMaterial3D_x84g2")
 
-[node name="SpinBlur" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+[node name="SpinBlur" type="Node3D" parent="." unique_id=1006049643 node_paths=PackedStringArray("target")]
 process_priority = 1
 script = ExtResource("2_lwe6v")
 target = NodePath("..")

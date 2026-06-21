@@ -16,7 +16,7 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 			if target:
 				target.layers = layers_to_set
 
-@export var layer: int = 2:
+@export var layer: int = 3:
 	set(value):
 		layer = value
 		
@@ -119,10 +119,10 @@ func _exit_tree() -> void:
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
-		EditorInterface.get_editor_viewport_3d().get_camera_3d().cull_mask = 1
+		EditorInterface.get_editor_viewport_3d().get_camera_3d().cull_mask = UINT32_MAX & ~_layer_mask
 		
 	else:
-		get_tree().root.get_viewport().get_camera_3d().cull_mask = 1
+		get_tree().root.get_viewport().get_camera_3d().cull_mask = UINT32_MAX & ~_layer_mask
 	
 	_viewport = SubViewport.new()
 	

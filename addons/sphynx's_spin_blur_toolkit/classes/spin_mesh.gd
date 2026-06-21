@@ -33,13 +33,11 @@ static func generate(
 		if local_vertex.x > max_radius:
 			max_radius = local_vertex.x
 	
-	max_radius += 0.01
-	
 	var normalized_vertices: PackedVector2Array
 	
 	normalized_vertices.resize(local_vertices.size())
 	
-	var normalization_factor: float = 1 / max_radius
+	var normalization_factor: float = 1.0 / max(max_radius, 0.0001)
 	
 	for i in range(local_vertices.size()):
 		normalized_vertices[i] = local_vertices[i] * Vector2(normalization_factor, 1)
