@@ -40,13 +40,23 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 
 var _activation_threshold_setter_gate := false
 
+## Amount of motion blur samples. Higher values result in higher quality and smoothness
+## at the cost of performance.
 @export var sample_count := 8
 
-@export var blur_intensity: float = 1.0
+## Higher values mean grater blur angle for the same rotation speed. At 1.0
+## the blur would span the rotation step fully, at 0.5, only half the rotation
+## step would be blurred along, and so on. 
+@export_range(0.0, 1.0, 0.001, "or_greater") var blur_intensity: float = 1.0
 
+## The higher the value, the more pronounced the rolling shutter effect. Works independently
+## from [member blur_intensity], i.e. you can have rolling shutter without blur if you want.
+## Applied in terms of rotation_speed * screen_height_fraction_offset * rolling_shutter_amount.
 @export var rolling_shutter_amount: float = 0.0
 
-@export_tool_button("refresh environment") var refresh_environment = _update_environment
+## Detect lighting-related nodes and ensure they are visible under
+## [member reserved_render_layer] render layer.
+@export_tool_button("Capture Lighting") var _capture_lighting = capture_lighting
 
 @export var enveloping_mesh: Mesh:
 	set = _set_enveloping_mesh
@@ -154,8 +164,6 @@ func _ready() -> void:
 	# So that the viewport's view does not lag a frame behind the reference camera
 	process_priority = 1
 	
-	_update_environment.call_deferred()
-	
 	target.layers |= _layer_mask
 	
 	_on_depth_texture_generated(_camera.compositor.compositor_effects[0].texture_2d_rd)
@@ -186,12 +194,6 @@ func _scan_for_lighting(node: Node, viewport_to_ignore: Viewport, result: Array[
 
 
 func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
-	set_shader_parameter_recursive(
-		_enveloping_node.material_override,
-		"depth_texture", 
-		null
-	)
-	await RenderingServer.frame_post_draw
 	set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"depth_texture", 
@@ -230,7 +232,7 @@ func _update_camera() -> void:
 	_camera.projection = reference_camera.projection
 
 
-func _update_environment() -> void:
+func capture_lighting() -> void:
 	var lights_to_copy: Array[Node]
 	
 	_scan_for_lighting(get_viewport(), get_viewport(), lights_to_copy)
@@ -315,7 +317,7 @@ func _update_enveloping_node() -> void:
 	
 	var fade_in_coef: float = clamp(
 		(abs(rotation_speed) - activation_speed_threshold_lower) / \
-		(activation_speed_threshold_upper - activation_speed_threshold_lower), 
+		max(0.0001, activation_speed_threshold_upper - activation_speed_threshold_lower), 
 		0, 
 		1
 	)

@@ -136,14 +136,16 @@ func _build_texture(width: int, height: int):
 	# save the new texture rid
 	texture = new_texture
 	
+	# HACK: We wait with both releasing the old texture, and replacing the
+	# texture_rd_rid, since it seems to clash with godot's rendering pipeline otherwise
 	await RenderingServer.frame_post_draw
-	
-	# free the old texture if there was one
-	if old_texture.is_valid():
-		rd.free_rid(old_texture)
 	
 	texture_2d_rd.texture_rd_rid = RID()
 	
 	texture_2d_rd.texture_rd_rid = texture
+	
+	# free the old texture if there was one
+	if old_texture.is_valid():
+		rd.free_rid(old_texture)
 	
 	texture_generated.emit(texture_2d_rd)
