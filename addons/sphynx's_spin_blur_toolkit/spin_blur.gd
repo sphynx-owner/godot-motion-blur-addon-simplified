@@ -99,10 +99,6 @@ var _activation_threshold_setter_gate := false
 
 var _layer_mask: int = 1 << (reserved_render_layer - 1)
 
-var _viewport: SubViewport
-
-var _camera: Camera3D
-
 var _enveloping_node: MeshInstance3D
 
 var _past_global_transform: Transform3D
@@ -110,43 +106,28 @@ var _past_global_transform: Transform3D
 var _debug_material: ShaderMaterial
 
 
+func _enter_tree() -> void:
+	SpinBlurHelpers.register_spin_blur(self)
+
+
 func _exit_tree() -> void:
+	SpinBlurHelpers.unregister_spin_blur(self)
+	
 	if target:
 		target.layers = layers_to_revert
 
 
 func _ready() -> void:
-	if Engine.is_editor_hint():
-		EditorInterface.get_editor_viewport_3d().get_camera_3d().cull_mask = UINT32_MAX & ~_layer_mask
-		
-	else:
-		get_tree().root.get_viewport().get_camera_3d().cull_mask = UINT32_MAX & ~_layer_mask
-	
-	_viewport = SubViewport.new()
-	
-	_viewport.transparent_bg = true
-	
-	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	
-	_viewport.use_hdr_2d = true
-	
-	_viewport.anisotropic_filtering_level = Viewport.ANISOTROPY_DISABLED
-	
-	add_child(_viewport)
-	
-	_camera = Camera3D.new()
-	
-	_camera.cull_mask = _layer_mask
-	
-	_camera.compositor = Compositor.new()
-	
-	_camera.compositor.compositor_effects = [DepthCompositorEffect.new()]
 	
 	_camera.compositor.compositor_effects[0].texture_generated.connect(
 		_on_depth_texture_generated
 	)
 	
-	_viewport.add_child(_camera)
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"screen_texture", 
+		_viewport.get_texture()
+	)
 	
 	_enveloping_node = MeshInstance3D.new()
 	
@@ -180,7 +161,7 @@ func _ready() -> void:
 	
 	target.layers |= _layer_mask
 	
-	_on_depth_texture_generated(_camera.compositor.compositor_effects[0].texture_2d_rd)
+	_on_depth_texture_generated(null)
 
 
 func _process(delta: float) -> void:
@@ -212,11 +193,6 @@ func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
 		_enveloping_node.material_override,
 		"depth_texture", 
 		depth_texture
-	)
-	set_shader_parameter_recursive(
-		_enveloping_node.material_override,
-		"screen_texture", 
-		_viewport.get_texture()
 	)
 
 

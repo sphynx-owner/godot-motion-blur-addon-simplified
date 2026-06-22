@@ -13,7 +13,6 @@ var nearest_sampler: RID
 
 var texture_format := RDTextureFormat.new()
 var texture: RID
-var texture_2d_rd := Texture2DRD.new()
 
 
 func _init():
@@ -140,7 +139,7 @@ func _build_texture(width: int, height: int):
 	# texture_rd_rid, since it seems to clash with godot's rendering pipeline otherwise
 	await RenderingServer.frame_post_draw
 	
-	texture_2d_rd.texture_rd_rid = RID()
+	var texture_2d_rd := Texture2DRD.new()
 	
 	texture_2d_rd.texture_rd_rid = texture
 	

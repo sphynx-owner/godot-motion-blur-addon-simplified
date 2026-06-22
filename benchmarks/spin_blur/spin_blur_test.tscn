@@ -13,6 +13,11 @@ sky_material = SubResource("ProceduralSkyMaterial_yjuqw")
 background_mode = 2
 sky = SubResource("Sky_gk5px")
 
+[sub_resource type="GDScript" id="GDScript_71scg"]
+
+[sub_resource type="Resource" id="Resource_71scg"]
+script = SubResource("GDScript_71scg")
+
 [node name="SpinBlurTest" type="Node3D" unique_id=1659955950]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1743318620]
@@ -39,18 +44,19 @@ transform = Transform3D(0.22552921, 0, 0.9742364, 0, 1, 0, -0.9742364, 0, 0.2255
 cull_mask = 4294967294
 script = ExtResource("4_8xabd")
 
-[node name="Node3D" type="Node3D" parent="." unique_id=1848511977]
+[node name="SubViewport" type="SubViewport" parent="." unique_id=447535989]
+metadata/spin_blur_metadata = SubResource("Resource_71scg")
+
+[node name="Node3D" type="Node3D" parent="SubViewport" unique_id=1848511977]
 script = ExtResource("3_71scg")
 
-[node name="PropellerMeshCorrected" parent="Node3D" unique_id=423918772 instance=ExtResource("6_wwfdt")]
+[node name="PropellerMeshCorrected" parent="SubViewport/Node3D" unique_id=423918772 instance=ExtResource("6_wwfdt")]
 transform = Transform3D(0.01, 0, 0, 0, -0.008687435, 0.0049526193, 0, -0.0049526193, -0.008687435, 0, 0, 0)
 layers = 4
-skeleton = NodePath("../..")
+skeleton = NodePath("../../..")
 
-[node name="SpinBlur" parent="Node3D/PropellerMeshCorrected" index="0" unique_id=1006049643]
+[node name="SpinBlur" parent="SubViewport/Node3D/PropellerMeshCorrected" index="0" unique_id=1006049643]
 transform = Transform3D(1, 0, 0, 0, -0.8687421, -0.49526247, 0, 0.49526247, -0.8687421, 0, 0, 0)
-blur_intensity = 0.0
-rolling_shutter_amount = 1.01
-override_rotation_speed = 3.142
+override_rotation_speed = 1.35
 
-[editable path="Node3D/PropellerMeshCorrected"]
+[editable path="SubViewport/Node3D/PropellerMeshCorrected"]
