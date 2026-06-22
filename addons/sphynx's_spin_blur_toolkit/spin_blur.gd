@@ -18,7 +18,9 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 ## A render layer reserved for the spin blur to do its thing. Multiple spin
 ## blurs can use the same render layer, with a slight caveat that if their targets
 ## overlap it can results in some artifacts.
-@export var reserved_render_layer: int = 3:
+## The value range is 3 - 20. Setting it to 1 would clash with the default render
+## layer, and setting it to 2 would break gizmos in the editor.
+@export_range(3, 20, 1) var reserved_render_layer: int = 3:
 	set = _set_layer
 
 ## When disabling/removing the spin blur, it will revent the render layers of
@@ -112,6 +114,8 @@ var _enabled: bool = false:
 		if _enabled == value:
 			return
 		
+		_enabled = value
+		
 		if _enabled:
 			_enable()
 			
@@ -187,8 +191,16 @@ func _process(delta: float) -> void:
 	_update_enveloping_node()
 
 
-func _update_enabled() -> void:
-	_enabled = is_node_ready() and enabled and target
+## Detects lighting-related nodes and ensure they are visible under
+## [member reserved_render_layer] render layer.
+func capture_lighting() -> void:
+	var lights_to_copy: Array[Node]
+	
+	_scan_for_lighting(get_viewport(), get_viewport(), lights_to_copy)
+	
+	for light: Node in lights_to_copy:
+		print(_layer_mask)
+		light.layers |= _layer_mask
 
 
 func _enable() -> void:
@@ -200,26 +212,50 @@ func _disable() -> void:
 	visible = false
 
 
-func _scan_for_lighting(node: Node, viewport_to_ignore: Viewport, result: Array[Node]) -> void:
-	if node is Viewport and node != viewport_to_ignore:
+func _scan_for_lighting(node: Node, parent_viewport: Viewport, result: Array[Node]) -> void:
+	if node is Viewport and node != parent_viewport:
 		return
 	
 	if node is Light3D:
 		result.append(node)
 	
 	for child in node.get_children():
-		_scan_for_lighting(child, viewport_to_ignore, result)
+		_scan_for_lighting(child, parent_viewport, result)
 
 
-## Detects lighting-related nodes and ensure they are visible under
-## [member reserved_render_layer] render layer.
-func capture_lighting() -> void:
-	var lights_to_copy: Array[Node]
+func _set_shader_parameter_recursive(
+	material: ShaderMaterial, 
+	parameter: String, 
+	value: Variant
+) -> void:
+	if material.next_pass and material.next_pass is ShaderMaterial:
+		_set_shader_parameter_recursive(material.next_pass, parameter, value)
 	
-	_scan_for_lighting(get_viewport(), get_viewport(), lights_to_copy)
+	material.set_shader_parameter(parameter, value)
+
+
+func _generate_enveloping_mesh() -> void:
+	if !target or !target.mesh:
+		push_error("invalid target or target mesh")
+		return
 	
-	for light: Node in lights_to_copy:
-		light.layers |= _layer_mask
+	if target_rotation_axis.is_zero_approx():
+		push_error("invalid rotation axis")
+		return
+	
+	enveloping_mesh = SpinMesh.generate(
+		target.mesh, 
+		target_rotation_axis, 
+		rings, 
+		radial_segments, 
+		radial_padding, 
+		depth_padding,
+	)
+
+
+func _update_enabled() -> void:
+	_enabled = is_node_ready() and enabled and target
+	print([is_node_ready(), !!enabled, !!target])
 
 
 func _update_enveloping_node() -> void:
@@ -234,13 +270,13 @@ func _update_enveloping_node() -> void:
 			1 if draw_debug else 0
 		)
 	
-	set_shader_parameter_recursive(
+	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"rolling_shutter_amount", 
 		rolling_shutter_amount
 	)
 	
-	set_shader_parameter_recursive(
+	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"sample_count", 
 		sample_count
@@ -250,7 +286,7 @@ func _update_enveloping_node() -> void:
 	
 	var target_rotation_vector : Vector3 = target_transform.orthonormalized().basis * target_rotation_axis
 	
-	set_shader_parameter_recursive(
+	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"local_rotation_axis",
 		 target_rotation_axis
@@ -267,13 +303,13 @@ func _update_enveloping_node() -> void:
 	if override_rotation_speed == 0.0 or !Engine.is_editor_hint() \
 	else override_rotation_speed
 	
-	set_shader_parameter_recursive(
+	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"rotation_speed", 
 		rotation_speed
 	)
 	
-	set_shader_parameter_recursive(
+	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"blur_intensity", 
 		blur_intensity,
@@ -298,7 +334,7 @@ func _update_enveloping_node() -> void:
 		1
 	)
 	
-	set_shader_parameter_recursive(
+	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"fade_in", 
 		fade_in_coef
@@ -325,41 +361,11 @@ func _update_enveloping_node() -> void:
 	_enveloping_node.global_basis.z.normalized() * target_transform.basis.z.length()
 
 
-func set_shader_parameter_recursive(
-	material: ShaderMaterial, 
-	parameter: String, 
-	value: Variant
-) -> void:
-	if material.next_pass and material.next_pass is ShaderMaterial:
-		set_shader_parameter_recursive(material.next_pass, parameter, value)
-	
-	material.set_shader_parameter(parameter, value)
-
-
-func _generate_enveloping_mesh() -> void:
-	if !target or !target.mesh:
-		push_error("invalid target or target mesh")
-		return
-	
-	if target_rotation_axis.is_zero_approx():
-		push_error("invalid rotation axis")
-		return
-	
-	enveloping_mesh = SpinMesh.generate(
-		target.mesh, 
-		target_rotation_axis, 
-		rings, 
-		radial_segments, 
-		radial_padding, 
-		depth_padding,
-	)
-
-
 func _update_viewport_texture() -> void:
 	if !is_node_ready():
 		return
 	
-	set_shader_parameter_recursive(
+	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"screen_texture",
 		_viewport.get_texture() if _viewport else null
@@ -375,7 +381,7 @@ func _update_depth_texture() -> void:
 	if _camera:
 		texture = _camera.compositor.compositor_effects[0].texture_2d_rd
 	
-	set_shader_parameter_recursive(
+	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"depth_texture", 
 		texture

@@ -78,7 +78,7 @@ static func initialize_new_render_layer(parent_viewport: Viewport, layer: int) -
 	
 	new_viewport.anisotropic_filtering_level = Viewport.ANISOTROPY_DISABLED
 	
-	parent_viewport.add_child(new_viewport)
+	parent_viewport.add_child.call_deferred(new_viewport)
 	
 	var new_camera = SpinBlurCamera.new()
 	
@@ -92,7 +92,7 @@ static func initialize_new_render_layer(parent_viewport: Viewport, layer: int) -
 	
 	new_camera.compositor.compositor_effects = [DepthCompositorEffect.new()]
 	
-	new_viewport.add_child(new_camera)
+	new_viewport.add_child.call_deferred(new_camera)
 
 
 static func discard_render_layer(parent_viewport: Viewport, layer: int) -> void:
