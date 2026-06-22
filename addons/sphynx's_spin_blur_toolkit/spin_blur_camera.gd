@@ -19,6 +19,8 @@ func _process(delta: float) -> void:
 	else:
 		reference_camera = parent_viewport.get_camera_3d()
 	
+	reference_camera.cull_mask &= ~cull_mask
+	
 	global_transform = reference_camera.global_transform
 	fov = reference_camera.fov
 	projection = reference_camera.projection

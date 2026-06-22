@@ -115,8 +115,6 @@ func _render_callback(p_effect_callback_type: EffectCallbackType, p_render_data:
 ## Note: this texture must be the same size as the depth texture, so we create
 ## it on demand.
 func _build_texture(width: int, height: int):
-	print("building output texture (", width, ", ", height, ")")
-	
 	# create our output texture
 	texture_format = RDTextureFormat.new()
 	texture_format.texture_type = RenderingDevice.TEXTURE_TYPE_2D

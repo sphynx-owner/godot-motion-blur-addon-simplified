@@ -44,11 +44,9 @@ script = ExtResource("3_71scg")
 
 [node name="PropellerMeshCorrected" parent="Node3D" unique_id=423918772 instance=ExtResource("6_wwfdt")]
 transform = Transform3D(0.01, 0, 0, 0, -0.008687435, 0.0049526193, 0, -0.0049526193, -0.008687435, 0, 0, 0)
-layers = 4
 skeleton = NodePath("../..")
 
 [node name="SpinBlur" parent="Node3D/PropellerMeshCorrected" index="0" unique_id=1006049643]
 transform = Transform3D(1, 0, 0, 0, -0.8687421, -0.49526247, 0, 0.49526247, -0.8687421, 0, 0, 0)
-override_rotation_speed = 1.025
 
 [editable path="Node3D/PropellerMeshCorrected"]

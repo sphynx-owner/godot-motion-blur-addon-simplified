@@ -46,7 +46,7 @@ var _activation_threshold_setter_gate := false
 
 ## Amount of motion blur samples. Higher values result in higher quality and smoothness
 ## at the cost of performance.
-@export var sample_count := 8
+@export_range(1, 32, 1, "or_greater") var sample_count := 8
 
 ## Higher values mean grater blur angle for the same rotation speed. At 1.0
 ## the blur would span the rotation step fully, at 0.5, only half the rotation
@@ -255,7 +255,6 @@ func _generate_enveloping_mesh() -> void:
 
 func _update_enabled() -> void:
 	_enabled = is_node_ready() and enabled and target
-	print([is_node_ready(), !!enabled, !!target])
 
 
 func _update_enveloping_node() -> void:
