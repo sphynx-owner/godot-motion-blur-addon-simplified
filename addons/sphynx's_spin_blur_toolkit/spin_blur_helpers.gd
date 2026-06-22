@@ -23,25 +23,38 @@ static func register_spin_blur(spin_blur: SpinBlur) -> void:
 	
 	meta_object.spin_blurs_by_layer.get(layer)[spin_blur] = true
 	
+	meta_object.layers_by_spin_blurs[spin_blur] = layer
+	
 	spin_blur._viewport = get_spin_blur_viewport(spin_blur)
 	spin_blur._camera = get_spin_blur_camera(spin_blur)
 
 
 static func unregister_spin_blur(spin_blur: SpinBlur) -> void:
+	if !is_spin_blur_registered(spin_blur):
+		push_error("cannot unregister an unregistered spin blur %s" % spin_blur)
+		return
+	
 	var parent_viewport: Viewport = spin_blur.get_viewport()
 	
 	var meta_object: SpinBlurHelperMetaObject = get_spin_blur_meta(parent_viewport)
 	
-	var layer: int = spin_blur.reserved_render_layer
+	var layer: int = meta_object.layers_by_spin_blurs[spin_blur]
 	
 	if !meta_object.spin_blurs_by_layer.has(layer):
 		push_error("spin blurs by layer missing layer %s, cannot remove" % [layer])
 		return
 	
+	meta_object.layers_by_spin_blurs.erase(spin_blur)
+	
 	meta_object.spin_blurs_by_layer.get(layer).erase(spin_blur)
 	
 	if meta_object.spin_blurs_by_layer.get(layer).is_empty():
 		discard_render_layer(parent_viewport, layer)
+
+
+static func sync_spin_blur_layer(spin_blur: SpinBlur) -> void:
+	unregister_spin_blur(spin_blur)
+	register_spin_blur(spin_blur)
 
 
 static func initialize_new_render_layer(parent_viewport: Viewport, layer: int) -> void:
@@ -73,7 +86,7 @@ static func initialize_new_render_layer(parent_viewport: Viewport, layer: int) -
 	
 	meta_object.cameras_by_layer.set(layer, new_camera)
 	
-	new_camera.cull_mask = meta_object.camera_cull_mask
+	new_camera.cull_mask = 1 << (layer - 1)
 	
 	new_camera.compositor = Compositor.new()
 	
@@ -114,15 +127,15 @@ static func get_spin_blur_meta(viewport: Viewport) -> SpinBlurHelperMetaObject:
 
 
 static func get_spin_blur_viewport(spin_blur: SpinBlur) -> SpinBlurViewport:
-	if !spin_blur.is_inside_tree():
-		push_error("spin blur %s is not inside tree, cannot get viewport" % [spin_blur])
+	if !is_spin_blur_registered(spin_blur):
+		push_error("spin blur %s is not registered, cannot get viewport" % [spin_blur])
 		return null
 	
 	var parent_viewport: Viewport = spin_blur.get_viewport()
 	
 	var meta_object: SpinBlurHelperMetaObject = get_spin_blur_meta(parent_viewport)
 	
-	var layer: int = spin_blur.reserved_render_layer
+	var layer: int = meta_object.layers_by_spin_blurs[spin_blur]
 	
 	if meta_object.viewports_by_layer.has(layer):
 		return meta_object.viewports_by_layer.get(layer)
@@ -131,20 +144,32 @@ static func get_spin_blur_viewport(spin_blur: SpinBlur) -> SpinBlurViewport:
 
 
 static func get_spin_blur_camera(spin_blur: SpinBlur) -> SpinBlurCamera:
-	if !spin_blur.is_inside_tree():
-		push_error("spin blur %s is not inside tree, cannot get camera" % [spin_blur])
+	if !is_spin_blur_registered(spin_blur):
+		push_error("spin blur %s is not registered, cannot get camera" % [spin_blur])
 		return null
 	
 	var parent_viewport: Viewport = spin_blur.get_viewport()
 	
 	var meta_object: SpinBlurHelperMetaObject = get_spin_blur_meta(parent_viewport)
 	
-	var layer: int = spin_blur.reserved_render_layer
+	var layer: int = meta_object.layers_by_spin_blurs[spin_blur]
 	
 	if meta_object.cameras_by_layer.has(layer):
 		return meta_object.cameras_by_layer.get(layer)
 	
 	return null
+
+
+static func is_spin_blur_registered(spin_blur: SpinBlur) -> bool:
+	if !spin_blur.is_inside_tree():
+		push_error("spin blur %s is not inside tree, returning false" % spin_blur)
+		return false
+	
+	var parent_viewport: Viewport = spin_blur.get_viewport()
+	
+	var meta_object: SpinBlurHelperMetaObject = get_spin_blur_meta(parent_viewport)
+	
+	return meta_object.layers_by_spin_blurs.has(spin_blur)
 
 
 ## This is a way of getting non-persistent metadata, by storing values to non-exported
@@ -153,6 +178,10 @@ class SpinBlurHelperMetaObject extends Resource:
 	## All spin blurs by their reserved render layer.
 	## @shape: {[layer: int]: {[spin_blur: SpinBlur]: true}}
 	var spin_blurs_by_layer: Dictionary[int, Dictionary]
+	
+	## All spin blurs and their layers
+	## @shape: {[spin_blur: SpinBlur]: [layer: int]}
+	var layers_by_spin_blurs: Dictionary[SpinBlur, int]
 	
 	## All spin blur viewports by reserved render layer
 	## @shape: {[layer: int]: {[viewport: Viewport]: true}}

@@ -105,6 +105,19 @@ var _viewport: SubViewport:
 var _camera: SpinBlurCamera:
 	set = _set_camera
 
+# Whether the spin blur is truly enabled. It is determined based
+# on whether it is ready, whether it has a target, and whether [mermber enabled] is true
+var _enabled: bool = false:
+	set(value):
+		if _enabled == value:
+			return
+		
+		if _enabled:
+			_enable()
+			
+		else:
+			_disable()
+
 var _layer_mask: int = 1 << (reserved_render_layer - 1)
 
 var _enveloping_node: MeshInstance3D
@@ -116,13 +129,14 @@ var _debug_material: ShaderMaterial
 
 func _enter_tree() -> void:
 	SpinBlurHelpers.register_spin_blur(self)
+	
+	_update_enabled()
 
 
 func _exit_tree() -> void:
 	SpinBlurHelpers.unregister_spin_blur(self)
 	
-	if target:
-		target.layers = layers_to_revert
+	_enabled = false
 
 
 func _ready() -> void:
@@ -134,20 +148,21 @@ func _ready() -> void:
 	
 	front_material.render_priority = 1
 	
-	var back_material := ShaderMaterial.new()
-	
-	back_material.shader = ENVELOPING_MESH_BACK_SHADER
-	
-	back_material.render_priority = 2
-	
-	front_material.next_pass = back_material
+	#var back_material := ShaderMaterial.new()
+	#
+	#back_material.shader = ENVELOPING_MESH_BACK_SHADER
+	#
+	#back_material.render_priority = 2
+	#
+	#front_material.next_pass = back_material
 	
 	if Engine.is_editor_hint():
 		_debug_material = ShaderMaterial.new()
 		_debug_material.shader = DEBUG_SHADER
 		_debug_material.render_priority = 3
 		
-		back_material.next_pass = _debug_material
+		#back_material.next_pass = _debug_material
+		front_material.next_pass = _debug_material
 	
 	_enveloping_node.material_override = front_material
 	
@@ -156,20 +171,33 @@ func _ready() -> void:
 	# So that the viewport's view does not lag a frame behind the reference camera
 	process_priority = 1
 	
-	target.layers |= _layer_mask
-	
 	_update_viewport_texture()
 	_update_depth_texture()
+	_update_enveloping_mesh()
+	_update_enabled()
 
 
 func _process(delta: float) -> void:
-	if !enabled or !target:
+	if !_enabled:
 		return
 	
 	if target_rotation_axis.is_zero_approx():
 		return
 	
 	_update_enveloping_node()
+
+
+func _update_enabled() -> void:
+	_enabled = is_node_ready() and enabled and target
+
+
+func _enable() -> void:
+	target.layers |= _layer_mask
+
+
+func _disable() -> void:
+	target.layers = layers_to_revert
+	visible = false
 
 
 func _scan_for_lighting(node: Node, viewport_to_ignore: Viewport, result: Array[Node]) -> void:
@@ -195,11 +223,6 @@ func capture_lighting() -> void:
 
 
 func _update_enveloping_node() -> void:
-	if !enveloping_mesh:
-		return
-	
-	_enveloping_node.mesh = enveloping_mesh
-	
 	if Engine.is_editor_hint():
 		_debug_material.set_shader_parameter(
 			"color", 
@@ -359,28 +382,40 @@ func _update_depth_texture() -> void:
 	)
 
 
+func _update_enveloping_mesh() -> void:
+	if _enveloping_node:
+		_enveloping_node.mesh = enveloping_mesh
+
+
 func _set_enabled(value: bool) -> void:
 	enabled = value
 	
-	if !enabled:
-		if target:
-			target.layers = layers_to_revert
+	_update_enabled()
 
 
 func _set_layer(value: int) -> void:
+	if reserved_render_layer == value:
+		return
+	
 	reserved_render_layer = value
 	
 	_layer_mask = 1 << (reserved_render_layer - 1)
+	
+	SpinBlurHelpers.sync_spin_blur_layer(self)
 
 
 func _set_target(value: MeshInstance3D) -> void:
 	target = value
+	
+	_update_enabled()
 	
 	update_configuration_warnings()
 
 
 func _set_enveloping_mesh(value: Mesh) -> void:
 	enveloping_mesh = value
+	
+	_update_enveloping_mesh()
 	
 	update_configuration_warnings()
 
@@ -435,5 +470,5 @@ func _set_camera(value: SpinBlurCamera) -> void:
 		
 		if !new_signal.is_connected(_update_depth_texture):
 			new_signal.connect(_update_depth_texture.unbind(1))
-		
-		_update_depth_texture()
+	
+	_update_depth_texture()
