@@ -11,12 +11,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	var parent_viewport: Viewport
-	
 	if Engine.is_editor_hint():
-		parent_viewport = EditorInterface.get_editor_viewport_3d()
+		size = EditorInterface.get_editor_viewport_3d().size
+		
 	else:
-		parent_viewport = get_viewport()
-	
-	if "size" in parent_viewport:
 		size = parent_viewport.size

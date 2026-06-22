@@ -406,7 +406,8 @@ func _set_layer(value: int) -> void:
 	
 	_layer_mask = 1 << (reserved_render_layer - 1)
 	
-	SpinBlurHelpers.sync_spin_blur_layer(self)
+	if is_inside_tree():
+		SpinBlurHelpers.sync_spin_blur_layer(self)
 
 
 func _set_target(value: MeshInstance3D) -> void:
