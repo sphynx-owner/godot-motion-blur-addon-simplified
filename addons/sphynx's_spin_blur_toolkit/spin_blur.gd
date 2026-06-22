@@ -21,6 +21,8 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 @export var reserved_render_layer: int = 3:
 	set = _set_layer
 
+## When disabling/removing the spin blur, it will revent the render layers of
+## [member target] to this value
 @export_flags_3d_render var layers_to_revert = 1
 
 ## A rotation axis local to [member target] along which spin blur will occur
@@ -97,6 +99,12 @@ var _activation_threshold_setter_gate := false
 ## Whether to show the enveloping mesh in the editor.
 @export var draw_debug := true
 
+var _viewport: SubViewport:
+	set = _set_viewport
+
+var _camera: SpinBlurCamera:
+	set = _set_camera
+
 var _layer_mask: int = 1 << (reserved_render_layer - 1)
 
 var _enveloping_node: MeshInstance3D
@@ -118,17 +126,6 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
-	
-	_camera.compositor.compositor_effects[0].texture_generated.connect(
-		_on_depth_texture_generated
-	)
-	
-	set_shader_parameter_recursive(
-		_enveloping_node.material_override,
-		"screen_texture", 
-		_viewport.get_texture()
-	)
-	
 	_enveloping_node = MeshInstance3D.new()
 	
 	var front_material := ShaderMaterial.new()
@@ -161,15 +158,13 @@ func _ready() -> void:
 	
 	target.layers |= _layer_mask
 	
-	_on_depth_texture_generated(null)
+	_update_viewport_texture()
+	_update_depth_texture()
 
 
 func _process(delta: float) -> void:
 	if !enabled or !target:
 		return
-	
-	_update_viewport()
-	_update_camera()
 	
 	if target_rotation_axis.is_zero_approx():
 		return
@@ -186,40 +181,6 @@ func _scan_for_lighting(node: Node, viewport_to_ignore: Viewport, result: Array[
 	
 	for child in node.get_children():
 		_scan_for_lighting(child, viewport_to_ignore, result)
-
-
-func _on_depth_texture_generated(depth_texture: Texture2DRD) -> void:
-	set_shader_parameter_recursive(
-		_enveloping_node.material_override,
-		"depth_texture", 
-		depth_texture
-	)
-
-
-func _update_viewport() -> void:
-	var reference_viewport: Viewport
-	
-	if Engine.is_editor_hint():
-		reference_viewport = EditorInterface.get_editor_viewport_3d()
-	else:
-		reference_viewport = get_viewport()
-	
-	if "size" in reference_viewport:
-		_viewport.size = reference_viewport.size
-
-
-func _update_camera() -> void:
-	var reference_camera: Camera3D
-	
-	if Engine.is_editor_hint():
-		reference_camera = EditorInterface.get_editor_viewport_3d().get_camera_3d()
-		
-	else:
-		reference_camera = get_viewport().get_camera_3d()
-	
-	_camera.global_transform = reference_camera.global_transform
-	_camera.fov = reference_camera.fov
-	_camera.projection = reference_camera.projection
 
 
 ## Detects lighting-related nodes and ensure they are visible under
@@ -371,6 +332,33 @@ func _generate_enveloping_mesh() -> void:
 	)
 
 
+func _update_viewport_texture() -> void:
+	if !is_node_ready():
+		return
+	
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"screen_texture",
+		_viewport.get_texture() if _viewport else null
+	)
+
+
+func _update_depth_texture() -> void:
+	if !is_node_ready():
+		return
+	
+	var texture: Texture2D = null
+	
+	if _camera:
+		texture = _camera.compositor.compositor_effects[0].texture_2d_rd
+	
+	set_shader_parameter_recursive(
+		_enveloping_node.material_override,
+		"depth_texture", 
+		texture
+	)
+
+
 func _set_enabled(value: bool) -> void:
 	enabled = value
 	
@@ -425,3 +413,27 @@ func _set_activation_speed_threshold_upper(value: float) -> void:
 	min(activation_speed_threshold_upper, activation_speed_threshold_lower)
 	
 	_activation_threshold_setter_gate = false
+
+
+func _set_viewport(value: SubViewport) -> void:
+	_viewport = value
+	
+	_update_viewport_texture()
+
+
+func _set_camera(value: SpinBlurCamera) -> void:
+	if _camera:
+		var old_signal: Signal = _camera.compositor.compositor_effects[0].texture_generated
+		
+		if old_signal.is_connected(_update_depth_texture):
+			old_signal.disconnect(_update_depth_texture)
+	
+	_camera = value
+	
+	if _camera:
+		var new_signal: Signal = _camera.compositor.compositor_effects[0].texture_generated
+		
+		if !new_signal.is_connected(_update_depth_texture):
+			new_signal.connect(_update_depth_texture.unbind(1))
+		
+		_update_depth_texture()

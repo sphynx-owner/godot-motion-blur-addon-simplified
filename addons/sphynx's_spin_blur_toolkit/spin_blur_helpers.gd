@@ -1,5 +1,8 @@
 @tool
 class_name SpinBlurHelpers
+## Uses metadata to generated and keep record of subviewports
+## for unique reserved render layers, so that multiple spin blurs
+## operating on the same render layer could use the same viewport and camera.
 
 const SPIN_BLUR_META_KEY: StringName = &"spin_blur_metadata"
 
@@ -20,7 +23,8 @@ static func register_spin_blur(spin_blur: SpinBlur) -> void:
 	
 	meta_object.spin_blurs_by_layer.get(layer)[spin_blur] = true
 	
-	if !spin_blur._on_depth_texture_generated
+	spin_blur._viewport = get_spin_blur_viewport(spin_blur)
+	spin_blur._camera = get_spin_blur_camera(spin_blur)
 
 
 static func unregister_spin_blur(spin_blur: SpinBlur) -> void:
@@ -47,13 +51,15 @@ static func initialize_new_render_layer(parent_viewport: Viewport, layer: int) -
 	
 	meta_object.camera_cull_mask |= 1 << (layer - 1)
 	
-	var new_viewport = SubViewport.new()
+	var new_viewport = SpinBlurViewport.new()
+	
+	new_viewport.parent_viewport = parent_viewport
 	
 	meta_object.viewports_by_layer.set(layer, new_viewport)
 	
 	new_viewport.transparent_bg = true
 	
-	new_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	new_viewport.render_target_update_mode = SpinBlurViewport.UPDATE_ALWAYS
 	
 	new_viewport.use_hdr_2d = true
 	
@@ -62,6 +68,8 @@ static func initialize_new_render_layer(parent_viewport: Viewport, layer: int) -
 	parent_viewport.add_child(new_viewport)
 	
 	var new_camera = SpinBlurCamera.new()
+	
+	new_camera.parent_viewport = parent_viewport
 	
 	meta_object.cameras_by_layer.set(layer, new_camera)
 	
@@ -105,7 +113,7 @@ static func get_spin_blur_meta(viewport: Viewport) -> SpinBlurHelperMetaObject:
 	return viewport.get_meta(SPIN_BLUR_META_KEY)
 
 
-static func get_spin_blur_viewport(spin_blur: SpinBlur) -> SubViewport:
+static func get_spin_blur_viewport(spin_blur: SpinBlur) -> SpinBlurViewport:
 	if !spin_blur.is_inside_tree():
 		push_error("spin blur %s is not inside tree, cannot get viewport" % [spin_blur])
 		return null
@@ -118,6 +126,23 @@ static func get_spin_blur_viewport(spin_blur: SpinBlur) -> SubViewport:
 	
 	if meta_object.viewports_by_layer.has(layer):
 		return meta_object.viewports_by_layer.get(layer)
+	
+	return null
+
+
+static func get_spin_blur_camera(spin_blur: SpinBlur) -> SpinBlurCamera:
+	if !spin_blur.is_inside_tree():
+		push_error("spin blur %s is not inside tree, cannot get camera" % [spin_blur])
+		return null
+	
+	var parent_viewport: Viewport = spin_blur.get_viewport()
+	
+	var meta_object: SpinBlurHelperMetaObject = get_spin_blur_meta(parent_viewport)
+	
+	var layer: int = spin_blur.reserved_render_layer
+	
+	if meta_object.cameras_by_layer.has(layer):
+		return meta_object.cameras_by_layer.get(layer)
 	
 	return null
 
