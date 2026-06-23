@@ -9,7 +9,7 @@ const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_spin_
 const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/debug_spin_mesh.gdshader")
 
 
-@export var target: MeshInstance3D:
+@export var target: Node3D:
 	set = _set_target
 
 @export var enabled := true:
@@ -152,6 +152,10 @@ func _ready() -> void:
 	
 	front_material.render_priority = 1
 	
+	# This commented out code is there for archival purposes.
+	# I created the back shader to support showing the blur
+	# if you are enside the mesh, however it is not practical
+	# given the much better enveloping mesh system.
 	#var back_material := ShaderMaterial.new()
 	#
 	#back_material.shader = ENVELOPING_MESH_BACK_SHADER
@@ -199,16 +203,15 @@ func capture_lighting() -> void:
 	_scan_for_lighting(get_viewport(), get_viewport(), lights_to_copy)
 	
 	for light: Node in lights_to_copy:
-		print(_layer_mask)
 		light.layers |= _layer_mask
 
 
 func _enable() -> void:
-	target.layers |= _layer_mask
+	_target_set_layers_recursive(target, layers_to_revert | _layer_mask)
 
 
 func _disable() -> void:
-	target.layers = layers_to_revert
+	_target_set_layers_recursive(target, layers_to_revert)
 	visible = false
 
 
@@ -235,8 +238,8 @@ func _set_shader_parameter_recursive(
 
 
 func _generate_enveloping_mesh() -> void:
-	if !target or !target.mesh:
-		push_error("invalid target or target mesh")
+	if !target:
+		push_error("invalid target")
 		return
 	
 	if target_rotation_axis.is_zero_approx():
@@ -244,13 +247,30 @@ func _generate_enveloping_mesh() -> void:
 		return
 	
 	enveloping_mesh = SpinMesh.generate(
-		target.mesh, 
+		_collect_target_meshes_recursive(target), 
 		target_rotation_axis, 
 		rings, 
 		radial_segments, 
 		radial_padding, 
 		depth_padding,
 	)
+
+
+func _collect_target_meshes_recursive(
+	root: Node3D,
+	node: Node = root, 
+	ret: Dictionary[Mesh, Transform3D] = {}
+) -> Dictionary[Mesh, Transform3D]:
+	if node is MeshInstance3D and node.mesh:
+		ret[node.mesh] = root.global_transform.affine_inverse() * node.global_transform
+	
+	for child in node.get_children():
+		if child == self:
+			continue
+		
+		_collect_target_meshes_recursive(root, child, ret)
+	
+	return ret
 
 
 func _update_enabled() -> void:
@@ -315,10 +335,10 @@ func _update_enveloping_node() -> void:
 	)
 	
 	if abs(rotation_speed) > activation_speed_threshold_upper:
-		target.layers = _layer_mask
+		_target_set_layers_recursive(target, _layer_mask)
 		
 	else:
-		target.layers = layers_to_revert | _layer_mask
+		_target_set_layers_recursive(target, layers_to_revert | _layer_mask)
 	
 	if abs(rotation_speed) > activation_speed_threshold_lower or (draw_debug and Engine.is_editor_hint()):
 		visible = true
@@ -358,6 +378,17 @@ func _update_enveloping_node() -> void:
 	
 	_enveloping_node.global_basis.z = \
 	_enveloping_node.global_basis.z.normalized() * target_transform.basis.z.length()
+
+
+func _target_set_layers_recursive(root: Node, layers: int) -> void:
+	if "layers" in root:
+		root.layers = layers
+	
+	for child in root.get_children():
+		if child == self:
+			continue
+		
+		_target_set_layers_recursive(child, layers)
 
 
 func _update_viewport_texture() -> void:
@@ -410,7 +441,7 @@ func _set_layer(value: int) -> void:
 		SpinBlurHelpers.sync_spin_blur_layer(self)
 
 
-func _set_target(value: MeshInstance3D) -> void:
+func _set_target(value: Node3D) -> void:
 	target = value
 	
 	_update_enabled()
