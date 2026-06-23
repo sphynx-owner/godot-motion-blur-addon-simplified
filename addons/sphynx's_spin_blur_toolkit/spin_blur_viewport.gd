@@ -15,4 +15,8 @@ func _process(delta: float) -> void:
 		size = EditorInterface.get_editor_viewport_3d().size
 		
 	else:
-		size = parent_viewport.size
+		if parent_viewport is Window:
+			size = parent_viewport.content_scale_size
+			
+		elif parent_viewport is SubViewport:
+			size = parent_viewport.size
