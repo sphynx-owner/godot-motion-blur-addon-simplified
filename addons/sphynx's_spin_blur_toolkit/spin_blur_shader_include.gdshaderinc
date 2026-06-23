@@ -43,9 +43,10 @@ void fragment() {
 	
 	float depth = texture(depth_texture, screen_uv).x;
 	
-	if(depth == 0.0) {
-		depth = FRAGCOORD.z;
-	}
+	depth = FRAGCOORD.z;
+	//if(depth == 0.0) {
+		//depth = FRAGCOORD.z;
+	//}
 	
 	vec3 ndc = vec3(screen_uv * 2.0 - 1.0, depth);
 	vec4 view_position = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);

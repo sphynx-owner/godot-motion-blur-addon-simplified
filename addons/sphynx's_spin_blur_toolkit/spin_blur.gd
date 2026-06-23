@@ -79,6 +79,17 @@ var _activation_threshold_setter_gate := false
 ## more circular mesh.
 @export var radial_segments: int = 32
 
+## The mesh generation is not perfect, it's based on a polar vertex profile, which disregards faces
+## and edges. If you have a very simple mesh with large faces that the rotation axis goes through,
+## the generated mesh may end up with a hole in its center. If you have a mesh with an intentional
+## hole in its center, set this variable to [code]false[/code]
+@export var fill_center: bool = true
+
+## The mesh generation captures all mesh instances that are children of the target node,
+## and generates separate mesh surfaces for each by default. Setting this to [code]true[/code]
+## will generate a single surface to envelop all meshes.
+@export var unify_meshes: bool = false
+
 ## Add padding to the generated mesh in perpendicular to the rotation axis (make it wider)
 @export var radial_padding: float = 0
 
@@ -251,6 +262,8 @@ func _generate_enveloping_mesh() -> void:
 		target_rotation_axis, 
 		rings, 
 		radial_segments, 
+		fill_center,
+		unify_meshes,
 		radial_padding, 
 		depth_padding,
 	)
@@ -259,10 +272,10 @@ func _generate_enveloping_mesh() -> void:
 func _collect_target_meshes_recursive(
 	root: Node3D,
 	node: Node = root, 
-	ret: Dictionary[Mesh, Transform3D] = {}
-) -> Dictionary[Mesh, Transform3D]:
+	ret: Dictionary[MeshInstance3D, Transform3D] = {}
+) -> Dictionary[MeshInstance3D, Transform3D]:
 	if node is MeshInstance3D and node.mesh:
-		ret[node.mesh] = root.global_transform.affine_inverse() * node.global_transform
+		ret[node as MeshInstance3D] = root.global_transform.affine_inverse() * node.global_transform
 	
 	for child in node.get_children():
 		if child == self:

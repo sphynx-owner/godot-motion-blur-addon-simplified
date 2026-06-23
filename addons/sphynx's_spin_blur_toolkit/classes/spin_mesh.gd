@@ -3,10 +3,12 @@ extends ArrayMesh
 
 
 static func generate(
-	meshes: Dictionary[Mesh, Transform3D], 
+	meshes: Dictionary[MeshInstance3D, Transform3D], 
 	rotation_axis: Vector3, 
 	rings: int = 16, 
 	radial_segments: int = 32, 
+	fill_center: bool = true,
+	unify_meshes: bool = false,
 	radial_padding: float = 0, 
 	depth_padding: float = 0, 
 	neighbor_max: bool = false
@@ -17,14 +19,26 @@ static func generate(
 	
 	var arr_mesh = SpinMesh.new()
 	
-	for mesh: Mesh in meshes.keys():
-		var face_vertices: PackedVector3Array = mesh.get_faces()
+	var all_face_vertices: Array[PackedVector3Array]
+	
+	if unify_meshes:
+		all_face_vertices = [[]]
+	
+	for mesh_instance: MeshInstance3D in meshes.keys():
+		var face_vertices: PackedVector3Array = mesh_instance.mesh.get_faces()
 		
-		var transform: Transform3D = meshes[mesh]
+		var transform: Transform3D = meshes[mesh_instance]
 		
 		for i in face_vertices.size():
 			face_vertices[i] = transform * face_vertices[i]
 		
+		if unify_meshes:
+			all_face_vertices[0].append_array(face_vertices)
+			
+		else:
+			all_face_vertices.append(face_vertices)
+	
+	for face_vertices: PackedVector3Array in all_face_vertices:
 		# These will be axis local vertices, meaning their orientation around the axis is lost,
 		# and instead only their profile relatively to the axis is maintained, i.e. their distand
 		# from the axis, and offset along that axis' direction.
@@ -127,76 +141,113 @@ static func generate(
 			else:
 				neighbor_max_radial_chunks[i] = radial_chunks[i]
 		
+		var blobs: Dictionary[int, PackedVector2Array]
+		
+		var current_blob: PackedVector2Array
+		
+		var outside_blob: bool = true
+		
+		for i in neighbor_max_radial_chunks.size():
+			var chunk: Vector2 = neighbor_max_radial_chunks[i]
+			
+			if chunk.x == -INF:
+				outside_blob = true
+				continue
+			
+			if outside_blob:
+				current_blob = []
+				blobs[i] = current_blob
+				outside_blob = false
+			
+			current_blob.append(chunk)
+		
+		if fill_center:
+			var first_blob_offset: int = blobs.keys().front()
+			
+			if first_blob_offset > 0:
+				var first_blob: PackedVector2Array = blobs[first_blob_offset]
+				
+				blobs.erase(first_blob_offset)
+				
+				blobs[0] = first_blob
+				
+				for i in first_blob_offset:
+					first_blob.insert(0, first_blob[0])
+		
 		var cross_vector: Vector3 = Vector3(1, 0, 0) \
 		if !normalized_rotation_axis.is_equal_approx(Vector3(1, 0, 0)) else Vector3(0, 1, 0)
 		
 		var perpendicular: Vector3 = normalized_rotation_axis.cross(cross_vector).normalized()
 		
-		var profile_vertices: PackedVector3Array
-		
-		profile_vertices.resize(neighbor_max_radial_chunks.size() * 2)
-		
-		var latest_chunk_cache: Vector2
-		
-		# We loop from the end, or from the outside chunks inward, so we are guaranteed
-		# a first valid chunk range, and thus a valid latest_chunk_cache.
-		for i in range(neighbor_max_radial_chunks.size() - 1, -1, -1):
-			var chunk: Vector2 = neighbor_max_radial_chunks[i]
-			var chunk_radius: float = float(i) / (rings - 1) * max_radius
+		for blob_offset in blobs.keys():
+			var blob: PackedVector2Array = blobs[blob_offset]
 			
-			if chunk.x > -INF:
-				latest_chunk_cache = chunk
+			var profile_vertices: PackedVector3Array
 			
-			profile_vertices[i] = _axis_local_to_vertex(
-				Vector2(chunk_radius + radial_padding, (chunk.x if chunk.x > -INF else latest_chunk_cache.x) + depth_padding), 
-				normalized_rotation_axis, 
-				perpendicular
-			)
+			profile_vertices.resize(blob.size() * 2)
 			
-			profile_vertices[profile_vertices.size() - 1 - i] = _axis_local_to_vertex(
-				Vector2(chunk_radius + radial_padding, (chunk.y if chunk.y < INF else latest_chunk_cache.y) - depth_padding), 
-				normalized_rotation_axis, 
-				perpendicular
-			)
-		
-		var profile_stride: int = profile_vertices.size()
-		
-		var all_unique_vertices: PackedVector3Array
-		
-		all_unique_vertices.resize(profile_stride * radial_segments)
-		
-		var angle_interval: float = TAU / radial_segments
-		
-		for i in range(radial_segments):
-			for j in range(profile_stride):
-				all_unique_vertices[profile_stride * i + j] = \
-				profile_vertices[j].rotated(normalized_rotation_axis, angle_interval * i)
-		
-		var vertices: PackedVector3Array
-		vertices.resize((profile_stride - 1) * 6 * radial_segments)
-		
-		for i in radial_segments:
-			for j in range(profile_stride - 1):
-				var bl: Vector3 = all_unique_vertices[profile_stride * i + j]
-				var br: Vector3 = all_unique_vertices[profile_stride * i + j + 1]
-				var tl: Vector3 = all_unique_vertices[profile_stride * ((i + 1) % radial_segments) + j]
-				var tr: Vector3 = all_unique_vertices[profile_stride * ((i + 1) % radial_segments) + j + 1]
+			# We loop from the end, or from the outside chunks inward, so we are guaranteed
+			# a first valid chunk range, and thus a valid latest_chunk_cache.
+			for i in range(blob.size() - 1, -1, -1):
+				var chunk: Vector2 = blob[i]
 				
-				var vertices_offset: int = ((profile_stride - 1) * i + j) * 6
+				var chunk_radius: float = float(i + blob_offset) / (rings - 1) * max_radius
 				
-				vertices[vertices_offset + 0] = bl
-				vertices[vertices_offset + 1] = tr
-				vertices[vertices_offset + 2] = br
-				vertices[vertices_offset + 3] = bl
-				vertices[vertices_offset + 4] = tl
-				vertices[vertices_offset + 5] = tr
-		
-		var arrays = []
-		arrays.resize(Mesh.ARRAY_MAX)
-		
-		arrays[Mesh.ARRAY_VERTEX] = vertices
-		
-		arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+				if chunk.x == -INF:
+					pass
+				
+				profile_vertices[i] = _axis_local_to_vertex(
+					Vector2(chunk_radius + radial_padding, chunk.x + depth_padding), 
+					normalized_rotation_axis, 
+					perpendicular
+				)
+				
+				profile_vertices[profile_vertices.size() - 1 - i] = _axis_local_to_vertex(
+					Vector2(chunk_radius + radial_padding, chunk.y - depth_padding), 
+					normalized_rotation_axis, 
+					perpendicular
+				)
+			
+			profile_vertices.append(profile_vertices[0])
+			
+			var profile_stride: int = profile_vertices.size()
+			
+			var all_unique_vertices: PackedVector3Array
+			
+			all_unique_vertices.resize(profile_stride * radial_segments)
+			
+			var angle_interval: float = TAU / radial_segments
+			
+			for i in range(radial_segments):
+				for j in range(profile_stride):
+					all_unique_vertices[profile_stride * i + j] = \
+					profile_vertices[j].rotated(normalized_rotation_axis, angle_interval * i)
+			
+			var vertices: PackedVector3Array
+			vertices.resize((profile_stride - 1) * 6 * radial_segments)
+			
+			for i in radial_segments:
+				for j in range(profile_stride - 1):
+					var bl: Vector3 = all_unique_vertices[profile_stride * i + j]
+					var br: Vector3 = all_unique_vertices[profile_stride * i + j + 1]
+					var tl: Vector3 = all_unique_vertices[profile_stride * ((i + 1) % radial_segments) + j]
+					var tr: Vector3 = all_unique_vertices[profile_stride * ((i + 1) % radial_segments) + j + 1]
+					
+					var vertices_offset: int = ((profile_stride - 1) * i + j) * 6
+					
+					vertices[vertices_offset + 0] = bl
+					vertices[vertices_offset + 1] = tr
+					vertices[vertices_offset + 2] = br
+					vertices[vertices_offset + 3] = bl
+					vertices[vertices_offset + 4] = tl
+					vertices[vertices_offset + 5] = tr
+			
+			var arrays = []
+			arrays.resize(Mesh.ARRAY_MAX)
+			
+			arrays[Mesh.ARRAY_VERTEX] = vertices
+			
+			arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	
 	return arr_mesh
 
