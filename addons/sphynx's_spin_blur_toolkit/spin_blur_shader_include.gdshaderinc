@@ -56,7 +56,7 @@ void fragment() {
 	
 	vec3 view_rotation_axis = normalize(mat3(VIEW_MATRIX) * mat3(MODEL_MATRIX) * local_rotation_axis);
 	
-	float j = interleaved_gradient_noise(SCREEN_UV * vec2(VIEWPORT_SIZE), int(TIME * 195.121124));
+	float j = interleaved_gradient_noise(SCREEN_UV * vec2(VIEWPORT_SIZE), int(TIME * 247.0) % 10 + 1);
 	
 	float weight = 0.;
 	
