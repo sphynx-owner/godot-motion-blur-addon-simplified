@@ -63,11 +63,10 @@ process_priority = 1
 script = ExtResource("5_i6kot")
 target = NodePath("../Node3D2/Node3D")
 target_rotation_axis = Vector3(0, 0, 1)
-blur_intensity = 0.015
-rolling_shutter_amount = 0.135
 enveloping_mesh = SubResource("ArrayMesh_i6kot")
 rings = 34
 fill_center = false
+override_rotation_speed = 0.41
 metadata/_custom_type_script = "uid://djkmewposiph4"
 
 [node name="Node3D2" type="Node3D" parent="." unique_id=823281834]
@@ -78,7 +77,7 @@ script = ExtResource("4_x84g2")
 
 [node name="PropellerMeshCorrected" type="MeshInstance3D" parent="Node3D2/Node3D" unique_id=239604944]
 transform = Transform3D(-4.3711387e-10, 0, 0.009999998, 0, 0.009999998, 0, -0.01, 0, -4.371138e-10, 0, 0, 0)
-layers = 5
+layers = 4
 mesh = ExtResource("2_x84g2")
 skeleton = NodePath("")
 surface_material_override/0 = SubResource("StandardMaterial3D_x84g2")
