@@ -8,6 +8,8 @@ const ENVELOPING_MESH_BACK_SHADER: Shader = preload("res://addons/sphynx's_spin_
 
 const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/debug_spin_mesh.gdshader")
 
+const ENVELOPING_NODE_META_KEY: StringName = &"spin_blur_enveloping_node"
+
 
 @export var target: Node3D:
 	set = _set_target
@@ -34,12 +36,12 @@ const DEBUG_SHADER: Shader = preload("res://addons/sphynx's_spin_blur_toolkit/de
 
 ## Above this rotation speed (in radians per frame), the spin blur will start
 ## fading in.
-@export var activation_speed_threshold_lower: float = 0.1:
+@export var activation_speed_threshold_lower: float = 0.0:
 	set = _set_activation_speed_threshold_lower
 
 ## Above this rotation speed (in radians per frame), the spin blur will be fully
 ## faded in, and the target mesh will be turned invisible.
-@export var activation_speed_threshold_upper: float = 0.2:
+@export var activation_speed_threshold_upper: float = 0.0:
 	set = _set_activation_speed_threshold_upper
 
 var _activation_threshold_setter_gate := false
@@ -88,7 +90,7 @@ var _activation_threshold_setter_gate := false
 ## The mesh generation captures all mesh instances that are children of the target node,
 ## and generates separate mesh surfaces for each by default. Setting this to [code]true[/code]
 ## will generate a single surface to envelop all meshes.
-@export var unify_meshes: bool = false
+@export var unify_meshes: bool = true
 
 ## Add padding to the generated mesh in perpendicular to the rotation axis (make it wider)
 @export var radial_padding: float = 0
@@ -155,7 +157,13 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
+	for child in get_children():
+		if child.has_meta(ENVELOPING_NODE_META_KEY):
+			child.queue_free()
+	
 	_enveloping_node = MeshInstance3D.new()
+	
+	_enveloping_node.set_meta(ENVELOPING_NODE_META_KEY, true)
 	
 	var front_material := ShaderMaterial.new()
 	
@@ -274,7 +282,8 @@ func _collect_target_meshes_recursive(
 	node: Node = root, 
 	ret: Dictionary[MeshInstance3D, Transform3D] = {}
 ) -> Dictionary[MeshInstance3D, Transform3D]:
-	if node is MeshInstance3D and node.mesh:
+	if node is MeshInstance3D and node.mesh and \
+	(node is GeometryInstance3D and node.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY):
 		ret[node as MeshInstance3D] = root.global_transform.affine_inverse() * node.global_transform
 	
 	for child in node.get_children():
@@ -397,7 +406,8 @@ func _update_enveloping_node() -> void:
 
 
 func _target_set_layers_recursive(root: Node, layers: int) -> void:
-	if "layers" in root:
+	if "layers" in root and \
+	!(root is GeometryInstance3D and root.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY):
 		root.layers = layers
 	
 	for child in root.get_children():
