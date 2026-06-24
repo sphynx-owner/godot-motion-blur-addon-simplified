@@ -39,7 +39,7 @@ float interleaved_gradient_noise(vec2 uv, int FrameId){
 
 
 void fragment() {
-	vec3 view_rotation_axis = mat3(VIEW_MATRIX) * MODEL_NORMAL_MATRIX * local_rotation_axis;
+	vec3 view_rotation_axis = normalize(mat3(VIEW_MATRIX) * mat3(MODEL_MATRIX) * local_rotation_axis);
 	
 	// get noise sample to smooth out banding, value between 0 and 1.
 	float j = interleaved_gradient_noise(SCREEN_UV * vec2(VIEWPORT_SIZE), int(TIME * 247.0) % 10);
