@@ -331,7 +331,10 @@ func _update_enveloping_node() -> void:
 	
 	var angle: float = (PI - abs(centered_angle)) * abs(target_rotation_vector.dot(difference_quat.get_axis()))
 	
-	var rotation_speed: float = clamp(angle, -TAU, TAU) \
+	if !Engine.is_editor_hint() and target.has_method("_get_rotation_speed"):
+		angle = target._get_rotation_speed()
+	
+	var rotation_speed: float = angle \
 	if override_rotation_speed == 0.0 or !Engine.is_editor_hint() \
 	else override_rotation_speed
 	

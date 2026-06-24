@@ -39,34 +39,25 @@ float interleaved_gradient_noise(vec2 uv, int FrameId){
 
 
 void fragment() {
-	vec2 screen_uv = SCREEN_UV;
+	vec4 node_ndc = PROJECTION_MATRIX * vec4(NODE_POSITION_VIEW, 1.0);
+	node_ndc.xyz /= node_ndc.w;
+	vec2 node_uv = (node_ndc.xy + 1.0) * 0.5;
 	
-	float depth = texture(depth_texture, screen_uv).x;
-	
-	depth = FRAGCOORD.z;
-	//if(depth == 0.0) {
-		//depth = FRAGCOORD.z;
-	//}
-	
-	vec3 ndc = vec3(screen_uv * 2.0 - 1.0, depth);
-	vec4 view_position = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
-	view_position.xyz /= view_position.w;
-	
-	vec3 node_relative_position = view_position.xyz - NODE_POSITION_VIEW;
-	
-	vec3 view_rotation_axis = normalize(mat3(VIEW_MATRIX) * mat3(MODEL_MATRIX) * local_rotation_axis);
+	vec3 view_rotation_axis = mat3(VIEW_MATRIX) * MODEL_NORMAL_MATRIX * local_rotation_axis;
 	
 	float j = interleaved_gradient_noise(SCREEN_UV * vec2(VIEWPORT_SIZE), int(TIME * 247.0) % 10);
 	
+	vec3 node_relative_position = VERTEX - NODE_POSITION_VIEW;
+	
 	float weight = 0.;
 	
-	float alpha_weight = 1e-8;
+	float alpha_weight = 1e-5;
 	
 	vec4 sum = vec4(0);
 	
 	float squared_sampling_error_threshold = max(sampling_error_threshold * sampling_error_threshold, EPSILON);
 	
-	float rolling_shutter_uv_amount = SCREEN_UV.y * rolling_shutter_amount;
+	float rolling_shutter_uv_amount = (SCREEN_UV.y - node_uv.y) * rolling_shutter_amount;
 	
 	for(int i = 0; i < sample_count; i++)
 	{
@@ -82,7 +73,7 @@ void fragment() {
 		
 		current_ndc.xyz /= current_ndc.w;
 		
-		vec2 current_uv_sample = ((current_ndc + 1.) / 2.).xy ;
+		vec2 current_uv_sample = (current_ndc.xy + 1.) * 0.5;
 		
 		if (current_uv_sample.x < 0. || current_uv_sample.x > 1. || current_uv_sample.y < 0. || current_uv_sample.y > 1.)
 		{
@@ -100,16 +91,16 @@ void fragment() {
 		
 		current_view_position.xyz /= current_view_position.w;
 		
-		vec3 unrotated_position = rotate(-angle, view_rotation_axis.xyz, current_view_position.xyz - NODE_POSITION_VIEW) + NODE_POSITION_VIEW;
+		vec3 unrotated_position = rotate(-angle, view_rotation_axis, current_view_position.xyz - NODE_POSITION_VIEW) + NODE_POSITION_VIEW;
 		
-		vec2 current_unrotated_perpendicular_component = unrotated_position.xy - view_position.xy;
+		vec2 current_unrotated_perpendicular_component = unrotated_position.xy - VERTEX.xy;
 		
 		if(dot(current_unrotated_perpendicular_component, current_unrotated_perpendicular_component) >= squared_sampling_error_threshold) {
 			continue;
 		}
 		
 		weight += 1.;
-		alpha_weight += 1.;
+		alpha_weight += 1.0;
 		sum += texture(screen_texture, current_uv_sample);
 	}
 	
