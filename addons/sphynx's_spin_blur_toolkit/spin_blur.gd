@@ -283,7 +283,7 @@ func _collect_target_meshes_recursive(
 	ret: Dictionary[MeshInstance3D, Transform3D] = {}
 ) -> Dictionary[MeshInstance3D, Transform3D]:
 	if node is MeshInstance3D and node.mesh and \
-	(node is GeometryInstance3D and node.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY):
+	!(node is GeometryInstance3D and node.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY):
 		ret[node as MeshInstance3D] = root.global_transform.affine_inverse() * node.global_transform
 	
 	for child in node.get_children():
