@@ -2,9 +2,16 @@
 class_name SpinBlurShadow
 extends Node3D
 
+var SHADOW_MESH_INSTANCE_META: StringName = &"spin_blur_shadow_mesh_instance"
+
 @export var spin_blur: SpinBlur
 
-@export var target_mesh_instance: MeshInstance3D
+@export var target_mesh_instance: MeshInstance3D:
+	get():
+		if !target_mesh_instance and spin_blur.target is MeshInstance3D:
+			return spin_blur.target
+		
+		return target_mesh_instance
 
 @export var subdivisions: int = 20
 
@@ -57,6 +64,8 @@ func _create_new_mesh_instance() -> MeshInstance3D:
 	
 	new_mesh_instance.set_surface_override_material(0, target_mesh_instance.get_surface_override_material(0))
 	
+	new_mesh_instance.set_meta(SHADOW_MESH_INSTANCE_META, true)
+	
 	add_child(new_mesh_instance)
 	
 	_mesh_instances.append(new_mesh_instance)
@@ -65,8 +74,9 @@ func _create_new_mesh_instance() -> MeshInstance3D:
 
 
 func _clear_mesh_instances() -> void:
-	for mesh in _mesh_instances:
-		mesh.get_parent().remove_child(mesh)
-		mesh.queue_free()
+	for child in get_children():
+		if child.has_meta(SHADOW_MESH_INSTANCE_META):
+			child.get_parent().remove_child(child)
+			child.queue_free()
 	
 	_mesh_instances.clear()
