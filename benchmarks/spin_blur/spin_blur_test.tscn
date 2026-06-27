@@ -4,7 +4,8 @@
 [ext_resource type="Script" uid="uid://p266nn7u8e1v" path="res://benchmarks/camera_3d.gd" id="4_8xabd"]
 [ext_resource type="Script" uid="uid://c8t07a1bjyl44" path="res://benchmarks/spin_blur/rotating_node.gd" id="4_x84g2"]
 [ext_resource type="Script" uid="uid://djkmewposiph4" path="res://addons/sphynx's_spin_blur_toolkit/spin_blur.gd" id="5_i6kot"]
-[ext_resource type="Script" uid="uid://b32snseqio5u5" path="res://addons/sphynx's_spin_blur_toolkit/classes/spin_mesh.gd" id="6_vubds"]
+[ext_resource type="Script" uid="uid://805bnh5nljjn" path="res://addons/sphynx's_spin_blur_toolkit/spin_blur_shadow.gd" id="6_i6kot"]
+[ext_resource type="Script" uid="uid://b32snseqio5u5" path="res://addons/sphynx's_spin_blur_toolkit/spin_mesh.gd" id="6_vubds"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_yjuqw"]
 
@@ -15,7 +16,7 @@ sky_material = SubResource("ProceduralSkyMaterial_yjuqw")
 background_mode = 2
 sky = SubResource("Sky_gk5px")
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_x84g2"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_i6kot"]
 _surfaces = [{
 "aabb": AABB(-0.7507707, -0.7507707, -0.055000003, 1.5015414, 1.5015414, 0.09),
 "format": 34359738369,
@@ -27,10 +28,14 @@ _surfaces = [{
 script = ExtResource("6_vubds")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x84g2"]
+transparency = 3
+alpha_hash_scale = 1.0
+alpha_antialiasing_mode = 0
 albedo_color = Color(0, 1, 1, 1)
 metallic = 0.1
 metallic_specular = 0.96
 roughness = 0.0
+disable_receive_shadows = true
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_bx8n8"]
 size = Vector2(15.835, 22.44)
@@ -82,29 +87,19 @@ process_priority = 1
 script = ExtResource("5_i6kot")
 target = NodePath("../Node3D2/Node3D")
 target_rotation_axis = Vector3(0, 0, 1)
-activation_speed_threshold_lower = 0.5
-activation_speed_threshold_upper = 0.5
-enveloping_mesh = SubResource("ArrayMesh_x84g2")
-override_rotation_speed = 0.605
+enveloping_mesh = SubResource("ArrayMesh_i6kot")
 metadata/_custom_type_script = "uid://djkmewposiph4"
 
 [node name="Node3D2" type="Node3D" parent="." unique_id=823281834]
 transform = Transform3D(-4.3711385e-08, 0, -1, 0, 0.99999994, 0, 0.99999994, 0, -4.371139e-08, 0, 0, 0)
+visible = false
 
 [node name="Node3D" type="Node3D" parent="Node3D2" unique_id=263094491]
 script = ExtResource("4_x84g2")
 
 [node name="PropellerMeshCorrected" type="MeshInstance3D" parent="Node3D2/Node3D" unique_id=239604944]
 transform = Transform3D(-4.3711387e-10, 0, 0.009999998, 0, 0.009999998, 0, -0.01, 0, -4.371138e-10, 0, 0, 0)
-layers = 4
-mesh = ExtResource("2_x84g2")
-skeleton = NodePath("")
-surface_material_override/0 = SubResource("StandardMaterial3D_x84g2")
-
-[node name="PropellerMeshCorrected2" type="MeshInstance3D" parent="Node3D2/Node3D" unique_id=2086634388]
-transform = Transform3D(-4.3711382e-10, 0, 0.009999997, 0, 0.009999997, 0, -0.01, 0, -4.3711373e-10, 0, 0, 0)
 layers = 5
-cast_shadow = 3
 mesh = ExtResource("2_x84g2")
 skeleton = NodePath("")
 surface_material_override/0 = SubResource("StandardMaterial3D_x84g2")
@@ -113,3 +108,11 @@ surface_material_override/0 = SubResource("StandardMaterial3D_x84g2")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6595248, 0)
 mesh = SubResource("PlaneMesh_bx8n8")
 surface_material_override/0 = SubResource("StandardMaterial3D_5iqjx")
+
+[node name="SpinBlurShadow" type="Node3D" parent="." unique_id=1058098548 node_paths=PackedStringArray("spin_blur", "target_mesh_instance")]
+process_priority = 2
+script = ExtResource("6_i6kot")
+spin_blur = NodePath("../SpinBlur")
+target_mesh_instance = NodePath("../Node3D2/Node3D/PropellerMeshCorrected")
+angle_subdivisions = 50
+metadata/_custom_type_script = "uid://805bnh5nljjn"

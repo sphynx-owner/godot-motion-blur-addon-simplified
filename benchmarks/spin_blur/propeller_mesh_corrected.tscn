@@ -2,7 +2,7 @@
 
 [ext_resource type="ArrayMesh" uid="uid://btx823mebm20k" path="res://benchmarks/spin_blur/PropellerMeshCorrected.obj" id="1_tbxl8"]
 [ext_resource type="Script" uid="uid://djkmewposiph4" path="res://addons/sphynx's_spin_blur_toolkit/spin_blur.gd" id="2_lwe6v"]
-[ext_resource type="Script" uid="uid://b32snseqio5u5" path="res://addons/sphynx's_spin_blur_toolkit/classes/spin_mesh.gd" id="3_4dflr"]
+[ext_resource type="Script" uid="uid://b32snseqio5u5" path="res://addons/sphynx's_spin_blur_toolkit/spin_mesh.gd" id="3_4dflr"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x84g2"]
 albedo_color = Color(0, 1, 1, 1)

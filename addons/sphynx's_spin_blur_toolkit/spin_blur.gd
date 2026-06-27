@@ -143,6 +143,10 @@ var _past_global_transform: Transform3D
 
 var _debug_material: ShaderMaterial
 
+var _rotation_vector_cache: Vector3
+
+var _rotation_speed_cache: float
+
 
 func _enter_tree() -> void:
 	SpinBlurHelpers.register_spin_blur(self)
@@ -325,7 +329,7 @@ func _update_enveloping_node() -> void:
 	
 	var target_transform : Transform3D = target.global_transform
 	
-	var target_rotation_vector : Vector3 = target_transform.orthonormalized().basis * target_rotation_axis
+	_rotation_vector_cache = target_transform.orthonormalized().basis * target_rotation_axis
 	
 	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
@@ -338,19 +342,19 @@ func _update_enveloping_node() -> void:
 	
 	var centered_angle: float = difference_quat.get_angle() - PI
 	
-	var angle: float = (PI - abs(centered_angle)) * abs(target_rotation_vector.dot(difference_quat.get_axis()))
+	var angle: float = (PI - abs(centered_angle)) * abs(_rotation_vector_cache.dot(difference_quat.get_axis()))
 	
 	if !Engine.is_editor_hint() and target.has_method("_get_rotation_speed"):
 		angle = target._get_rotation_speed()
 	
-	var rotation_speed: float = angle \
+	_rotation_speed_cache = angle \
 	if override_rotation_speed == 0.0 or !Engine.is_editor_hint() \
 	else override_rotation_speed
 	
 	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"rotation_speed", 
-		rotation_speed
+		_rotation_speed_cache
 	)
 	
 	_set_shader_parameter_recursive(
@@ -359,20 +363,20 @@ func _update_enveloping_node() -> void:
 		blur_intensity,
 	)
 	
-	if abs(rotation_speed) > activation_speed_threshold_upper:
+	if abs(_rotation_speed_cache) > activation_speed_threshold_upper:
 		_target_set_layers_recursive(target, _layer_mask)
 		
 	else:
 		_target_set_layers_recursive(target, layers_to_revert | _layer_mask)
 	
-	if abs(rotation_speed) > activation_speed_threshold_lower or (draw_debug and Engine.is_editor_hint()):
+	if abs(_rotation_speed_cache) > activation_speed_threshold_lower or (draw_debug and Engine.is_editor_hint()):
 		visible = true
 		
 	else:
 		visible = false
 	
 	var fade_in_coef: float = clamp(
-		(abs(rotation_speed) - activation_speed_threshold_lower) / \
+		(abs(_rotation_speed_cache) - activation_speed_threshold_lower) / \
 		max(0.0001, activation_speed_threshold_upper - activation_speed_threshold_lower), 
 		0, 
 		1
@@ -390,7 +394,7 @@ func _update_enveloping_node() -> void:
 	
 	var alignment_quaternion : Quaternion = \
 	Quaternion(_enveloping_node.global_basis.orthonormalized() \
-	* target_rotation_axis, target_rotation_vector)
+	* target_rotation_axis, _rotation_vector_cache)
 	
 	_enveloping_node.global_basis = \
 	Basis(alignment_quaternion) * _enveloping_node.global_basis;

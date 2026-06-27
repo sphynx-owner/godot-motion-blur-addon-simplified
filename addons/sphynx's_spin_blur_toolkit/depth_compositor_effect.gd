@@ -50,7 +50,7 @@ func _initialize_compute() -> void:
 	if not rd:
 		return
 	
-	var shader_file: RDShaderFile = load("res://addons/sphynx's_spin_blur_toolkit/compositor/depth_compositor_compute.glsl")
+	var shader_file: RDShaderFile = load("res://addons/sphynx's_spin_blur_toolkit/depth_compositor_compute.glsl")
 	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
 	
 	shader = rd.shader_create_from_spirv(shader_spirv)
