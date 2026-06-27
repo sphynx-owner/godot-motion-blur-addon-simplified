@@ -62,7 +62,8 @@ func _create_new_mesh_instance() -> MeshInstance3D:
 	
 	new_mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 	
-	new_mesh_instance.set_surface_override_material(0, target_mesh_instance.get_surface_override_material(0))
+	for i in target_mesh_instance.get_surface_override_material_count():
+		new_mesh_instance.set_surface_override_material(i, target_mesh_instance.get_surface_override_material(i))
 	
 	new_mesh_instance.set_meta(SHADOW_MESH_INSTANCE_META, true)
 	
