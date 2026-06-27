@@ -29,7 +29,7 @@ script = ExtResource("6_vubds")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x84g2"]
 transparency = 3
-alpha_hash_scale = 1.0
+alpha_hash_scale = 0.01
 alpha_antialiasing_mode = 0
 albedo_color = Color(0, 1, 1, 1)
 metallic = 0.1
@@ -88,18 +88,19 @@ script = ExtResource("5_i6kot")
 target = NodePath("../Node3D2/Node3D")
 target_rotation_axis = Vector3(0, 0, 1)
 enveloping_mesh = SubResource("ArrayMesh_i6kot")
+override_rotation_speed = 0.35
 metadata/_custom_type_script = "uid://djkmewposiph4"
 
 [node name="Node3D2" type="Node3D" parent="." unique_id=823281834]
 transform = Transform3D(-4.3711385e-08, 0, -1, 0, 0.99999994, 0, 0.99999994, 0, -4.371139e-08, 0, 0, 0)
-visible = false
 
 [node name="Node3D" type="Node3D" parent="Node3D2" unique_id=263094491]
+transform = Transform3D(0.99999934, 0, 0, 0, 0.99999934, 0, 0, 0, 1, 0, 0, 0)
 script = ExtResource("4_x84g2")
 
 [node name="PropellerMeshCorrected" type="MeshInstance3D" parent="Node3D2/Node3D" unique_id=239604944]
 transform = Transform3D(-4.3711387e-10, 0, 0.009999998, 0, 0.009999998, 0, -0.01, 0, -4.371138e-10, 0, 0, 0)
-layers = 5
+layers = 4
 mesh = ExtResource("2_x84g2")
 skeleton = NodePath("")
 surface_material_override/0 = SubResource("StandardMaterial3D_x84g2")
@@ -114,5 +115,5 @@ process_priority = 2
 script = ExtResource("6_i6kot")
 spin_blur = NodePath("../SpinBlur")
 target_mesh_instance = NodePath("../Node3D2/Node3D/PropellerMeshCorrected")
-angle_subdivisions = 50
+subdivisions = 60
 metadata/_custom_type_script = "uid://805bnh5nljjn"

@@ -4,7 +4,7 @@ var speed: float = 0
 
 
 func _process(delta: float) -> void:
-	speed += Input.get_axis("Decrease", "Increase") * delta * 1000
+	speed += Input.get_axis("Decrease", "Increase") * 0.5
 	
 	rotation.z += delta * speed
 

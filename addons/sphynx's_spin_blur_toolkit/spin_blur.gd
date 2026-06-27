@@ -147,6 +147,8 @@ var _rotation_vector_cache: Vector3
 
 var _rotation_speed_cache: float
 
+var _fade_in_coef_cache: float
+
 
 func _enter_tree() -> void:
 	SpinBlurHelpers.register_spin_blur(self)
@@ -375,7 +377,7 @@ func _update_enveloping_node() -> void:
 	else:
 		visible = false
 	
-	var fade_in_coef: float = clamp(
+	_fade_in_coef_cache = clamp(
 		(abs(_rotation_speed_cache) - activation_speed_threshold_lower) / \
 		max(0.0001, activation_speed_threshold_upper - activation_speed_threshold_lower), 
 		0, 
@@ -385,7 +387,7 @@ func _update_enveloping_node() -> void:
 	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"fade_in", 
-		fade_in_coef
+		_fade_in_coef_cache
 	)
 	
 	_past_global_transform = target_transform

@@ -6,9 +6,7 @@ extends Node3D
 
 @export var target_mesh_instance: MeshInstance3D
 
-@export var angle_subdivisions: int = 20
-
-@export var max_angle: float = 0
+@export var subdivisions: int = 20
 
 @export var material_override: Material
 
@@ -29,20 +27,25 @@ func _update_meshes() -> void:
 	if !spin_blur or !spin_blur.target or !target_mesh_instance:
 		return
 	
-	var angle_interval: float = TAU / angle_subdivisions
+	var angle_interval: float = TAU / subdivisions
 	
-	var symmetry_mesh_count: int = floor((abs(spin_blur._rotation_speed_cache) / 2.0) / angle_interval)
+	var symmetry_mesh_count: int = floor((min(abs(spin_blur._rotation_speed_cache), TAU) / 2.0) / angle_interval)
 	
 	_create_new_mesh_instance().global_transform = target_mesh_instance.global_transform
 	
 	for i in symmetry_mesh_count:
-		_create_new_mesh_instance().global_transform = target_mesh_instance.global_transform.rotated(spin_blur._rotation_vector_cache, angle_interval * (i + 1))
-		_create_new_mesh_instance().global_transform = target_mesh_instance.global_transform.rotated(spin_blur._rotation_vector_cache, -angle_interval * (i + 1))
-	
-	print(_mesh_instances.size())
+		var angle: float = angle_interval * (i + 1)
+		
+		var new_mesh_1: MeshInstance3D = _create_new_mesh_instance()
+		new_mesh_1.global_position = target_mesh_instance.global_position
+		new_mesh_1.global_basis = target_mesh_instance.global_basis.rotated(spin_blur._rotation_vector_cache, angle)
+		
+		var new_mesh_2: MeshInstance3D = _create_new_mesh_instance()
+		new_mesh_2.global_position = target_mesh_instance.global_position
+		new_mesh_2.global_basis = target_mesh_instance.global_basis.rotated(spin_blur._rotation_vector_cache, -angle)
 	
 	for mesh: MeshInstance3D in _mesh_instances:
-		mesh.transparency = 1.0 - (1.0 / _mesh_instances.size())
+		mesh.transparency = 1.0 - (spin_blur._fade_in_coef_cache / _mesh_instances.size())
 
 
 func _create_new_mesh_instance() -> MeshInstance3D:
@@ -50,7 +53,7 @@ func _create_new_mesh_instance() -> MeshInstance3D:
 	
 	new_mesh_instance.mesh = target_mesh_instance.mesh
 	
-	#new_mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+	new_mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 	
 	new_mesh_instance.set_surface_override_material(0, target_mesh_instance.get_surface_override_material(0))
 	
