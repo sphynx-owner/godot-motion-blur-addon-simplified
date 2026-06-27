@@ -60,9 +60,14 @@ var _activation_threshold_setter_gate := false
 ## Applied in terms of rotation_speed * screen_height_fraction_offset * rolling_shutter_amount.
 @export var rolling_shutter_amount: float = 0.0
 
+@export_subgroup("lighting", "lighting_")
+## When [code]true[/code], it will invoke [method capture_lighting] automatically when
+## ready.
+@export var lighting_capture_on_ready: bool = false
+
 ## A tool button to detect lighting-related nodes and ensure they are visible under
 ## [member reserved_render_layer] render layer.
-@export_tool_button("Capture Lighting") var _capture_lighting = capture_lighting
+@export_tool_button("Capture Lighting") var lighting_capture = capture_lighting
 
 ## The enveloping mesh is what makes the spin blur possible. It is a mesh that tightly
 ## encapsulates the space the target mesh sweeps through as it rotates. You can generate
@@ -208,6 +213,9 @@ func _ready() -> void:
 	_update_depth_texture()
 	_update_enveloping_mesh()
 	_update_enabled()
+	
+	if !Engine.is_editor_hint() and lighting_capture_on_ready:
+		capture_lighting.call_deferred()
 
 
 func _process(delta: float) -> void:

@@ -15,7 +15,7 @@ var SHADOW_MESH_INSTANCE_META: StringName = &"spin_blur_shadow_mesh_instance"
 
 @export var subdivisions: int = 20
 
-@export var material_override: Material
+@export_flags_3d_render var render_layers: int = 1
 
 var _mesh_instances: Array[MeshInstance3D]
 
@@ -36,7 +36,7 @@ func _update_meshes() -> void:
 	
 	var angle_interval: float = TAU / subdivisions
 	
-	var symmetry_mesh_count: int = floor((min(abs(spin_blur._rotation_speed_cache), TAU) / 2.0) / angle_interval)
+	var symmetry_mesh_count: int = floor((min(abs(spin_blur._rotation_speed_cache * spin_blur.blur_intensity), TAU) / 2.0) / angle_interval)
 	
 	_create_new_mesh_instance().global_transform = target_mesh_instance.global_transform
 	
@@ -66,6 +66,8 @@ func _create_new_mesh_instance() -> MeshInstance3D:
 		new_mesh_instance.set_surface_override_material(i, target_mesh_instance.get_surface_override_material(i))
 	
 	new_mesh_instance.set_meta(SHADOW_MESH_INSTANCE_META, true)
+	
+	new_mesh_instance.layers = render_layers
 	
 	add_child(new_mesh_instance)
 	
