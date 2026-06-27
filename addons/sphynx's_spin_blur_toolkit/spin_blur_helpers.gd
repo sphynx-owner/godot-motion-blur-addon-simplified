@@ -92,6 +92,8 @@ static func initialize_new_render_layer(parent_viewport: Viewport, layer: int) -
 	
 	new_camera.compositor.compositor_effects = [DepthCompositorEffect.new()]
 	
+	new_camera.compositor.compositor_effects[0].effect_callback_type = CompositorEffect.EffectCallbackType.EFFECT_CALLBACK_TYPE_POST_TRANSPARENT
+	
 	new_viewport.add_child.call_deferred(new_camera)
 
 

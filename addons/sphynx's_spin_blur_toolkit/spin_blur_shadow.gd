@@ -45,7 +45,7 @@ func _update_meshes() -> void:
 		new_mesh_2.global_basis = target_mesh_instance.global_basis.rotated(spin_blur._rotation_vector_cache, -angle)
 	
 	for mesh: MeshInstance3D in _mesh_instances:
-		mesh.transparency = 1.0 - (spin_blur._fade_in_coef_cache / _mesh_instances.size())
+		mesh.transparency = 1.0 - (spin_blur._fade_in_coef_cache * (1.0 - target_mesh_instance.transparency) / _mesh_instances.size())
 
 
 func _create_new_mesh_instance() -> MeshInstance3D:
