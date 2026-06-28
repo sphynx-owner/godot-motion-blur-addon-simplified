@@ -339,12 +339,14 @@ func _update_enveloping_node() -> void:
 	
 	var target_transform : Transform3D = target.global_transform
 	
-	_rotation_vector_cache = target_transform.orthonormalized().basis * target_rotation_axis
+	var normalized_target_rotation_axis: Vector3 = target_rotation_axis.normalized()
+	
+	_rotation_vector_cache = target_transform.orthonormalized().basis * normalized_target_rotation_axis
 	
 	_set_shader_parameter_recursive(
 		_enveloping_node.material_override,
 		"local_rotation_axis",
-		 target_rotation_axis
+		 normalized_target_rotation_axis
 	)
 	
 	var difference_quat: Quaternion = Quaternion(target_transform.basis.get_rotation_quaternion() \
@@ -404,7 +406,7 @@ func _update_enveloping_node() -> void:
 	
 	var alignment_quaternion : Quaternion = \
 	Quaternion(_enveloping_node.global_basis.orthonormalized() \
-	* target_rotation_axis, _rotation_vector_cache)
+	* normalized_target_rotation_axis, _rotation_vector_cache)
 	
 	_enveloping_node.global_basis = \
 	Basis(alignment_quaternion) * _enveloping_node.global_basis;
