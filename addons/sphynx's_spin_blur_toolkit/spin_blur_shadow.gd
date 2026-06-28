@@ -8,7 +8,7 @@ var SHADOW_MESH_INSTANCE_META: StringName = &"spin_blur_shadow_mesh_instance"
 
 @export var target_mesh_instance: MeshInstance3D:
 	get():
-		if !target_mesh_instance and spin_blur.target is MeshInstance3D:
+		if !target_mesh_instance and spin_blur and spin_blur.target is MeshInstance3D:
 			return spin_blur.target
 		
 		return target_mesh_instance
