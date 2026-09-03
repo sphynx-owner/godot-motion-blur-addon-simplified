@@ -1,3 +1,5 @@
+**Godot 4.7 users** there's now a new and improved [Godot Motion Blur Addon](https://github.com/sphynx-owner/Godot-Motion-Blur-Addon) you can use.
+
 Sphynx's Simplified Motion Blur Toolkit
 =====================================
 
